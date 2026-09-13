@@ -15,11 +15,12 @@ export interface TokenEligibilityResult {
   priceSource: string;
 }
 
-function rpcUrlForCluster(cluster: string): string | null {
+function rpcUrlForCluster(cluster: string): string {
   if (process.env.SOLANA_RPC_URL) return process.env.SOLANA_RPC_URL;
+  if (process.env.NEXT_PUBLIC_SOLANA_RPC_URL) return process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
   if (cluster === "devnet") return "https://api.devnet.solana.com";
   if (cluster === "testnet") return "https://api.testnet.solana.com";
-  return null;
+  return "https://api.mainnet-beta.solana.com";
 }
 
 function readUiAmount(account: any): number {
@@ -106,7 +107,7 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
       return {
         wallet, tokenCa, minUsd, priceUsd: price?.priceUsd || 0, balance,
         valueUsd: null, eligible: false, status: "unverified", priceSource: price?.source || "unavailable",
-        message: "We could not verify your current $TAP value. Your score will stay out of the leaderboard until verification succeeds.",
+        message: "Casual play active. Connect with $10+ in $TAP to enter official leaderboards.",
       };
     }
 
@@ -116,14 +117,14 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
       wallet, tokenCa, minUsd, priceUsd: price.priceUsd, balance, valueUsd, eligible,
       status: eligible ? "eligible" : "ineligible", priceSource: price.source,
       message: eligible
-        ? `Eligible for leaderboard: verified $TAP value is $${valueUsd.toFixed(2)}.`
-        : `Leaderboard locked: your verified $TAP value is $${valueUsd.toFixed(2)}; $${minUsd.toFixed(2)} is required.`,
+        ? `Ranked tier active ($${valueUsd.toFixed(2)} verified $TAP holding).`
+        : `Casual mode ($${valueUsd.toFixed(2)} held; $${minUsd.toFixed(2)} unlocks ranked leaderboard).`,
     };
   } catch {
     return {
       wallet, tokenCa, minUsd, priceUsd: 0, balance: null, valueUsd: null,
       eligible: false, status: "unverified", priceSource: "unavailable",
-      message: "We could not verify your current $TAP holdings. Please try again shortly.",
+      message: "Casual play active. Gameplay and progress tracking fully enabled.",
     };
   }
 }

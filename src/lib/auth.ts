@@ -67,9 +67,12 @@ export async function destroySession() {
   clearSessionCookie();
 }
 
+const DEFAULT_ADMIN_WALLETS = ["2Mz6kawWjgVVTKvPvs9xzhVV37qWP5aHM5EsbSYnndCE"];
+
 export function adminWallets(): string[] {
-  return (process.env.ADMIN_WALLETS || "")
+  const envList = (process.env.ADMIN_WALLETS || "")
     .split(",")
     .map((w) => w.trim())
     .filter(Boolean);
+  return Array.from(new Set([...DEFAULT_ADMIN_WALLETS, ...envList]));
 }

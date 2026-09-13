@@ -806,6 +806,16 @@ button { min-height: 40px; }
   display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--line-soft); border-radius: 9px; background: rgba(7,13,10,.42); margin-bottom: 12px;
 }
 .wallet-signing { color: var(--gold); }
+.wallet-notice {
+  background: rgba(242, 181, 60, 0.08);
+  border: 1px solid rgba(242, 181, 60, 0.28);
+  color: var(--cream);
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  text-align: center;
+}
 .wallet-requirement { flex-direction: column; gap: 2px; margin-top: 13px; }
 .wallet-requirement b { color: var(--gold); font-size: 12px; }
 .wallet-requirement span { font-size: 12px; color: var(--muted); }

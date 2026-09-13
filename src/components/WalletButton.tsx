@@ -96,11 +96,6 @@ export function WalletButton() {
       await refreshMe();
       closeWalletModal();
       setPhase("idle");
-
-      const verified = await checkEligibility();
-      if (verified && !verified.eligible && verified.status === "ineligible") {
-        setEligibility(verified);
-      }
     } catch (e: any) {
       setPhase("error");
       setError(e?.message?.toLowerCase()?.includes("reject") ? "Signature request was rejected in the wallet." : e?.message || "Connection failed.");
@@ -140,29 +135,40 @@ export function WalletButton() {
             <div className="modal-body">
               {me?.walletAddress ? (
                 <>
-                  <p className="sub" style={{ marginTop: 0 }}>Your wallet is connected and your game identity is linked to it.</p>
+                  <p className="sub" style={{ marginTop: 0 }}>Your wallet is securely linked to your game profile.</p>
                   <div className="field">
-                    <label>Connected wallet</label>
+                    <label>Connected Wallet</label>
                     <div className="wallet-pill mono">{me.walletAddress}</div>
                   </div>
                   <div className="wallet-status-card">
                     <span className="dot" style={{ background: "var(--green)" }} />
-                    <div><b>Connected</b><div className="sub">Signature-only authentication. No funds are moved.</div></div>
+                    <div>
+                      <b>Connected & Verified</b>
+                      <div className="sub">Gasless signature authentication active.</div>
+                    </div>
+                    {me?.role === "admin" && (
+                      <span className="chip" style={{ marginLeft: "auto", background: "rgba(242,181,60,0.16)", borderColor: "var(--gold)", color: "var(--gold)" }}>
+                        Admin
+                      </span>
+                    )}
                   </div>
                   <button className="btn btn-ghost btn-block" onClick={disconnect}>Disconnect</button>
                 </>
               ) : (
                 <>
-                  <p className="sub" style={{ marginTop: 0 }}>Connect a Solana wallet to play, save your progress, join competitions, and verify $TAP eligibility.</p>
-                  {error && <div className="error-box">{error}</div>}
+                  <p className="sub" style={{ marginTop: 0 }}>Select your Solana wallet to link your account, save progress, and participate in competitions.</p>
+                  {error && <div className="wallet-notice">{error}</div>}
                   {WALLETS.map((wallet) => (
                     <button key={wallet.id} className="wallet-opt" disabled={phase === "connecting" || phase === "signing"} onClick={() => connect(wallet)}>
                       <span className="wicon" style={{ background: wallet.color }}>{wallet.letter}</span>
                       <span>{wallet.name}</span><span className="arrow">→</span>
                     </button>
                   ))}
-                  {phase === "signing" && <p className="sub wallet-signing">Approve the signature request in your wallet…</p>}
-                  <div className="wallet-requirement"><b>$TAP leaderboard access</b><span>Leaderboard eligibility requires a verified wallet holding at least $10 worth of $TAP.</span></div>
+                  {phase === "signing" && <p className="sub wallet-signing">Please confirm the request in your wallet…</p>}
+                  <div className="wallet-requirement">
+                    <b>✦ Competitive Rankings Tier</b>
+                    <span>Holding $10+ in $TAP qualifies your high scores for official leaderboard prizes. Everyone can play and enjoy casual runs.</span>
+                  </div>
                 </>
               )}
             </div>
