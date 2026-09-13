@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 96">
+  <!-- RED CANDLE — hazard. Bearish chart-candle with X / warning marks + menacing glow -->
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff5a4d" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ff5a4d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e74c3c"/><stop offset="1" stop-color="#b02718"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="30" cy="48" rx="28" ry="42" fill="url(#glow)"/>
+  <!-- wick -->
+  <rect x="28" y="10" width="4" height="76" rx="2" fill="#7a150c"/>
+  <!-- flame -->
+  <path d="M30 2 q7 8 0 16 q-7 -8 0 -16 z" fill="#ffd0c8"/>
+  <path d="M30 6 q4 5 0 10 q-4 -5 0 -10 z" fill="#ff8a70"/>
+  <!-- candle body -->
+  <rect x="16" y="30" width="28" height="44" rx="5" fill="url(#body)" stroke="#7a150c" stroke-width="2"/>
+  <!-- X hazard iconography -->
+  <path d="M23 40 L30 47 L37 40 L41 44 L34 51 L41 58 L37 62 L30 55 L23 62 L19 58 L26 51 L19 44 Z" fill="#ffe9e6"/>
+  <!-- crack -->
+  <path d="M20 66 l5 4 l-3 3 M40 64 l-4 5 l4 3" stroke="#7a150c" stroke-width="2" fill="none"/>
+  <!-- base plate -->
+  <ellipse cx="30" cy="80" rx="16" ry="4" fill="#5c0f08"/>
+</svg>

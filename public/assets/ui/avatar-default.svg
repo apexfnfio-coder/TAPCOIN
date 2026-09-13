@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- Default avatar: $TAP ape face in dark circle -->
+  <circle cx="48" cy="48" r="46" fill="#1b2620" stroke="#f2b53c" stroke-width="3"/>
+  <ellipse cx="48" cy="54" rx="24" ry="22" fill="#5b4632"/>
+  <circle cx="27" cy="54" r="7" fill="#43331f"/>
+  <circle cx="69" cy="54" r="7" fill="#43331f"/>
+  <circle cx="27" cy="54" r="3" fill="#8a6a4e"/>
+  <circle cx="69" cy="54" r="3" fill="#8a6a4e"/>
+  <ellipse cx="48" cy="62" rx="14" ry="11" fill="#a87f58"/>
+  <ellipse cx="48" cy="59" rx="3" ry="2" fill="#3a2c1c"/>
+  <path d="M41 67 q7 4 14 0" stroke="#3a2c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <ellipse cx="40" cy="50" rx="4.5" ry="5" fill="#fff"/>
+  <circle cx="41" cy="51" r="2.4" fill="#20180f"/>
+  <ellipse cx="56" cy="50" rx="4.5" ry="5" fill="#fff"/>
+  <circle cx="57" cy="51" r="2.4" fill="#20180f"/>
+  <path d="M34 44 l11 1 M52 44 l11 -1" stroke="#2e2416" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M26 46 q-2 -24 22 -24 q24 0 22 20 l-7 2 q-18 -8 -33 0 z" fill="#14161a"/>
+  <path d="M66 40 q14 0 18 5 q-9 4 -20 2 z" fill="#14161a"/>
+  <text x="47" y="36" font-family="Arial Black, Arial" font-size="9" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+</svg>

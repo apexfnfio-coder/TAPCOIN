@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+  <!-- Tree state 1: FULL HP — lush conifer -->
+  <defs>
+    <linearGradient id="fol" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f8f5f"/><stop offset="1" stop-color="#276644"/>
+    </linearGradient>
+    <linearGradient id="fol2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#357a50"/><stop offset="1" stop-color="#1f5739"/>
+    </linearGradient>
+    <linearGradient id="trk" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5f3c"/><stop offset="0.5" stop-color="#6e4a2f"/><stop offset="1" stop-color="#54382a"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="100" cy="248" rx="60" ry="8" fill="#000" opacity="0.22"/>
+  <!-- trunk -->
+  <path d="M88 250 L92 150 q8 -6 16 0 L112 250 q-12 6 -24 0 z" fill="url(#trk)"/>
+  <path d="M95 240 q3 -30 2 -60 M105 245 q-2 -35 0 -65" stroke="#4a3020" stroke-width="2" fill="none" opacity="0.6"/>
+  <!-- roots -->
+  <path d="M90 244 q-14 4 -20 10 M110 244 q14 4 20 10" stroke="#54382a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- foliage layers -->
+  <path d="M100 6 L140 66 L118 62 L150 116 L124 110 L156 168 L100 152 L44 168 L76 110 L50 116 L82 62 L60 66 Z" fill="url(#fol2)"/>
+  <path d="M100 16 L132 64 L112 60 L140 106 L116 100 L144 150 L100 136 L56 150 L84 100 L60 106 L88 60 L68 64 Z" fill="url(#fol)"/>
+  <path d="M100 30 L122 62 L106 58 L128 92 L108 87 L130 124 L100 114 L70 124 L92 87 L72 92 L94 58 L78 62 Z" fill="#4aa06a"/>
+  <!-- highlights -->
+  <path d="M84 56 q-8 10 -12 20 M74 96 q-8 8 -12 18 M88 130 q-6 8 -10 16" stroke="#67bd85" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+</svg>

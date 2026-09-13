@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+  <!-- Tree state 5: DESTROYED — fresh stump with rings + fallen chips -->
+  <defs>
+    <linearGradient id="trk" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5f3c"/><stop offset="0.5" stop-color="#6e4a2f"/><stop offset="1" stop-color="#54382a"/>
+    </linearGradient>
+    <radialGradient id="top" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#e8cfa0"/><stop offset="1" stop-color="#c8a875"/>
+    </radialGradient>
+  </defs>
+  <ellipse cx="100" cy="248" rx="56" ry="8" fill="#000" opacity="0.22"/>
+  <!-- stump -->
+  <path d="M78 246 L80 206 q20 -10 40 0 L122 246 q-22 8 -44 0 z" fill="url(#trk)"/>
+  <ellipse cx="100" cy="207" rx="21" ry="8" fill="url(#top)"/>
+  <!-- growth rings -->
+  <ellipse cx="100" cy="207" rx="15" ry="5.5" fill="none" stroke="#a87f4e" stroke-width="1.5"/>
+  <ellipse cx="100" cy="207" rx="9" ry="3.2" fill="none" stroke="#a87f4e" stroke-width="1.2"/>
+  <ellipse cx="100" cy="207" rx="3.5" ry="1.4" fill="#b08b55"/>
+  <!-- splinters on rim -->
+  <path d="M82 204 l-4 -8 M92 200 l-2 -9 M110 201 l3 -9 M118 206 l5 -7" stroke="#e8d0a0" stroke-width="2" stroke-linecap="round"/>
+  <!-- bark texture -->
+  <path d="M86 240 q2 -12 1 -22 M114 240 q-2 -12 -1 -22" stroke="#4a3020" stroke-width="2" fill="none" opacity="0.6"/>
+  <!-- roots -->
+  <path d="M82 242 q-12 3 -18 8 M118 242 q12 3 18 8" stroke="#54382a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <!-- wood chips scattered -->
+  <rect x="52" y="238" width="9" height="4" rx="1.5" fill="#d8b98a" transform="rotate(18 56 240)"/>
+  <rect x="134" y="240" width="8" height="4" rx="1.5" fill="#c8a875" transform="rotate(-22 138 242)"/>
+  <rect x="146" y="232" width="7" height="3" rx="1.5" fill="#d8b98a" transform="rotate(30 149 233)"/>
+  <rect x="42" y="246" width="7" height="3" rx="1.5" fill="#c8a875" transform="rotate(-12 45 247)"/>
+  <!-- few leaves settling -->
+  <circle cx="60" cy="226" r="2.5" fill="#3f8f5f"/>
+  <circle cx="142" cy="222" r="2" fill="#4aa06a"/>
+</svg>

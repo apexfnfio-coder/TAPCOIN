@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 720" preserveAspectRatio="xMidYMid slice">
+  <!-- Layer 0: sky, distant mountain, waterfall, clouds -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7ec8e3"/><stop offset="0.55" stop-color="#a8dcc8"/><stop offset="1" stop-color="#d8efd8"/>
+    </linearGradient>
+    <linearGradient id="mtn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9db8c4"/><stop offset="1" stop-color="#6d8a9a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="720" fill="url(#sky)"/>
+  <!-- sun glow -->
+  <circle cx="1180" cy="130" r="120" fill="#fff8d8" opacity="0.5"/>
+  <circle cx="1180" cy="130" r="55" fill="#fffbe8" opacity="0.9"/>
+  <!-- clouds -->
+  <g fill="#ffffff" opacity="0.85">
+    <ellipse cx="300" cy="110" rx="90" ry="26"/><ellipse cx="360" cy="96" rx="60" ry="22"/><ellipse cx="240" cy="98" rx="50" ry="18"/>
+    <ellipse cx="800" cy="70" rx="70" ry="20"/><ellipse cx="850" cy="58" rx="45" ry="16"/>
+    <ellipse cx="1400" cy="180" rx="80" ry="22"/><ellipse cx="1460" cy="168" rx="50" ry="16"/>
+  </g>
+  <!-- distant mountains -->
+  <path d="M0 460 L240 240 L420 400 L620 200 L820 420 L1000 260 L1200 440 L1400 300 L1600 460 L1600 720 L0 720 Z" fill="url(#mtn)" opacity="0.75"/>
+  <!-- snow caps -->
+  <path d="M620 200 L580 250 L600 242 L620 262 L645 240 L662 252 Z" fill="#f4f8fa"/>
+  <path d="M240 240 L212 278 L228 270 L242 286 L258 268 L270 278 Z" fill="#f4f8fa"/>
+  <path d="M1000 260 L972 296 L988 290 L1002 304 L1018 288 L1030 296 Z" fill="#f4f8fa"/>
+  <!-- waterfall -->
+  <path d="M606 262 q6 80 -4 150 q-3 40 4 70 l28 0 q-8 -70 -2 -140 q4 -50 -4 -80 z" fill="#cfeef2" opacity="0.85"/>
+  <path d="M616 270 q2 90 -2 180" stroke="#ffffff" stroke-width="4" opacity="0.7"/>
+  <ellipse cx="620" cy="486" rx="40" ry="10" fill="#e8f6f8" opacity="0.8"/>
+  <!-- distant tree line -->
+  <path d="M0 500 q100 -30 200 -12 q120 -26 240 -8 q140 -24 280 -6 q150 -20 300 -4 q160 -18 320 -2 q130 -14 260 0 L1600 720 L0 720 Z" fill="#5a8a72" opacity="0.8"/>
+</svg>

@@ -1,0 +1,144 @@
+// $TAP — data model
+// Local dev: SQLite. Production: switch provider to "postgresql" and set DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  avatar        String   @default("/assets/ui/avatar-default.png")
+  walletAddress String?  @unique
+  isGuest       Boolean  @default(true)
+  role          String   @default("user") // user | admin
+  status        String   @default("active") // active | suspended
+  bestScore     Int      @default(0)
+  totalRuns     Int      @default(0)
+  totalTrees    Int      @default(0)
+  totalGreen    Int      @default(0)
+  totalRedHits  Int      @default(0)
+  totalPlayMs   Int      @default(0)
+  createdAt     DateTime @default(now())
+  lastSeenAt    DateTime @default(now())
+
+  sessions         Session[]
+  runs             Run[]
+  competitionRows  CompetitionEntry[]
+  competitionsMade Competition[]       @relation("CompetitionCreator")
+  audits           AuditLog[]          @relation("AuditActor")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip        String   @default("")
+  userAgent String   @default("")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AuthNonce {
+  id        String   @id @default(cuid())
+  wallet    String
+  nonce     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([wallet])
+}
+
+model Run {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  competitionId String?
+  competition   Competition? @relation(fields: [competitionId], references: [id], onDelete: SetNull)
+  gameSlug      String   @default("tap-chimp")
+  level         Int      @default(1)
+  targetTrees   Int      @default(0)
+  progress      Int      @default(0)
+  endedBy       String   @default("completed") // completed | failed | quit
+  score         Int
+  trees         Int
+  green         Int
+  redHits       Int      @default(0)
+  durationMs    Int
+  valid         Boolean  @default(true)
+  flags         String   @default("") // comma-separated rejection reasons
+  clientVersion String   @default("")
+  createdAt     DateTime @default(now())
+
+  @@index([gameSlug, createdAt, score])
+  @@index([gameSlug, valid, createdAt])
+  @@index([createdAt, score])
+  @@index([userId, createdAt])
+  @@index([competitionId, score])
+  @@index([valid, createdAt])
+}
+
+model Competition {
+  id          String   @id @default(cuid())
+  gameSlug    String   @default("tap-chimp")
+  name        String
+  description String   @default("")
+  rules       String   @default("")
+  status      String   @default("scheduled") // scheduled | live | ended | archived
+  startsAt    DateTime
+  endsAt      DateTime
+  rewardJson  String   @default("{}")
+  createdById String?
+  createdBy   User?    @relation("CompetitionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  runs    Run[]
+  entries CompetitionEntry[]
+
+  @@index([gameSlug, status])
+}
+
+model CompetitionEntry {
+  id            String   @id @default(cuid())
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bestScore     Int      @default(0)
+  bestTrees     Int      @default(0)
+  runs          Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([competitionId, userId])
+  @@index([competitionId, bestScore])
+}
+
+model Config {
+  key         String   @id
+  value       String   // JSON
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action    String
+  target    String   @default("")
+  meta      String   @default("{}")
+  ip        String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}

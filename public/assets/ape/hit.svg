@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+  <!-- $TAP Ape — hit reaction (knocked back) -->
+  <defs>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b4632"/><stop offset="1" stop-color="#43331f"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#1b2025"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="56" cy="132" rx="30" ry="6" fill="#000" opacity="0.25"/>
+  <g transform="rotate(-12 60 90)">
+    <path d="M48 106 l-6 18 q-2 5 3 6 l7 1 q4 0 4 -5 l3 -19 z" fill="url(#fur)"/>
+    <path d="M66 106 l4 18 q1 5 5 5 l7 0 q4 -1 3 -5 l-4 -18 z" fill="url(#fur)"/>
+    <ellipse cx="44" cy="129" rx="9" ry="4" fill="#2e2416"/>
+    <ellipse cx="72" cy="130" rx="9" ry="4" fill="#2e2416"/>
+    <path d="M38 66 q-4 26 4 44 q18 8 36 0 q8 -18 4 -44 q-22 -10 -44 0 z" fill="url(#hood)"/>
+    <text x="58" y="92" font-family="Arial Black, Arial" font-size="11" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+    <!-- axe dropped -->
+    <g transform="rotate(70 30 110)">
+      <rect x="26" y="80" width="6" height="50" rx="3" fill="#7a5230"/>
+      <path d="M22 76 q12 -7 21 2 q-2 10 -10 12 q-9 1 -11 -14 z" fill="#b9c4cc" stroke="#7f8b94" stroke-width="1.5"/>
+    </g>
+    <!-- arms flailing -->
+    <path d="M76 68 q14 -6 20 -18" stroke="#5b4632" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M40 68 q-14 -4 -22 -14" stroke="#4a3a2a" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <circle cx="97" cy="48" r="7" fill="#6b5440"/>
+    <circle cx="17" cy="52" r="6" fill="#6b5440"/>
+    <ellipse cx="62" cy="42" rx="25" ry="23" fill="url(#fur)"/>
+    <circle cx="40" cy="44" r="7" fill="#43331f"/>
+    <circle cx="40" cy="44" r="3.5" fill="#8a6a4e"/>
+    <ellipse cx="71" cy="50" rx="15" ry="12" fill="#a87f58"/>
+    <ellipse cx="76" cy="47" rx="3" ry="2" fill="#3a2c1c"/>
+    <path d="M64 58 q8 -3 14 2" stroke="#3a2c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- X eyes (dazed) -->
+    <path d="M59 36 l8 8 M67 36 l-8 8" stroke="#20180f" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M75 36 l8 8 M83 36 l-8 8" stroke="#20180f" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M38 36 q0 -22 25 -22 q22 0 22 18 l-6 2 q-20 -8 -37 0 z" fill="#14161a"/>
+    <path d="M80 30 q16 0 22 6 q-10 5 -24 3 z" fill="#14161a"/>
+    <text x="61" y="27" font-family="Arial Black, Arial" font-size="10" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+  </g>
+  <!-- impact stars -->
+  <circle cx="100" cy="24" r="3" fill="#ffd25e"/>
+  <circle cx="110" cy="36" r="2" fill="#ffd25e"/>
+  <circle cx="92" cy="12" r="2" fill="#ffd25e"/>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140">
+  <!-- $TAP Ape — chop wind-up (axe raised high) -->
+  <defs>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b4632"/><stop offset="1" stop-color="#43331f"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#1b2025"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="62" cy="132" rx="30" ry="6" fill="#000" opacity="0.25"/>
+  <path d="M48 106 l-3 20 q-1 5 4 5 l7 0 q4 0 3 -5 l-2 -20 z" fill="url(#fur)"/>
+  <path d="M66 106 l2 20 q1 5 5 5 l7 0 q4 -1 3 -5 l-3 -20 z" fill="url(#fur)"/>
+  <ellipse cx="50" cy="130" rx="9" ry="4" fill="#2e2416"/>
+  <ellipse cx="76" cy="130" rx="9" ry="4" fill="#2e2416"/>
+  <path d="M38 66 q-4 26 4 44 q18 8 36 0 q8 -18 4 -44 q-22 -10 -44 0 z" fill="url(#hood)"/>
+  <text x="58" y="92" font-family="Arial Black, Arial" font-size="11" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+  <!-- axe raised overhead -->
+  <g transform="rotate(38 70 52)">
+    <rect x="66" y="2" width="7" height="66" rx="3" fill="#7a5230"/>
+    <path d="M62 -4 q14 -8 24 2 q-2 12 -12 14 q-10 1 -12 -16 z" fill="#b9c4cc" stroke="#7f8b94" stroke-width="1.5"/>
+    <path d="M80 -6 q6 4 6 10" stroke="#e8eef2" stroke-width="2" fill="none" opacity="0.7"/>
+  </g>
+  <!-- both arms up gripping -->
+  <path d="M74 64 q16 -10 22 -26" stroke="#5b4632" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <path d="M44 66 q10 -16 26 -24" stroke="#4a3a2a" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="96" cy="36" r="7" fill="#6b5440"/>
+  <circle cx="72" cy="40" r="6" fill="#6b5440"/>
+  <ellipse cx="62" cy="42" rx="25" ry="23" fill="url(#fur)"/>
+  <circle cx="40" cy="44" r="7" fill="#43331f"/>
+  <circle cx="40" cy="44" r="3.5" fill="#8a6a4e"/>
+  <ellipse cx="71" cy="50" rx="15" ry="12" fill="#a87f58"/>
+  <ellipse cx="76" cy="47" rx="3" ry="2" fill="#3a2c1c"/>
+  <path d="M64 57 q8 3 15 -1" stroke="#3a2c1c" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- focused eyes -->
+  <ellipse cx="63" cy="41" rx="5" ry="4" fill="#fff"/>
+  <circle cx="65" cy="41" r="2.6" fill="#20180f"/>
+  <ellipse cx="79" cy="41" rx="4.5" ry="4" fill="#fff"/>
+  <circle cx="81" cy="41" r="2.3" fill="#20180f"/>
+  <path d="M57 35 l12 1 M74 35 l10 -2" stroke="#2e2416" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M38 36 q0 -22 25 -22 q22 0 22 18 l-6 2 q-20 -8 -37 0 z" fill="#14161a"/>
+  <path d="M80 30 q16 0 22 6 q-10 5 -24 3 z" fill="#14161a"/>
+  <text x="61" y="27" font-family="Arial Black, Arial" font-size="10" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+</svg>

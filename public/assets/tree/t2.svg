@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+  <!-- Tree state 2: DAMAGED — notch in trunk, some foliage loss -->
+  <defs>
+    <linearGradient id="fol" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f8f5f"/><stop offset="1" stop-color="#276644"/>
+    </linearGradient>
+    <linearGradient id="fol2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#357a50"/><stop offset="1" stop-color="#1f5739"/>
+    </linearGradient>
+    <linearGradient id="trk" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5f3c"/><stop offset="0.5" stop-color="#6e4a2f"/><stop offset="1" stop-color="#54382a"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="100" cy="248" rx="60" ry="8" fill="#000" opacity="0.22"/>
+  <!-- trunk with axe notch -->
+  <path d="M88 250 L92 150 q8 -6 16 0 L112 250 q-12 6 -24 0 z" fill="url(#trk)"/>
+  <path d="M92 196 L112 184 L112 202 L92 210 Z" fill="#d8b98a"/>
+  <path d="M94 198 L110 189 M94 205 L110 196" stroke="#a87f4e" stroke-width="2"/>
+  <path d="M95 240 q3 -24 2 -40 M105 245 q-2 -22 0 -38" stroke="#4a3020" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M90 244 q-14 4 -20 10 M110 244 q14 4 20 10" stroke="#54382a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- slightly thinned foliage -->
+  <path d="M100 6 L138 66 L117 62 L148 114 L123 109 L154 164 L100 150 L46 164 L78 109 L52 114 L83 62 L62 66 Z" fill="url(#fol2)"/>
+  <path d="M100 16 L130 64 L111 60 L138 104 L115 99 L142 146 L100 134 L58 146 L86 99 L62 104 L89 60 L70 64 Z" fill="url(#fol)"/>
+  <path d="M100 30 L120 62 L105 58 L126 90 L107 86 L128 120 L100 111 L72 120 L94 86 L74 90 L96 58 L80 62 Z" fill="#4aa06a"/>
+  <path d="M84 56 q-8 10 -12 20 M88 124 q-6 8 -10 16" stroke="#67bd85" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <!-- loose falling leaves -->
+  <circle cx="150" cy="180" r="3" fill="#4aa06a"/>
+  <circle cx="42" cy="190" r="2.5" fill="#3f8f5f"/>
+  <circle cx="158" cy="210" r="2" fill="#357a50"/>
+</svg>

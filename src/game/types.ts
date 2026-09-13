@@ -1,0 +1,59 @@
+import type { GameSlug } from "@/modules/games/core/game.types";
+
+export type RunEndReason = "completed" | "failed" | "quit";
+
+export interface RunResult {
+  gameSlug: GameSlug;
+  level: number;
+  targetTrees: number;
+  progress: number;
+  score: number;
+  trees: number;
+  green: number;
+  redHits: number;
+  durationMs: number;
+  endedBy: RunEndReason;
+}
+
+export interface HudState {
+  gameSlug: GameSlug;
+  level: number;
+  score: number;
+  timeLeft: number;
+  trees: number;
+  targetTrees: number;
+  progress: number;
+  green: number;
+  redHits: number;
+  treeHpPct: number | null;
+}
+
+export interface GameBridge {
+  onHud: (h: HudState) => void;
+  onEnd: (r: RunResult) => void;
+  onReady: () => void;
+}
+
+export const touchInput = { left: false, right: false };
+
+export interface GameOptions {
+  runDurationSec: number;
+  treeHp: number;
+  chopIntervalMs: number;
+  pointsPerTree: number;
+  pointsPerGreen: number;
+  redHitPenaltySec: number;
+  redHitScorePenalty: number;
+  playerSpeed: number;
+  treeSpacingMin: number;
+  treeSpacingMax: number;
+  candleChanceGreen: number;
+  candleChanceRed: number;
+  maxDurationSec: number;
+  defaultGameSlug: GameSlug;
+  levelGoalBase: number;
+  levelGoalGrowth: number;
+  difficultyGrowth: number;
+  maxLevelDurationSec: number;
+  initialLevel?: number;
+}

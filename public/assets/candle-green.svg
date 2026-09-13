@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 96">
+  <!-- GREEN CANDLE — reward. Bullish chart-candle with up arrow + glow -->
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#4dff9d" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#4dff9d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3ddc84"/><stop offset="1" stop-color="#1fa85c"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="30" cy="48" rx="28" ry="42" fill="url(#glow)"/>
+  <!-- wick -->
+  <rect x="28" y="10" width="4" height="76" rx="2" fill="#0f7a44"/>
+  <!-- flame -->
+  <path d="M30 2 q7 8 0 16 q-7 -8 0 -16 z" fill="#baffd9"/>
+  <path d="M30 6 q4 5 0 10 q-4 -5 0 -10 z" fill="#fff"/>
+  <!-- candle body -->
+  <rect x="16" y="30" width="28" height="44" rx="5" fill="url(#body)" stroke="#0f7a44" stroke-width="2"/>
+  <!-- up arrow iconography -->
+  <path d="M30 38 L38 50 L33 50 L33 64 L27 64 L27 50 L22 50 Z" fill="#eafff3"/>
+  <!-- base plate -->
+  <ellipse cx="30" cy="80" rx="16" ry="4" fill="#0c5c33"/>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 720" preserveAspectRatio="none">
+  <!-- Layer 2: mid-distance trees and bushes (parallax 0.5) -->
+  <defs>
+    <linearGradient id="mfol" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2e5d47"/><stop offset="1" stop-color="#1e4534"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <!-- trunked pines -->
+    <g fill="url(#mfol)">
+      <path d="M140 720 L140 340 L80 340 L128 230 L98 230 L140 130 L182 230 L152 230 L200 340 L140 340 Z"/>
+      <path d="M520 720 L520 320 L452 320 L506 200 L472 200 L520 96 L568 200 L534 200 L588 320 L520 320 Z"/>
+      <path d="M940 720 L940 350 L882 350 L930 240 L900 240 L940 146 L980 240 L950 240 L998 350 L940 350 Z"/>
+      <path d="M1330 720 L1330 330 L1266 330 L1318 214 L1286 214 L1330 112 L1374 214 L1342 214 L1394 330 L1330 330 Z"/>
+    </g>
+    <g fill="#4a3020">
+      <rect x="132" y="560" width="16" height="160"/>
+      <rect x="512" y="540" width="18" height="180"/>
+      <rect x="932" y="570" width="16" height="150"/>
+      <rect x="1322" y="550" width="18" height="170"/>
+    </g>
+    <!-- bushes -->
+    <g fill="#24503f">
+      <ellipse cx="300" cy="660" rx="110" ry="70"/>
+      <ellipse cx="700" cy="680" rx="140" ry="60"/>
+      <ellipse cx="1100" cy="665" rx="120" ry="65"/>
+      <ellipse cx="1520" cy="675" rx="120" ry="60"/>
+    </g>
+    <g fill="#2e6b4f" opacity="0.8">
+      <ellipse cx="280" cy="640" rx="60" ry="35"/>
+      <ellipse cx="730" cy="660" rx="70" ry="30"/>
+      <ellipse cx="1080" cy="645" rx="55" ry="32"/>
+    </g>
+  </g>
+</svg>

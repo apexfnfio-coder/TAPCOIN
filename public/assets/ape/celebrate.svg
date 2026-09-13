@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+  <!-- $TAP Ape — celebration (both fists up) -->
+  <defs>
+    <linearGradient id="fur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b4632"/><stop offset="1" stop-color="#43331f"/>
+    </linearGradient>
+    <linearGradient id="hood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3138"/><stop offset="1" stop-color="#1b2025"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="60" cy="132" rx="30" ry="6" fill="#000" opacity="0.25"/>
+  <!-- jumping legs -->
+  <path d="M48 104 l-10 14 q-3 5 2 7 l7 2 q4 1 5 -4 l6 -17 z" fill="url(#fur)"/>
+  <path d="M68 104 l10 14 q3 5 -2 7 l-7 2 q-4 1 -5 -4 l-6 -17 z" fill="url(#fur)"/>
+  <ellipse cx="40" cy="124" rx="9" ry="4" fill="#2e2416"/>
+  <ellipse cx="80" cy="124" rx="9" ry="4" fill="#2e2416"/>
+  <path d="M38 64 q-4 26 4 44 q18 8 36 0 q8 -18 4 -44 q-22 -10 -44 0 z" fill="url(#hood)"/>
+  <path d="M46 90 q14 8 28 0 l-2 12 q-12 6 -24 0 z" fill="#16191d"/>
+  <text x="60" y="84" font-family="Arial Black, Arial" font-size="11" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+  <!-- arms straight up -->
+  <path d="M76 62 q14 -12 16 -30" stroke="#5b4632" stroke-width="11" fill="none" stroke-linecap="round"/>
+  <path d="M44 62 q-14 -12 -16 -30" stroke="#4a3a2a" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="93" cy="29" r="7" fill="#6b5440"/>
+  <circle cx="27" cy="29" r="6" fill="#6b5440"/>
+  <ellipse cx="62" cy="42" rx="25" ry="23" fill="url(#fur)"/>
+  <circle cx="40" cy="44" r="7" fill="#43331f"/>
+  <circle cx="40" cy="44" r="3.5" fill="#8a6a4e"/>
+  <ellipse cx="71" cy="50" rx="15" ry="12" fill="#a87f58"/>
+  <ellipse cx="76" cy="47" rx="3" ry="2" fill="#3a2c1c"/>
+  <!-- big happy open smile -->
+  <path d="M63 54 q9 8 17 0 q-2 8 -8.5 8 q-6.5 0 -8.5 -8 z" fill="#3a2c1c"/>
+  <!-- happy closed eyes -->
+  <path d="M58 40 q4 -4 9 0 M74 40 q4 -4 9 0" stroke="#20180f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M38 36 q0 -22 25 -22 q22 0 22 18 l-6 2 q-20 -8 -37 0 z" fill="#14161a"/>
+  <path d="M80 30 q16 0 22 6 q-10 5 -24 3 z" fill="#14161a"/>
+  <text x="61" y="27" font-family="Arial Black, Arial" font-size="10" font-weight="900" fill="#f2b53c" text-anchor="middle">$TAP</text>
+  <!-- confetti sparks -->
+  <path d="M14 14 l4 4 M104 12 l-4 4 M20 8 l2 5 M100 22 l-5 2" stroke="#ffd25e" stroke-width="2" stroke-linecap="round"/>
+</svg>

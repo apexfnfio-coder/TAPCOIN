@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260">
+  <!-- Tree state 3: CRACKED — deep wedge cut, leaning, sparse foliage -->
+  <defs>
+    <linearGradient id="fol" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f8f5f"/><stop offset="1" stop-color="#276644"/>
+    </linearGradient>
+    <linearGradient id="trk" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5f3c"/><stop offset="0.5" stop-color="#6e4a2f"/><stop offset="1" stop-color="#54382a"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="100" cy="248" rx="60" ry="8" fill="#000" opacity="0.22"/>
+  <g transform="rotate(4 100 240)">
+    <!-- trunk with deep wedge -->
+    <path d="M88 250 L92 150 q8 -6 16 0 L112 250 q-12 6 -24 0 z" fill="url(#trk)"/>
+    <path d="M90 188 L114 172 L114 200 L90 214 Z" fill="#d8b98a"/>
+    <path d="M92 191 L112 178 M92 200 L112 187 M92 209 L112 196" stroke="#a87f4e" stroke-width="2"/>
+    <!-- crack lines running up -->
+    <path d="M100 172 l-4 -18 l5 -14 M104 174 l3 -16" stroke="#3a2415" stroke-width="2.5" fill="none"/>
+    <path d="M95 240 q3 -16 2 -26 M105 245 q-2 -14 0 -24" stroke="#4a3020" stroke-width="2" fill="none" opacity="0.6"/>
+    <path d="M90 244 q-14 4 -20 10 M110 244 q14 4 20 10" stroke="#54382a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- sparse foliage -->
+    <path d="M100 8 L134 64 L114 60 L144 110 L120 105 L148 158 L100 145 L52 158 L82 105 L56 110 L86 60 L64 64 Z" fill="#2c6b47"/>
+    <path d="M100 20 L126 62 L108 58 L132 100 L112 95 L136 140 L100 129 L64 140 L88 95 L66 100 L92 58 L74 62 Z" fill="url(#fol)"/>
+    <path d="M100 34 L118 60 L104 57 L122 86 L106 82 L124 114 L100 106 L76 114 L94 82 L78 86 L96 57 L82 60 Z" fill="#4aa06a"/>
+  </g>
+  <!-- falling leaves + chips -->
+  <circle cx="150" cy="180" r="3" fill="#4aa06a"/>
+  <circle cx="40" cy="196" r="2.5" fill="#3f8f5f"/>
+  <circle cx="160" cy="216" r="2" fill="#357a50"/>
+  <circle cx="52" cy="222" r="2" fill="#4aa06a"/>
+  <rect x="128" y="228" width="7" height="3" rx="1" fill="#d8b98a" transform="rotate(24 131 229)"/>
+  <rect x="64" y="234" width="6" height="3" rx="1" fill="#c8a875" transform="rotate(-18 67 235)"/>
+</svg>
