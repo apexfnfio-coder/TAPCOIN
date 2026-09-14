@@ -132,10 +132,10 @@ export const strings = {
   pointsPerTreeValue: "100 pts / tree",
   levelMultiplier: "Level multiplier",
   levelMultiplierValue: "1.2× per level",
-  claimCadence: "Claim cadence",
-  claimCadenceValue: "Every 24 hours",
+  claimCadence: "Prize Distribution",
+  claimCadenceValue: "Monthly Season (10% Dev Treasury Pool)",
   rewardsBackendNotice:
-    "Rewards Pool: Daily community distributions are calculated based on verified leaderboard scores and eligible $TAP token holdings.",
+    "Prize Pool: 10% of the entire official dev treasury wallet is awarded to top ranked leaderboard players at the conclusion of every monthly season.",
 
   // Sound & Accessibility
   soundToggle: "Toggle game sound",

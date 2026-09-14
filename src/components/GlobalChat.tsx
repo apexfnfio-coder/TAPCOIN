@@ -38,6 +38,7 @@ export function GlobalChat({ docked = false }: GlobalChatProps) {
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<number>(3);
   const chatMessagesWrapRef = useRef<HTMLDivElement>(null);
 
   const walletConnected = Boolean(me && !me.isGuest && me.walletAddress);
@@ -57,6 +58,9 @@ export function GlobalChat({ docked = false }: GlobalChatProps) {
         const data = await res.json();
         if (Array.isArray(data.messages)) {
           setMessages(data.messages);
+        }
+        if (typeof data.onlineCount === "number") {
+          setOnlineUsers(data.onlineCount);
         }
       }
     } catch (err) {
@@ -150,7 +154,12 @@ export function GlobalChat({ docked = false }: GlobalChatProps) {
           <div className="telemetry-brand">
             <span className="chat-live-pulse" />
             <div className="telemetry-titles">
-              <span className="telemetry-tag">ARCADE TELEMETRY</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span className="telemetry-tag">ARCADE TELEMETRY</span>
+                <span className="online-users-badge" style={{ background: "rgba(0, 255, 163, 0.15)", border: "1px solid rgba(0, 255, 163, 0.4)", color: "var(--green)", fontSize: 10, padding: "1px 6px", borderRadius: 10, fontWeight: 700 }}>
+                  🟢 {onlineUsers} ONLINE
+                </span>
+              </div>
               <span className="telemetry-main-title">COMMAND STATION</span>
             </div>
           </div>
@@ -359,7 +368,7 @@ export function GlobalChat({ docked = false }: GlobalChatProps) {
             <div className="chat-header-left">
               <span className="chat-live-pulse" />
               <span className="chat-title">DEGENS TROLLBOX</span>
-              <span className="chat-online-badge">REAL-TIME</span>
+              <span className="chat-online-badge" style={{ color: "var(--green)" }}>🟢 {onlineUsers} ONLINE</span>
             </div>
             <div className="chat-header-actions">
               <button

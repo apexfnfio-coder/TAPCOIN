@@ -9,6 +9,7 @@ import { audit } from "@/lib/audit";
 import { publish } from "@/lib/hub";
 import { DEFAULT_GAME_SLUG, isKnownGameSlug } from "@/modules/games/core/game-registry";
 import { cumulativeMaxDurationSec } from "@/modules/games/tap-chimp";
+import { checkSeasonAccess } from "@/lib/season";
 
 const Submit = z.object({
   gameSlug: z.string().max(40).optional(),
@@ -41,6 +42,14 @@ export async function POST(req: Request) {
 
   const cfg = await getConfig();
   const verdict = verifyRun(body, cfg.game);
+
+  // Anti-cheat & paywall enforcement: Require 0.01 SOL monthly season pass (admins exempt)
+  const seasonAccess = checkSeasonAccess(user);
+  if (!seasonAccess.hasAccess) {
+    verdict.valid = false;
+    verdict.flags.push("UNPAID_SEASON");
+  }
+
   const eligibility = await evaluateTokenEligibility(user.walletAddress, cfg);
   if (cfg.leaderboardEligibility.enabled && cfg.leaderboardEligibility.state === "requires-token" && !eligibility.eligible) {
     verdict.valid = false;

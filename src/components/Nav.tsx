@@ -30,9 +30,18 @@ export function Nav() {
   const { me, config } = useApp();
   const [open, setOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [prizePool, setPrizePool] = useState<number | null>(null);
 
   useEffect(() => {
     setIsMuted(sound.isMuted());
+    fetch("/api/treasury/pool", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (j?.ok && typeof j.data?.prizePoolSol === "number") {
+          setPrizePool(j.data.prizePoolSol);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const toggleSound = () => {
@@ -104,6 +113,16 @@ export function Nav() {
               <span className="sound-icon">{isMuted ? "🔇" : "🔊"}</span>
             </button>
 
+            {prizePool !== null && (
+              <div
+                className="prize-pool-nav-pill"
+                title="10% Dev Treasury Monthly Prize Pool (Calculated Live from Solana Mainnet)"
+              >
+                <span className="prize-pool-nav-label">🏆 10% POOL:</span>
+                <span className="prize-pool-nav-val">{prizePool.toFixed(4)} SOL</span>
+              </div>
+            )}
+
             <WalletButton />
 
             {/* Phase 1.5: Distinct Transactional Buy $TAP button */}
@@ -158,6 +177,12 @@ export function Nav() {
             <span className="card-title">Menu</span>
             <button type="button" className="modal-x" onClick={() => setOpen(false)} aria-label="Close menu">✕</button>
           </div>
+          {prizePool !== null && (
+            <div className="mobile-drawer-pool">
+              <span className="mobile-drawer-pool-lbl">🏆 10% DEV POOL</span>
+              <span className="mobile-drawer-pool-val">{prizePool.toFixed(4)} SOL</span>
+            </div>
+          )}
           <Link href="/how-to-play" onClick={() => setOpen(false)}>
             📖 How to Play
           </Link>

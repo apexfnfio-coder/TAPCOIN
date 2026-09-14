@@ -14,8 +14,18 @@ export async function GET() {
     // Reverse descending results so the latest 50 messages display chronologically (oldest at top, newest at bottom)
     const chronological = messages.reverse();
 
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60_000);
+    const activeUsers = await db.user.count({
+      where: { lastSeenAt: { gte: fiveMinutesAgo } },
+    }).catch(() => 0);
+    const activeSessions = await db.session.count({
+      where: { expiresAt: { gt: new Date() } },
+    }).catch(() => 0);
+    const onlineCount = Math.max(1, Math.max(activeUsers, activeSessions));
+
     return NextResponse.json({
       ok: true,
+      onlineCount,
       messages: chronological.map((m) => ({
         id: m.id,
         sender: m.username || `${m.wallet.slice(0, 4)}…${m.wallet.slice(-4)}`,

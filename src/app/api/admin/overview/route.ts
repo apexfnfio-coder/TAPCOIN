@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { ok } from "@/lib/http";
 import { requireAdmin } from "@/lib/guard";
+import { getTreasuryPool } from "@/lib/solanaRpc";
+import { getCurrentSeason } from "@/lib/season";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -9,7 +11,9 @@ export async function GET() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const [users, usersToday, runs, runsToday, sums, liveCompetitions, flaggedRuns, recentRuns, recentAudit] =
+  const currentSeason = getCurrentSeason();
+
+  const [users, usersToday, runs, runsToday, sums, liveCompetitions, flaggedRuns, recentRuns, recentAudit, officialPlayers, pool, recentPayments] =
     await Promise.all([
       db.user.count(),
       db.user.count({ where: { createdAt: { gte: today } } }),
@@ -28,6 +32,22 @@ export async function GET() {
         take: 10,
         include: { actor: { select: { username: true } } },
       }),
+      db.user.count({
+        where: {
+          OR: [
+            { paidSeason: currentSeason },
+            { role: "admin" },
+            { accessOverride: true },
+          ],
+          status: "active",
+        },
+      }).catch(() => 0),
+      getTreasuryPool().catch(() => ({ balanceSol: 0, prizePoolSol: 0 })),
+      db.paymentTx.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { user: { select: { username: true } } },
+      }).catch(() => []),
     ]);
 
   return ok({
@@ -36,6 +56,12 @@ export async function GET() {
       runs,
       trees: sums._sum.trees || 0,
       green: sums._sum.green || 0,
+    },
+    officialPlayers,
+    season: currentSeason,
+    treasuryPool: {
+      balanceSol: Number(pool.balanceSol.toFixed(4)),
+      prizePoolSol: Number(pool.prizePoolSol.toFixed(4)),
     },
     today: { users: usersToday, runs: runsToday },
     liveCompetitions,
@@ -54,6 +80,15 @@ export async function GET() {
       valid: r.valid,
       flags: r.flags || null,
       createdAt: r.createdAt.toISOString(),
+    })),
+    recentPayments: recentPayments.map((p) => ({
+      id: p.id,
+      wallet: p.wallet,
+      username: p.user?.username || "Player",
+      amountSol: p.amountSol,
+      signature: p.signature,
+      solscanUrl: p.solscanUrl,
+      createdAt: p.createdAt.toISOString(),
     })),
     recentAudit: recentAudit.map((a) => ({
       id: a.id,

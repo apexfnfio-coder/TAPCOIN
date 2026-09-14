@@ -34,6 +34,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       totalGreen: user.totalGreen,
       totalRedHits: user.totalRedHits,
       totalPlayMs: user.totalPlayMs,
+      paidSeason: user.paidSeason,
+      accessOverride: user.accessOverride,
       createdAt: user.createdAt.toISOString(),
       lastSeenAt: user.lastSeenAt.toISOString(),
     },
@@ -54,9 +56,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 const Patch = z.object({
   status: z.enum(["active", "suspended"]).optional(),
   role: z.enum(["user", "admin"]).optional(),
+  accessOverride: z.boolean().nullable().optional(),
 });
 
-/** Admin: suspend / reactivate / role change. */
+/** Admin: suspend / reactivate / role change / access control override. */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const auth = await requireAdmin();
@@ -70,15 +73,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   } catch {
     return fail(400, "BAD_INPUT", "Malformed request.");
   }
-  if (!patch.status && !patch.role) return fail(400, "BAD_INPUT", "Nothing to update.");
+  if (!patch.status && !patch.role && patch.accessOverride === undefined) return fail(400, "BAD_INPUT", "Nothing to update.");
 
   const target = await db.user.findUnique({ where: { id } });
   if (!target) return fail(404, "NOT_FOUND", "User not found.");
-  if (target.id === admin.id) return fail(400, "SELF_ACTION", "You cannot modify your own account.");
+  if (target.id === admin.id && patch.status) return fail(400, "SELF_ACTION", "You cannot suspend your own account.");
 
   const updated = await db.user.update({
     where: { id: target.id },
-    data: { ...(patch.status ? { status: patch.status } : {}), ...(patch.role ? { role: patch.role } : {}) },
+    data: {
+      ...(patch.status ? { status: patch.status } : {}),
+      ...(patch.role ? { role: patch.role } : {}),
+      ...(patch.accessOverride !== undefined ? { accessOverride: patch.accessOverride } : {}),
+    },
   });
 
   // suspension kills all live sessions
@@ -88,9 +95,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   await audit("ADMIN_USER_UPDATED", {
     actorId: admin.id,
     target: target.id,
-    meta: { before: { status: target.status, role: target.role }, after: patch },
+    meta: { before: { status: target.status, role: target.role, accessOverride: target.accessOverride }, after: patch },
     ip,
   });
 
-  return ok({ user: { id: updated.id, status: updated.status, role: updated.role } });
+  return ok({
+    user: {
+      id: updated.id,
+      status: updated.status,
+      role: updated.role,
+      accessOverride: updated.accessOverride,
+      paidSeason: updated.paidSeason,
+    },
+  });
 }

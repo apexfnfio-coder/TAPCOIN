@@ -44,6 +44,8 @@ export async function GET(req: Request) {
       bestScore: u.bestScore,
       totalRuns: u.totalRuns,
       totalTrees: u.totalTrees,
+      paidSeason: u.paidSeason,
+      accessOverride: u.accessOverride,
       runsRecorded: u._count.runs,
       competitions: u._count.competitionRows,
       createdAt: u.createdAt.toISOString(),

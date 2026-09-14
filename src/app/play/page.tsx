@@ -26,6 +26,7 @@ import { strings } from "@/i18n/strings";
 import { sound } from "@/lib/sound";
 import { LiveTicker } from "@/components/LiveTicker";
 import { GlobalChat } from "@/components/GlobalChat";
+import { SeasonPassModal } from "@/components/SeasonPassModal";
 
 type Phase = "lobby" | "playing" | "results";
 
@@ -59,6 +60,13 @@ export default function PlayPage() {
 
   // Live global trees count wired dynamically from /api/stats/home
   const [globalWeeklyTrees, setGlobalWeeklyTrees] = useState<number>(142850);
+  const [treasuryPool, setTreasuryPool] = useState<{
+    prizePoolSol: number;
+    balanceSol: number;
+    officialPlayersCount: number;
+    season: string;
+  } | null>(null);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
 
   useEffect(() => {
     fetch("/api/stats/home", { cache: "no-store" })
@@ -66,6 +74,15 @@ export default function PlayPage() {
       .then((json) => {
         if (json?.ok && typeof json.data?.totals?.trees === "number") {
           setGlobalWeeklyTrees(json.data.totals.trees);
+        }
+      })
+      .catch(() => {});
+
+    fetch("/api/treasury/pool", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json?.ok && json.data) {
+          setTreasuryPool(json.data);
         }
       })
       .catch(() => {});
@@ -125,13 +142,27 @@ export default function PlayPage() {
       openWalletModal();
       return;
     }
+
+    // Admins bypass season payment check
+    if (me.role !== "admin") {
+      try {
+        const accessRes = await fetch("/api/access/status", { cache: "no-store" }).then((r) => r.json());
+        if (!accessRes?.data?.hasAccess) {
+          setShowSeasonModal(true);
+          return;
+        }
+      } catch {
+        // Fallback if network glitch
+      }
+    }
+
     setDemoMode(false);
     setStarting(true);
     setSubmitResult(null);
     setLocalRun(null);
     setRunKey((value) => value + 1);
     setPhase("playing");
-  }, [me?.walletAddress, openWalletModal]);
+  }, [me?.walletAddress, me?.role, openWalletModal]);
 
   const startDemoRun = useCallback(() => {
     sound.playClick();
@@ -238,6 +269,16 @@ export default function PlayPage() {
         <TutorialOverlay onComplete={() => setShowTutorial(false)} />
       )}
 
+      {/* Monthly Season Pass Modal */}
+      <SeasonPassModal
+        isOpen={showSeasonModal}
+        onClose={() => setShowSeasonModal(false)}
+        onUnlocked={() => {
+          setShowSeasonModal(false);
+          startRealRun();
+        }}
+      />
+
       {/* Real-time Arcade Activity Ticker */}
       <LiveTicker />
 
@@ -260,11 +301,21 @@ export default function PlayPage() {
           {/* Left Column: Arcade Metadata, Title, Legend, Copy, CTAs */}
           <div className="hero-col-info">
             <div className="hero-header-meta">
-              <div className="hero-badge-group">
+              <div className="hero-badge-group" style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
                 <span className="eyebrow-chip">{strings.gameTitle}</span>
                 <span className="live-status-chip">
                   <span className="live-dot" /> LIVE ON SOLANA
                 </span>
+                {treasuryPool && (
+                  <span className="pool-prize-chip" style={{ background: "rgba(0, 255, 163, 0.15)", border: "1px solid rgba(0, 255, 163, 0.4)", color: "var(--green)", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                    🏆 10% DEV POOL: {treasuryPool.prizePoolSol} SOL
+                  </span>
+                )}
+                {treasuryPool && (
+                  <span className="pool-players-chip" style={{ background: "rgba(255, 208, 0, 0.12)", border: "1px solid rgba(255, 208, 0, 0.4)", color: "var(--gold)", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                    👥 {treasuryPool.officialPlayersCount} Registered Players
+                  </span>
+                )}
               </div>
               <div className="hero-quick-prefs">
                 <button

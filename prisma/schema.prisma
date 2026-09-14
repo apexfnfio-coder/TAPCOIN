@@ -24,11 +24,14 @@ model User {
   totalGreen    Int      @default(0)
   totalRedHits  Int      @default(0)
   totalPlayMs   Int      @default(0)
+  paidSeason     String?  // e.g. "2026-09"
+  accessOverride Boolean? // true: force access, false: revoked, null: default
   createdAt     DateTime @default(now())
   lastSeenAt    DateTime @default(now())
 
   sessions         Session[]
   runs             Run[]
+  payments         PaymentTx[]
   competitionRows  CompetitionEntry[]
   competitionsMade Competition[]       @relation("CompetitionCreator")
   audits           AuditLog[]          @relation("AuditActor")
@@ -156,4 +159,24 @@ model ChatMessage {
 
   @@index([createdAt])
 }
+
+model PaymentTx {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  wallet      String
+  recipient   String   @default("95sKZtgoYZS2Qntti4DhUvPqTC6Ra5rWa7wpmiW6ojr7")
+  amountSol   Float    @default(0.01)
+  signature   String   @unique
+  season      String   // e.g. "2026-09"
+  status      String   @default("confirmed") // confirmed | pending | failed
+  solscanUrl  String
+  verifiedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([wallet])
+  @@index([season])
+  @@index([createdAt])
+}
+
 
