@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/Providers";
 
@@ -122,6 +123,10 @@ export default function LeaderboardPage() {
             <img src="/assets/ape/down.png" alt="" style={{ height: 90, opacity: 0.85 }} />
             <div className="big">No verified scores yet</div>
             <div>Connect a qualifying wallet, clear a level, and be first on this game board.</div>
+            <Link href="/play" className="btn btn-gold btn-lg" style={{ marginTop: 18, display: "inline-flex", gap: 8, alignItems: "center" }}>
+              <span>🪓</span>
+              <span>DROP IN & CLAIM #1</span>
+            </Link>
           </div>
         ) : (
           <table className="tbl">

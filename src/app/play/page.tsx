@@ -241,55 +241,16 @@ export default function PlayPage() {
         <TutorialOverlay onComplete={() => setShowTutorial(false)} />
       )}
 
-      {/* Lobby Top Controls: Colorblind mode, Sound toggle, Tutorial launcher */}
-      <div className="lobby-top-toolbar" role="toolbar" aria-label="Accessibility & Preferences">
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm toolbar-btn"
-          onClick={() => {
-            sound.playClick();
-            setShowTutorial(true);
-          }}
-          title="Open interactive rules tutorial"
-          aria-label="Open tutorial"
-        >
-          <span>📖</span>
-          <span className="toolbar-btn-text">Tutorial</span>
-        </button>
-
-        <button
-          type="button"
-          className={`btn btn-ghost btn-sm toolbar-btn ${colorblindMode ? "is-active-pref" : ""}`}
-          onClick={() => {
-            sound.playClick();
-            setColorblindMode(!colorblindMode);
-          }}
-          title={colorblindMode ? strings.colorblindOn : strings.colorblindOff}
-          aria-label={colorblindMode ? strings.colorblindOn : strings.colorblindOff}
-        >
-          <span>{colorblindMode ? "👁️‍🗨️" : "👁️"}</span>
-          <span className="toolbar-btn-text">{colorblindMode ? "Blue/Orange" : "Colorblind"}</span>
-        </button>
-
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm toolbar-btn"
-          onClick={handleSoundToggle}
-          title={soundMuted ? strings.soundOff : strings.soundOn}
-          aria-label={soundMuted ? strings.soundOff : strings.soundOn}
-        >
-          <span>{soundMuted ? "🔇" : "🔊"}</span>
-          <span className="toolbar-btn-text">{soundMuted ? "Muted" : "Sound"}</span>
-        </button>
-      </div>
-
       {/* Real-time Arcade Activity Ticker */}
       <LiveTicker />
 
-      {/* SECTION 1: HERO + VISUAL CANDLE LEGEND */}
-          <section className="lobby-hero px-hero" aria-label="Game Hero">
-            {/* Parallax background layers */}
-            <div className="px-l1" style={{ backgroundImage: "url(/assets/bg/sky.png)" }} />
+      <div className="arcade-battle-station">
+        {/* Main Battle Station Stage */}
+        <div className="battle-station-stage">
+          {/* SECTION 1: HERO + VISUAL CANDLE LEGEND */}
+      <section className="lobby-hero px-hero" aria-label="Game Hero">
+        {/* Parallax background layers */}
+        <div className="px-l1" style={{ backgroundImage: "url(/assets/bg/sky.png)" }} />
         <div className="px-l2" style={{ backgroundImage: "url(/assets/bg/far.png)" }} />
         <div className="px-l3" style={{ backgroundImage: "url(/assets/bg/mid.png)" }} />
         <div className="px-ground" style={{ backgroundImage: "url(/assets/bg/ground.png)" }} />
@@ -303,7 +264,34 @@ export default function PlayPage() {
             <img src="/assets/ape/idle.png" alt="$TAP Ape" className="float-ape lobby-ape" />
           </div>
 
-          <div className="eyebrow">{strings.gameTitle}</div>
+          <div className="hero-header-meta">
+            <div className="eyebrow" style={{ margin: 0 }}>{strings.gameTitle}</div>
+            <div className="hero-quick-prefs">
+              <button
+                type="button"
+                className="pref-pill-btn"
+                onClick={() => {
+                  sound.playClick();
+                  setShowTutorial(true);
+                }}
+                title="Open interactive rules tutorial"
+              >
+                📖 Tutorial
+              </button>
+              <button
+                type="button"
+                className={`pref-pill-btn ${colorblindMode ? "is-active" : ""}`}
+                onClick={() => {
+                  sound.playClick();
+                  setColorblindMode(!colorblindMode);
+                }}
+                title={colorblindMode ? strings.colorblindOn : strings.colorblindOff}
+              >
+                👁️ {colorblindMode ? "Cyan/Orange" : "Colorblind"}
+              </button>
+            </div>
+          </div>
+
           <h1 className="display display-lg">
             CHOP TIMBER. <span className="gold-text">RIDE THE PUMP.</span> DON'T GET REKT.
           </h1>
@@ -611,9 +599,18 @@ export default function PlayPage() {
           </div>
         </div>
       </section>
+        </div>
+
+        {/* Desktop Command Station: Live Trollbox & Top Degens Telemetry */}
+        <div className="battle-station-telemetry">
+          <GlobalChat docked />
+        </div>
+      </div>
       
-      {/* Floating Live Degens Trollbox */}
-      <GlobalChat />
+      {/* Floating Live Degens Trollbox for Mobile/Tablet Viewports */}
+      <div className="mobile-chat-wrapper">
+        <GlobalChat docked={false} />
+      </div>
 
       {/* Rewards Breakdown Modal */}
       {showRewardsModal && (

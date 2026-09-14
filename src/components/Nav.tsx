@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "./Providers";
 import { WalletButton } from "./WalletButton";
 import { strings } from "@/i18n/strings";
+import { sound } from "@/lib/sound";
 
 // Feature flag: Competitions temporarily suspended per product request (kept intact for future reactivation)
 const ENABLE_COMPETITIONS = false;
@@ -28,6 +29,16 @@ export function Nav() {
   const pathname = usePathname();
   const { me, config } = useApp();
   const [open, setOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    setIsMuted(sound.isMuted());
+  }, []);
+
+  const toggleSound = () => {
+    const next = sound.toggleMute();
+    setIsMuted(next);
+  };
 
   const isGame = pathname === "/play";
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
@@ -83,6 +94,16 @@ export function Nav() {
           </div>
 
           <div className="nav-right">
+            <button
+              type="button"
+              className="nav-sound-btn"
+              onClick={toggleSound}
+              title={isMuted ? "Unmute Audio (BGM & SFX)" : "Mute Audio"}
+              aria-label={isMuted ? "Unmute Audio" : "Mute Audio"}
+            >
+              <span className="sound-icon">{isMuted ? "🔇" : "🔊"}</span>
+            </button>
+
             <WalletButton />
 
             {/* Phase 1.5: Distinct Transactional Buy $TAP button */}

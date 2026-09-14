@@ -79,8 +79,8 @@ export class SeededTapChimpGenerator {
 export function createTapChimpLevel(level: number, cfg: GameConfig, seed?: string): LevelDefinition {
   const safeLevel = normalizeLevel(level);
   const difficulty = levelDifficulty(safeLevel, cfg);
-  const spacingMin = Math.max(260, Math.floor(cfg.treeSpacingMin - (safeLevel - 1) * 8));
-  const spacingMax = Math.max(spacingMin + 90, Math.floor(cfg.treeSpacingMax - (safeLevel - 1) * 12));
+  const spacingMin = Math.max(650, Math.floor(cfg.treeSpacingMin - (safeLevel - 1) * 8));
+  const spacingMax = Math.max(spacingMin + 120, Math.floor(cfg.treeSpacingMax - (safeLevel - 1) * 12));
   const redChance = Math.min(0.56, cfg.candleChanceRed + (safeLevel - 1) * 0.012);
   const greenChance = Math.max(0.34, cfg.candleChanceGreen - (safeLevel - 1) * 0.006);
 

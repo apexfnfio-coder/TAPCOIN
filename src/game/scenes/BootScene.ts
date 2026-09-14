@@ -68,6 +68,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("obstacle-mop", "/assets/props/mop.png");
     this.load.image("obstacle-rat", "/assets/props/rat.png");
     this.load.image("obstacle-branch", "/assets/props/branch.png");
+    this.load.image("obstacle-bear", "/assets/props/bear.png");
 
     // particles (PNG assets)
     this.load.image("p-chip", "/assets/particles/chip.png");

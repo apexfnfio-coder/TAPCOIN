@@ -1231,10 +1231,10 @@ body { min-width: 320px; }
 .site-art-backdrop {
   position: fixed;
   inset: 58px 0 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: var(--bg-0);
+  background: radial-gradient(ellipse at 50% 15%, rgba(0, 255, 163, 0.08) 0%, transparent 65%), var(--bg-0);
 }
 .site-art {
   position: absolute;
@@ -1242,12 +1242,11 @@ body { min-width: 320px; }
   background-repeat: no-repeat;
   background-position: center top;
   background-size: cover;
-  opacity: .22;
 }
-.site-art-sky   { background-image: url('/assets/bg/sky.png');   opacity: 0.42; }
-.site-art-far   { background-image: url('/assets/bg/far.png');   background-position: center 26%; opacity: 0.34; transform: scale(1.03); }
-.site-art-mid   { background-image: url('/assets/bg/mid.png');   background-position: center 42%; opacity: 0.26; transform: scale(1.04); }
-.site-art-front { background-image: url('/assets/bg/front.png'); background-position: center bottom; opacity: 0.20; }
+.site-art-sky   { background-image: url('/assets/bg/sky.png');   opacity: 0.58; }
+.site-art-far   { background-image: url('/assets/bg/far.png');   background-position: center 26%; opacity: 0.46; transform: scale(1.03); }
+.site-art-mid   { background-image: url('/assets/bg/mid.png');   background-position: center 42%; opacity: 0.38; transform: scale(1.04); }
+.site-art-front { background-image: url('/assets/bg/front.png'); background-position: center bottom; opacity: 0.28; }
 .page-main { position: relative; z-index: 1; }
 .footer { position: relative; z-index: 2; }
 
@@ -2692,21 +2691,267 @@ html, body {
 }
 
 /* ===== ARCADE LOBBY COMMAND CENTER ===== */
+/* ===== ARCADE LOBBY COMMAND CENTER ===== */
 .play-lobby {
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  max-width: 1060px;
+  gap: 20px;
+  max-width: 1340px;
   margin: 0 auto;
   position: relative;
+  width: 100%;
+}
+
+@media (min-width: 1200px) {
+  .container:not(.play-stage) {
+    max-width: 1360px;
+  }
+}
+
+.arcade-battle-station {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 370px;
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+}
+
+.battle-station-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+}
+
+.battle-station-telemetry {
+  display: block;
+  position: sticky;
+  top: 76px;
+  z-index: 20;
+}
+
+.mobile-chat-wrapper {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .play-lobby {
+    max-width: 1060px;
+    gap: 20px;
+  }
+  .arcade-battle-station {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .battle-station-stage {
+    gap: 20px;
+  }
+  .battle-station-telemetry {
+    display: none !important;
+  }
+  .mobile-chat-wrapper {
+    display: block;
+  }
 }
 
 @media (max-width: 768px) {
   .play-lobby {
-    gap: 20px;
+    gap: 16px;
     padding-left: 12px;
     padding-right: 12px;
   }
+}
+
+/* ===== DOCKED TELEMETRY & TROLLBOX PANEL ===== */
+.arcade-docked-telemetry {
+  background: rgba(14, 22, 32, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 255, 163, 0.32);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.telemetry-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(6, 9, 12, 0.7);
+  border-bottom: 1px solid rgba(0, 255, 163, 0.18);
+}
+
+.telemetry-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.telemetry-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.telemetry-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--green);
+}
+
+.telemetry-main-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--cream);
+  letter-spacing: 0.5px;
+}
+
+.telemetry-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.telemetry-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cream-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.telemetry-tab-btn:hover {
+  color: var(--cream);
+}
+
+.telemetry-tab-btn.is-active {
+  background: rgba(0, 255, 163, 0.12);
+  border-color: rgba(0, 255, 163, 0.4);
+  color: var(--green);
+  box-shadow: 0 0 10px rgba(0, 255, 163, 0.15);
+}
+
+.telemetry-feed-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+}
+
+.telemetry-messages-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.telemetry-messages-list::-webkit-scrollbar {
+  width: 4px;
+}
+.telemetry-messages-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 163, 0.25);
+  border-radius: 4px;
+}
+
+/* Tab 2: Leaderboard telemetry rows */
+.telemetry-ranks-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+}
+
+.telemetry-ranks-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.telemetry-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(20, 30, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: all 0.12s ease;
+}
+
+.telemetry-rank-row:hover {
+  background: rgba(0, 255, 163, 0.08);
+  border-color: rgba(0, 255, 163, 0.25);
+  transform: translateX(2px);
+}
+
+.telemetry-rank-num {
+  font-family: var(--font-display);
+  font-size: 14px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.rank-info-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rank-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-sub {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.rank-score-col {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.rank-score-val {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--gold);
+}
+
+.rank-score-label {
+  font-size: 9px;
+  color: var(--cream-dim);
+}
+
+.telemetry-ranks-footer {
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.telemetry-view-all-btn {
+  width: 100%;
+  justify-content: center;
 }
 
 /* Live Activity Ticker */
@@ -3257,6 +3502,73 @@ html, body {
   transition: width 0.3s ease;
 }
 
+/* Navigation Sound Toggle Button */
+.nav-sound-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-soft);
+  color: var(--cream-dim);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.nav-sound-btn:hover {
+  background: rgba(255, 208, 0, 0.12);
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: scale(1.05);
+}
+.sound-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Hero Header Meta & Quick Preference Pills */
+.hero-header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.hero-quick-prefs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pref-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: rgba(14, 22, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--cream-dim);
+  cursor: pointer;
+  transition: all 0.14s ease;
+  backdrop-filter: blur(8px);
+}
+.pref-pill-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255, 208, 0, 0.1);
+}
+.pref-pill-btn.is-active {
+  border-color: #38bdf8;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+}
+
 /* ============================================================
    CONSOLIDATED PIXEL-PERFECT MOBILE SYSTEM (<= 640px)
    ============================================================ */
@@ -3332,17 +3644,23 @@ html, body {
     font-size: 15px !important;
   }
 
-  /* Accessibility & Preferences Toolbar */
-  .lobby-top-toolbar {
-    gap: 6px !important;
-    margin-bottom: 8px !important;
+  /* Hero Header Meta & Preference Pills on Mobile */
+  .nav-sound-btn {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
   }
-  .toolbar-btn {
-    padding: 5px 8px !important;
-    font-size: 11px !important;
+  .sound-icon {
+    font-size: 14px !important;
   }
-  .toolbar-btn-text {
-    font-size: 10px !important;
+  .hero-header-meta {
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin-bottom: 4px !important;
+  }
+  .pref-pill-btn {
+    padding: 3px 8px !important;
+    font-size: 9.5px !important;
   }
 
   /* Live Activity Ticker */

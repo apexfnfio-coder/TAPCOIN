@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { strings } from "@/i18n/strings";
 import { Stat } from "./Stat";
 import { sound } from "@/lib/sound";
+import { OFFICIAL_TAP_MINT } from "@/modules/games/tap-chimp";
 
 export interface RunSubmitResponse {
   runId: string;
@@ -69,7 +70,7 @@ export function ResultsPanel({
 
   const copyShareText = () => {
     sound.playClick();
-    const text = `🪓 I chopped ${local.trees} trees and scored ${local.score.toLocaleString()} PTS on Level ${local.level} in $TAP Chop Game!\n\nCan you beat my chart climb? Play now: ${window.location.origin}/play\n#TAPCOIN #SolanaGaming`;
+    const text = `🪓 I chopped ${local.trees} trees and scored ${local.score.toLocaleString()} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nCan you beat my chart climb? Play now: ${window.location.origin}/play\n#TAPCOIN #SolanaGaming`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
@@ -78,7 +79,7 @@ export function ResultsPanel({
 
   const openTwitterShare = () => {
     sound.playClick();
-    const tweet = `🪓 Just sliced green candles & scored ${local.score.toLocaleString()} PTS on Level ${local.level} in $TAP Chop Game!\n\nDodge red, chop green. Play on Solana:\n${window.location.origin}/play`;
+    const tweet = `🪓 Just sliced green candles & scored ${local.score.toLocaleString()} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nDodge red, chop green. Play on Solana:\n${window.location.origin}/play\n#TAPCOIN $TAP`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -336,6 +337,36 @@ export function ResultsPanel({
               <div className="share-preview-score">{local.score.toLocaleString()} PTS</div>
               <div className="share-preview-details">
                 <span>LVL {local.level}</span> · <span>{local.trees} Trees</span> · <span style={{ color: "var(--green)" }}>+{local.green} Greens</span>
+              </div>
+              <div
+                className="share-preview-ca"
+                style={{
+                  marginTop: 10,
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  color: "var(--cream-dim)",
+                  background: "rgba(0,0,0,0.45)",
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(255,208,0,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 6,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  sound.playClick();
+                  navigator.clipboard.writeText(OFFICIAL_TAP_MINT);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                title="Click to copy $TAP Contract Address"
+              >
+                <span>CA: {OFFICIAL_TAP_MINT.slice(0, 6)}…{OFFICIAL_TAP_MINT.slice(-6)}</span>
+                <span style={{ color: "var(--gold)", fontSize: 10, fontWeight: 700 }}>
+                  {copied ? "✓ COPIED" : "COPY CA 📋"}
+                </span>
               </div>
             </div>
 

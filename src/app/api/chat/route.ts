@@ -83,6 +83,25 @@ export async function POST(req: Request) {
       },
     });
 
+    // Enforce rolling 50-message limit: prune older messages beyond the latest 50
+    try {
+      const totalMessages = await db.chatMessage.count();
+      if (totalMessages > 50) {
+        const excess = await db.chatMessage.findMany({
+          orderBy: { createdAt: "desc" },
+          skip: 50,
+          select: { id: true },
+        });
+        if (excess.length > 0) {
+          await db.chatMessage.deleteMany({
+            where: { id: { in: excess.map((e) => e.id) } },
+          });
+        }
+      }
+    } catch (pruneErr) {
+      console.warn("[api/chat] message pruning warning:", pruneErr);
+    }
+
     return NextResponse.json({
       message: {
         id: msg.id,

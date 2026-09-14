@@ -33,11 +33,19 @@ interface Candle {
 
 interface Obstacle {
   sprite: Phaser.GameObjects.Image;
-  kind: "mop" | "rat" | "branch";
+  kind: "mop" | "rat" | "branch" | "bear";
   x: number;
   y: number;
   speed: number;
   hit: boolean;
+}
+
+interface Chasm {
+  x1: number;
+  x2: number;
+  cleared: boolean;
+  graphics: Phaser.GameObjects.Graphics;
+  label: Phaser.GameObjects.Text;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -70,10 +78,12 @@ export class GameScene extends Phaser.Scene {
   private wasJumpDown = false;
   private isJumping = false;
   private hitStopUntil = 0;
+  private invulnerableUntil = 0;
   private layers: { tile: Phaser.GameObjects.TileSprite; factor: number }[] = [];
   private trees: Tree[] = [];
   private candles: Candle[] = [];
   private obstacles: Obstacle[] = [];
+  private chasms: Chasm[] = [];
   private nextTreeX = 1000;
   private nextCandleAt = 0;
   private lastChopAt = 0;
@@ -115,6 +125,8 @@ export class GameScene extends Phaser.Scene {
     this.trees = [];
     this.candles = [];
     this.obstacles = [];
+    this.chasms = [];
+    this.invulnerableUntil = 0;
     this.nextTreeX = 1000;
     this.nextCandleAt = 1600;
     this.lastChopAt = 0;
@@ -167,9 +179,10 @@ export class GameScene extends Phaser.Scene {
     this.keySpace = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.keyUp = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 
-    // Pre-spawn immediate obstacles along the road
-    this.spawnObstacle(750);
-    this.spawnObstacle(1180);
+    // Pre-spawn immediate chasm and obstacles in clearings along the road
+    this.spawnChasm(620);
+    this.spawnObstacle(920);
+    this.spawnObstacle(1450);
 
     this.startedAt = this.time.now;
     this.timeLeftMs = this.level.maxDurationSec * 1000;
@@ -231,13 +244,127 @@ export class GameScene extends Phaser.Scene {
     return kind === "green" ? "▲" : "▼";
   }
 
-  private spawnObstacle(x: number) {
+  private spawnChasm(x: number) {
+    const width = 180;
+    const x1 = x;
+    const x2 = x + width;
+
+    // Cutout abyss and hazard warning chevrons
+    const g = this.add.graphics().setDepth(4);
+
+    // Abyss dark void
+    g.fillStyle(0x06090c, 1);
+    g.fillRect(x1, GROUND_Y - 4, width, 180);
+
+    // Hazard red underglow at bottom of chasm
+    g.fillStyle(0xff3b30, 0.28);
+    g.fillRect(x1 + 8, GROUND_Y + 70, width - 16, 80);
+
+    // Neon hazard lip border lines
+    g.lineStyle(3, 0xffd000, 0.9);
+    g.beginPath();
+    g.moveTo(x1 - 4, GROUND_Y - 2);
+    g.lineTo(x1 + 6, GROUND_Y - 2);
+    g.moveTo(x2 - 6, GROUND_Y - 2);
+    g.lineTo(x2 + 4, GROUND_Y - 2);
+    g.strokePath();
+
+    // Red warning perimeter across the gap
+    g.lineStyle(1.5, 0xff3b30, 0.5);
+    g.beginPath();
+    g.moveTo(x1, GROUND_Y);
+    g.lineTo(x2, GROUND_Y);
+    g.strokePath();
+
+    // Floating cyber hazard indicator
+    const label = this.add.text(x1 + width / 2, GROUND_Y - 28, "⚠ JURANG ⚠", {
+      fontFamily: "Arial Black, Arial",
+      fontSize: "12px",
+      color: "#ff3b30",
+      stroke: "#06090c",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(9);
+
+    this.tweens.add({
+      targets: label,
+      scaleX: 1.1,
+      scaleY: 1.1,
+      duration: 480,
+      yoyo: true,
+      repeat: -1,
+      ease: "Sine.easeInOut",
+    });
+
+    this.chasms.push({ x1, x2, cleared: false, graphics: g, label });
+  }
+
+  private handleChasmFall(chasm: Chasm, time: number) {
+    if (time < this.invulnerableUntil) return;
+    this.invulnerableUntil = time + 900;
+
+    sound.playHit();
+    this.cameras.main.shake(160, 0.012);
+    this.redHits += 1;
+    this.score = Math.max(0, this.score - 25);
+    this.comboCount = 0;
+    this.reportHud();
+
+    if (this.showFloatText) {
+      this.floatText(this.player.x, GROUND_Y - 140, "REKT IN CHASM! -25", "#ef4444");
+    }
+
+    // Rocket bounce up and reset safely to left ledge
+    this.player.x = chasm.x1 - 45;
+    this.player.y = GROUND_Y - 40;
+    this.playerVy = -520;
+    this.isGrounded = false;
+    this.isJumping = true;
+
+    // Flash invulnerability tween
+    this.tweens.add({
+      targets: this.player,
+      alpha: 0.3,
+      duration: 100,
+      yoyo: true,
+      repeat: 3,
+      onComplete: () => {
+        this.player.alpha = 1;
+      },
+    });
+  }
+
+  private spawnObstacle(targetX: number) {
+    let x = targetX;
+    const SAFE_TREE_CLEARANCE = 220;
+
+    // Precision avoidance: Never spawn on or immediately near any living tree trunk
+    for (let i = 0; i < 5; i++) {
+      const nearTree = this.trees.find((t) => t.alive && Math.abs(t.x - x) < SAFE_TREE_CLEARANCE);
+      if (nearTree) {
+        x = nearTree.x + SAFE_TREE_CLEARANCE + 40;
+      } else {
+        break;
+      }
+    }
+
+    // Never spawn inside a chasm
+    const nearChasm = this.chasms.find((c) => x >= c.x1 - 60 && x <= c.x2 + 60);
+    if (nearChasm) {
+      x = nearChasm.x2 + 90;
+    }
+
+    // Never stack on top of another obstacle
+    const nearObs = this.obstacles.find((o) => Math.abs(o.x - x) < 160);
+    if (nearObs) {
+      x = nearObs.x + 180;
+    }
+
     const roll = this.rng.next();
-    const kind: Obstacle["kind"] = roll < 0.38 ? "rat" : roll < 0.72 ? "mop" : "branch";
+    const kind: Obstacle["kind"] = roll < 0.28 ? "rat" : roll < 0.52 ? "bear" : roll < 0.78 ? "mop" : "branch";
     const key = `obstacle-${kind}`;
-    const y = kind === "branch" ? GROUND_Y - 110 : GROUND_Y - (kind === "mop" ? 44 : 20);
+    const y = kind === "branch" ? GROUND_Y - 110 : kind === "bear" ? GROUND_Y - 48 : GROUND_Y - (kind === "mop" ? 44 : 20);
     const sprite = this.add.image(x, y, key).setDepth(8);
-    const targetHeight = kind === "branch" ? 82 : kind === "mop" ? 86 : 46;
+    const targetHeight = kind === "branch" ? 82 : kind === "bear" ? 92 : kind === "mop" ? 86 : 46;
     this.fitHeight(sprite, targetHeight);
     if (kind === "branch") {
       sprite.setAngle(this.rng.int(-12, 12));
@@ -245,11 +372,15 @@ export class GameScene extends Phaser.Scene {
     } else if (kind === "mop") {
       sprite.setAngle(this.rng.int(-8, 8));
       this.tweens.add({ targets: sprite, angle: sprite.angle + (sprite.angle > 0 ? -5 : 5), duration: 800, yoyo: true, repeat: -1 });
-    } else {
+    } else if (kind === "rat") {
       // Rat scurrying motion
       this.tweens.add({ targets: sprite, y: y - 4, duration: 180, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    } else if (kind === "bear") {
+      // Bear prowl motion (slight up and down lumbering stride)
+      this.tweens.add({ targets: sprite, y: y - 5, duration: 320, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     }
-    this.obstacles.push({ sprite, kind, x, y, speed: kind === "rat" ? this.rng.int(35, 65) : 0, hit: false });
+    const speed = kind === "rat" ? this.rng.int(40, 70) : kind === "bear" ? this.rng.int(45, 65) : 0;
+    this.obstacles.push({ sprite, kind, x, y, speed, hit: false });
   }
 
   private targetTree(): Tree | null {
@@ -412,25 +543,31 @@ export class GameScene extends Phaser.Scene {
       candle.sprite.destroy();
     }
     for (const obstacle of this.obstacles) obstacle.sprite.destroy();
+    for (const chasm of this.chasms) {
+      chasm.graphics.destroy();
+      chasm.label.destroy();
+    }
     this.trees = [];
     this.candles = [];
     this.obstacles = [];
+    this.chasms = [];
     this.levelTreeCount = 0;
     // Note: this.redHits is intentionally cumulative across the entire run (like greenCount & totalTreeCount)
     // so that client-server score verification matches total penalties.
     this.level = createTapChimpLevel(nextLevelNumber, this.opts, `${this.opts.defaultGameSlug}:${nextLevelNumber}`);
     this.rng = new SeededTapChimpGenerator(`${this.level.seed}:${Date.now()}`);
-    this.spawnTree(this.player.x + 360);
-    this.spawnTree(this.player.x + 720);
-    this.nextTreeX = this.player.x + 1080;
+    this.spawnTree(this.player.x + 850);
+    this.spawnTree(this.player.x + 1800);
+    this.nextTreeX = this.player.x + 2800;
     this.nextCandleAt = this.time.now + 1600;
     this.lastChopAt = this.time.now;
     this.timeLeftMs = this.level.maxDurationSec * 1000;
     this.state = "idle";
     this.setApeTexture("ape-idle");
     this.levelBanner();
-    this.spawnObstacle(this.player.x + 650);
-    this.spawnObstacle(this.player.x + 1120);
+    this.spawnChasm(this.player.x + 1300);
+    this.spawnObstacle(this.player.x + 480);
+    this.spawnObstacle(this.player.x + 2250);
     this.reportHud();
     this.time.delayedCall(450, () => {
       this.isAdvancingLevel = false;
@@ -623,8 +760,16 @@ export class GameScene extends Phaser.Scene {
     this.player.setAlpha(time < this.hitUntil ? (Math.floor(time / 90) % 2 === 0 ? 0.48 : 1) : 1);
 
     while (this.nextTreeX < this.player.x + VIEW_W * 1.5 && this.trees.filter((tree) => tree.alive).length < Math.max(4, this.level.targetTrees - this.levelTreeCount + 3)) {
-      this.spawnTree(this.nextTreeX);
-      this.nextTreeX += this.rng.nextTreeSpacing(this.level);
+      const treeSpacing = this.rng.nextTreeSpacing(this.level);
+      const prevTreeX = this.nextTreeX;
+      this.spawnTree(prevTreeX);
+      this.nextTreeX += treeSpacing;
+
+      // Spawn a platformer chasm in the corridor between trees
+      if (treeSpacing >= 800 && this.rng.chance(0.65)) {
+        const chasmX = prevTreeX + Math.floor(treeSpacing * 0.48);
+        this.spawnChasm(chasmX);
+      }
     }
 
     if (time > this.nextCandleAt) {
@@ -663,12 +808,125 @@ export class GameScene extends Phaser.Scene {
       if (obstacle.hit || this.state === "hit") continue;
       const dx = obstacle.sprite.x - this.player.x;
       const dy = obstacle.sprite.y - (this.player.y - 55);
-      const hitRange = obstacle.kind === "branch" ? 62 : 52;
 
-      // Jumping over ground hazards (rat, mop)
-      if (!this.isGrounded && this.player.y < obstacle.sprite.y - 20) {
+      // 1. RAT STOMP MECHANIC: Player jumps onto rat from above
+      if (obstacle.kind === "rat" && !this.isGrounded && this.playerVy > 0 && Math.abs(dx) < 55 && this.player.y <= obstacle.sprite.y + 12) {
+        obstacle.hit = true;
+        this.playerVy = -420; // Platformer rebound bounce
+        sound.playJump();
+        sound.playGreen(this.comboCount + 1);
+
+        // Stomp particle burst
+        if (this.showParticles) {
+          this.burst(obstacle.sprite.x, obstacle.sprite.y, "p-dust", 6, 120);
+        }
+
+        // Squash tween
+        this.tweens.killTweensOf(obstacle.sprite);
+        this.tweens.add({
+          targets: obstacle.sprite,
+          scaleY: 0.15,
+          scaleX: 1.4,
+          alpha: 0,
+          duration: 220,
+          ease: "Power2",
+          onComplete: () => obstacle.sprite.destroy(),
+        });
+
+        // Award green bonus points (+10)
+        this.greenCount += 1;
+        this.score += this.opts.pointsPerGreen;
+        this.lastScoreChange = this.opts.pointsPerGreen;
+        this.comboCount += 1;
+        if (this.showFloatText) {
+          this.floatText(obstacle.sprite.x, obstacle.sprite.y - 35, "+10 STOMP!", "#00FFA3");
+        }
         continue;
       }
+
+      // 2. BEAR AXE ATTACK MECHANIC: Player strikes bear with axe
+      if (obstacle.kind === "bear") {
+        const inChopRange = Math.abs(dx) < 135 && (Math.sign(dx) === this.facing || Math.abs(dx) < 70);
+        const isAttacking = this.state === "chop" || inChopRange;
+
+        if (isAttacking && this.state !== "hit") {
+          obstacle.hit = true;
+          this.state = "chop";
+          this.setApeTexture("ape-chop1");
+          this.time.delayedCall(80, () => {
+            if (this.state === "chop") this.setApeTexture("ape-chop2");
+          });
+
+          // Bear defeat impact effects
+          sound.playChop();
+          sound.playGreen(this.comboCount + 2);
+          this.cameras.main.shake(160, 0.006);
+
+          if (this.showParticles) {
+            this.burst(obstacle.sprite.x, obstacle.sprite.y - 20, "p-spark", 8, 160);
+            this.burst(obstacle.sprite.x, obstacle.sprite.y - 10, "p-chip", 6, 100);
+          }
+
+          // Defeat fell animation
+          obstacle.sprite.setTint(0xff3b30);
+          this.tweens.killTweensOf(obstacle.sprite);
+          this.tweens.add({
+            targets: obstacle.sprite,
+            x: obstacle.sprite.x + (this.facing * 75),
+            y: obstacle.sprite.y - 35,
+            angle: this.facing * 40,
+            alpha: 0,
+            duration: 350,
+            ease: "Power2",
+            onComplete: () => obstacle.sprite.destroy(),
+          });
+
+          // Drop 3 green pump candles popping out in an arc (+30 total reward)
+          for (let i = -1; i <= 1; i++) {
+            const cx = obstacle.sprite.x + i * 42;
+            const cy = obstacle.sprite.y - 45;
+            const candleSprite = this.add.image(cx, cy, "candle-green").setDepth(6);
+            this.fitHeight(candleSprite, 56);
+            const glyph = this.add.text(cx, cy - 28, "▲", {
+              fontFamily: "Arial Black",
+              fontSize: "14px",
+              color: "#00FFA3",
+            }).setOrigin(0.5).setDepth(7);
+            const candle: Candle = {
+              sprite: candleSprite,
+              kind: "green",
+              baseY: cy,
+              phase: i * 0.7,
+              taken: false,
+              glyph,
+            };
+            this.candles.push(candle);
+            this.tweens.add({
+              targets: candleSprite,
+              y: cy - 40,
+              duration: 200,
+              yoyo: true,
+              ease: "Sine.easeOut",
+            });
+          }
+
+          this.comboCount += 2;
+          if (this.showFloatText) {
+            this.floatText(obstacle.sprite.x, obstacle.sprite.y - 75, "BEAR REKT! 🐻💥", "#FFD000");
+          }
+          this.time.delayedCall(220, () => {
+            if (this.state === "chop") this.state = "idle";
+          });
+          continue;
+        }
+      }
+
+      // Jumping over ground hazards (rat, mop, bear)
+      if (!this.isGrounded && this.player.y < obstacle.sprite.y - (obstacle.kind === "bear" ? 35 : 20)) {
+        continue;
+      }
+
+      const hitRange = obstacle.kind === "branch" ? 62 : obstacle.kind === "bear" ? 68 : 52;
 
       if (Math.abs(dx) < hitRange && Math.abs(dy) < 70) {
         obstacle.hit = true;
@@ -688,10 +946,37 @@ export class GameScene extends Phaser.Scene {
         this.comboCount = 0;
         
         this.cameras.main.shake(120, 0.0045);
-        this.floatText(this.player.x, this.player.y - 160, `-${deltaPenalty}`, "#ff6a5c");
+        const hitLabel = obstacle.kind === "bear" ? `-${deltaPenalty} BEAR CLAW!` : `-${deltaPenalty}`;
+        this.floatText(this.player.x, this.player.y - 160, hitLabel, "#ff6a5c");
         this.tweens.killTweensOf(obstacle.sprite);
         this.tweens.add({ targets: obstacle.sprite, alpha: 0, x: obstacle.sprite.x + (this.player.x < obstacle.sprite.x ? 24 : -24), duration: 180, onComplete: () => obstacle.sprite.destroy() });
         this.time.delayedCall(480, () => { if (this.state === "hit") this.state = "idle"; });
+      }
+    }
+
+    // 3. Platformer Chasm ("Jurang") Mechanics: Leap vs Fall
+    for (const chasm of this.chasms) {
+      const inChasmPit = this.player.x > chasm.x1 + 25 && this.player.x < chasm.x2 - 25;
+      if (inChasmPit) {
+        // Player is over the chasm pit!
+        if (this.isGrounded || this.player.y >= GROUND_Y) {
+          this.handleChasmFall(chasm, time);
+        }
+      } else if (this.player.x >= chasm.x2 && this.player.x < chasm.x2 + 200) {
+        // Player cleared the chasm leap!
+        if (!chasm.cleared) {
+          chasm.cleared = true;
+          sound.playJump();
+          sound.playGreen(this.comboCount + 1);
+          this.greenCount += 1;
+          this.score += this.opts.pointsPerGreen;
+          this.lastScoreChange = this.opts.pointsPerGreen;
+          this.comboCount += 1;
+          if (this.showFloatText) {
+            this.floatText(chasm.x2 - 40, GROUND_Y - 80, "CLEARED CHASM! 🚀 +10", "#00FFA3");
+          }
+          this.reportHud();
+        }
       }
     }
 
@@ -716,6 +1001,14 @@ export class GameScene extends Phaser.Scene {
     this.obstacles = this.obstacles.filter((obstacle) => {
       if (obstacle.hit || obstacle.sprite.x < cullX) {
         if (obstacle.sprite.active) obstacle.sprite.destroy();
+        return false;
+      }
+      return true;
+    });
+    this.chasms = this.chasms.filter((c) => {
+      if (c.x2 < cullX) {
+        c.graphics.destroy();
+        c.label.destroy();
         return false;
       }
       return true;
