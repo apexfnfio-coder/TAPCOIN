@@ -44,16 +44,19 @@ if (process.env.SEED_DEMO === "true" && process.env.NODE_ENV !== "production") {
 const port = process.env.PORT || 3000;
 console.log(`→ [start] Launching Next.js on 0.0.0.0:${port}...`);
 
-// Spawn Next.js binary directly using Node (bypasses slow npx and avoids shell wrapping)
-const nextBin = path.join(process.cwd(), "node_modules", "next", "dist", "bin", "next");
-
-const nextProc = spawn(process.execPath, [nextBin, "start", "-H", "0.0.0.0", "-p", String(port)], {
+const nextProc = spawn("npx", ["next", "start", "-H", "0.0.0.0", "-p", String(port)], {
   stdio: "inherit",
   env: {
     ...process.env,
     PORT: String(port),
     HOSTNAME: "0.0.0.0",
   },
+  shell: true,
+});
+
+nextProc.on("error", (err) => {
+  console.error("→ [start] Failed to start Next.js process:", err);
+  process.exit(1);
 });
 
 nextProc.on("exit", (code) => {

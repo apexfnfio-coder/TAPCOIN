@@ -10,6 +10,9 @@
     "db:seed": "node prisma/seed.mjs",
     "postinstall": "prisma generate"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@prisma/client": "5.22.0",
     "@solana/web3.js": "^1.99.0",
