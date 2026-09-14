@@ -1,4 +1,4 @@
-﻿import { execSync, spawn } from "child_process";
+import { execSync, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -8,44 +8,57 @@ const isPostgres = databaseUrl.startsWith("postgres://") || databaseUrl.startsWi
 const schemaPath = path.join(process.cwd(), "prisma", "schema.prisma");
 if (fs.existsSync(schemaPath)) {
   let schemaContent = fs.readFileSync(schemaPath, "utf8");
-  if (isPostgres) {
+  if (isPostgres && schemaContent.includes('provider = "sqlite"')) {
     console.log("→ [start] PostgreSQL detected. Adapting schema provider to postgresql...");
     schemaContent = schemaContent.replace(/provider\s*=\s*"sqlite"/g, 'provider = "postgresql"');
-  } else {
-    schemaContent = schemaContent.replace(/provider\s*=\s*"postgresql"/g, 'provider = "sqlite"');
+    fs.writeFileSync(schemaPath, schemaContent, "utf8");
+    try {
+      execSync("node node_modules/prisma/build/index.js db push --accept-data-loss --skip-generate", { stdio: "inherit", env: process.env });
+    } catch (err) {
+      console.warn("⚠️ Database setup notice:", err?.message || err);
+    }
   }
-  fs.writeFileSync(schemaPath, schemaContent, "utf8");
 }
 
-const env = {
-  ...process.env,
-  DATABASE_URL: databaseUrl,
-};
-
-// Ensure database tables exist at runtime on Railway
-console.log("→ [start] Checking database status...");
-try {
-  execSync("npx prisma db push --accept-data-loss", { stdio: "inherit", env });
-} catch (err) {
-  console.warn("⚠️ Database check notice:", err?.message || err);
+// Initialize SQLite if database file doesn't exist yet
+const dbPath = path.join(process.cwd(), "prisma", "dev.db");
+const legacyDbPath = path.join(process.cwd(), "dev.db");
+if (!isPostgres && !fs.existsSync(dbPath) && !fs.existsSync(legacyDbPath)) {
+  console.log("→ [start] Initializing SQLite database schema...");
+  try {
+    execSync("node node_modules/prisma/build/index.js db push --accept-data-loss --skip-generate", { stdio: "inherit", env: process.env });
+  } catch (err) {
+    console.warn("⚠️ Database check notice:", err?.message || err);
+  }
 }
 
-// Seed initial starter runs if needed
-try {
-  execSync("node prisma/seed.mjs", { stdio: "inherit", env });
-} catch (err) {
-  // Non-fatal
+// Seed initial starter runs if needed (only in development with SEED_DEMO)
+if (process.env.SEED_DEMO === "true" && process.env.NODE_ENV !== "production") {
+  try {
+    execSync("node prisma/seed.mjs", { stdio: "inherit" });
+  } catch {
+    // Non-fatal
+  }
 }
 
 const port = process.env.PORT || 3000;
 console.log(`→ [start] Launching Next.js on 0.0.0.0:${port}...`);
 
-const nextProc = spawn("npx", ["next", "start", "-H", "0.0.0.0", "-p", String(port)], {
+// Spawn Next.js binary directly using Node (bypasses slow npx and avoids shell wrapping)
+const nextBin = path.join(process.cwd(), "node_modules", "next", "dist", "bin", "next");
+
+const nextProc = spawn(process.execPath, [nextBin, "start", "-H", "0.0.0.0", "-p", String(port)], {
   stdio: "inherit",
-  env,
-  shell: true,
+  env: {
+    ...process.env,
+    PORT: String(port),
+    HOSTNAME: "0.0.0.0",
+  },
 });
 
 nextProc.on("exit", (code) => {
   process.exit(code || 0);
 });
+
+process.on("SIGTERM", () => nextProc.kill("SIGTERM"));
+process.on("SIGINT", () => nextProc.kill("SIGINT"));

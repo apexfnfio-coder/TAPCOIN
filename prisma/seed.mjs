@@ -4,7 +4,8 @@ const db = new PrismaClient();
 
 async function main() {
   if (process.env.SEED_DEMO !== "true" || process.env.NODE_ENV === "production") {
-    throw new Error("Demo seed is disabled. Set SEED_DEMO=true in a non-production environment to continue.");
+    console.log("→ [seed] Demo seed disabled in production. Skipping.");
+    return;
   }
 
   const now = Date.now();
