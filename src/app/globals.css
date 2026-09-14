@@ -1002,7 +1002,7 @@ button { min-height: 40px; }
   .lobby-ape { height: 124px; max-width: 48%; }
   .display-lg { font-size: clamp(28px, 9vw, 42px); }
   .lobby-copy { font-size: 13px; }
-  .lobby-actions .btn { flex: 1 1 160px; }
+  .lobby-actions .btn { flex: 0 0 auto; min-height: 48px; }
   .lobby-footer-strip { margin-bottom: 4px; gap: 10px 16px; font-size: 9px; }
 
   .play-stage { padding-top: 8px; padding-left: 8px; padding-right: 8px; }
@@ -3767,8 +3767,11 @@ html, body {
   }
   .lobby-actions .btn {
     width: 100% !important;
-    min-height: 46px !important;
-    font-size: 13px !important;
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 48px !important;
+    padding: 12px 20px !important;
+    font-size: 13.5px !important;
     font-weight: 800 !important;
     justify-content: center !important;
     border-radius: 10px !important;

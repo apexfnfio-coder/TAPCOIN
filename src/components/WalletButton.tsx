@@ -102,6 +102,19 @@ function getSolflareProvider(): any {
   return null;
 }
 
+function getBackpackProvider(): any {
+  if (typeof window === "undefined") return null;
+  const w = window as any;
+  if (w.backpack?.solana?.isBackpack) return w.backpack.solana;
+  if (w.backpack && typeof w.backpack.connect === "function") return w.backpack;
+  if (w.solana?.isBackpack) return w.solana;
+  if (Array.isArray(w.solana?.providers)) {
+    const b = w.solana.providers.find((prov: any) => prov.isBackpack || prov.name?.toLowerCase()?.includes("backpack"));
+    if (b) return b;
+  }
+  return null;
+}
+
 const WALLETS: WalletDef[] = [
   {
     id: "phantom",
@@ -128,6 +141,14 @@ const WALLETS: WalletDef[] = [
     getProvider: getJupiterProvider,
   },
   {
+    id: "backpack",
+    name: "Backpack",
+    color: "#E33E38",
+    icon: <img src="/assets/logos/backpack.png" alt="Backpack" width={26} height={26} style={{ objectFit: "contain" }} />,
+    installUrl: "https://backpack.app",
+    getProvider: getBackpackProvider,
+  },
+  {
     id: "browser-solana",
     name: "Detected Solana Extension",
     color: "#9945FF",
@@ -136,7 +157,7 @@ const WALLETS: WalletDef[] = [
     getProvider: () => {
       if (typeof window === "undefined") return null;
       const w = window as any;
-      return w.solana ?? w.phantom?.solana ?? w.solflare ?? w.jupiter?.solana ?? null;
+      return w.solana ?? w.phantom?.solana ?? w.solflare ?? w.jupiter?.solana ?? w.backpack?.solana ?? null;
     },
   },
 ];

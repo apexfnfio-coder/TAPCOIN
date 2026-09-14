@@ -35,6 +35,15 @@ export function WalletBadges() {
       img: "/assets/logos/jupiter.png",
       Icon: SolflareIcon
     },
+    { 
+      id: "backpack", 
+      name: "Backpack", 
+      color: "#E33E38", 
+      bg: "rgba(227, 62, 56, 0.12)", 
+      border: "rgba(227, 62, 56, 0.35)", 
+      img: "/assets/logos/backpack.png", 
+      Icon: SolflareIcon
+    },
   ];
 
   return (
