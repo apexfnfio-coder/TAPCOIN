@@ -58,10 +58,15 @@ test("GameScene implements spawnChasm with 180px gap and danger indicator", () =
   assert.ok(gameSceneSrc.includes("⚠ DANGER ⚠"), "Chasm must display danger indicator label");
 });
 
-test("GameScene implements Chasm Leap detection awarding +10 PTS and combo boost", () => {
+test("GameScene implements Chasm Leap detection with zero point reward", () => {
   const gameSceneSrc = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
-  assert.ok(gameSceneSrc.includes("CLEARED CHASM! 🚀 +10"), "Chasm leap must display clearance text");
-  assert.ok(gameSceneSrc.includes("this.greenCount += 1"), "Chasm leap must increment greenCount");
+  assert.ok(gameSceneSrc.includes("chasm.cleared = true;"), "Chasm leap must mark chasm cleared");
+  const leapSegment = gameSceneSrc.slice(
+    gameSceneSrc.indexOf("this.player.x >= chasm.x2"),
+    gameSceneSrc.indexOf("this.player.x >= chasm.x2") + 300
+  );
+  assert.ok(!leapSegment.includes("greenCount +="), "Chasm leap must not grant greenCount reward");
+  assert.ok(!leapSegment.includes("score +="), "Chasm leap must not grant score reward");
 });
 
 test("GameScene implements Chasm Fall penalty (-25 PTS) and tumble fall respawn modal", () => {

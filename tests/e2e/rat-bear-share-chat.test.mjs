@@ -45,7 +45,30 @@ test("GameScene implements Rat Stomp rebound & bonus (+10 STOMP!)", () => {
   assert.ok(gameSceneContent.includes("+10 STOMP!"), "Must award stomp text and points");
 });
 
-test("GameScene implements Bear Axe Attack combat & 3-candle pump loot", () => {
+test("GameScene implements Bear Multi-Hit HP System & Dynamic Level Scaling", () => {
+  const gameSceneContent = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
+  assert.ok(gameSceneContent.includes("maxHp = Math.min(6, 2 + this.level.level)"), "Bear HP must scale with level (starting at 3 HP on level 1)");
+  assert.ok(gameSceneContent.includes("obstacle.hp = Math.max(0, (obstacle.hp || 1) - 1)"), "Bear must sustain multiple hits rather than dying instantly");
+  assert.ok(gameSceneContent.includes("AXE HIT!"), "Must display remaining HP upon taking damage");
+  assert.ok(gameSceneContent.includes("hpBarBg") && gameSceneContent.includes("hpBarFill"), "Must render visual HP health bar for Bear");
+});
+
+test("GameScene implements Bear Attack AI (windup, lunge charge, claw damage)", () => {
+  const gameSceneContent = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
+  assert.ok(gameSceneContent.includes('obstacle.state = "windup"'), "Bear must telegraph attacks with windup");
+  assert.ok(gameSceneContent.includes('obstacle.state = "lunge"'), "Bear must perform aggressive lunge attack");
+  assert.ok(gameSceneContent.includes("BEAR ROAR!") || gameSceneContent.includes("⚠ ATTACK!"), "Must show attack warning indicator");
+  assert.ok(gameSceneContent.includes("BEAR CLAW!"), "Bear attack must inflict damage on player");
+});
+
+test("GameScene implements Dynamic Difficulty Scaling for all obstacles by level", () => {
+  const gameSceneContent = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
+  assert.ok(gameSceneContent.includes("speed = this.rng.int(55 + this.level.level * 16"), "Rat speed must scale with level");
+  assert.ok(gameSceneContent.includes("mopDuration = Math.max(340, 780 - this.level.level * 110)"), "Mop swing speed must accelerate with level");
+  assert.ok(gameSceneContent.includes("branchDuration = Math.max(300, 620 - this.level.level * 80)"), "Branch sway must scale with level");
+});
+
+test("GameScene implements Bear Defeat rewards (BEAR REKT! & 3 green candles)", () => {
   const gameSceneContent = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
   assert.ok(gameSceneContent.includes("BEAR AXE ATTACK MECHANIC"), "Must include bear axe attack");
   assert.ok(gameSceneContent.includes("BEAR REKT!"), "Must include bear defeat celebration text");

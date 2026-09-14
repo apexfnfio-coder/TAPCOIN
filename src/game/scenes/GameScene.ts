@@ -38,6 +38,23 @@ interface Obstacle {
   y: number;
   speed: number;
   hit: boolean;
+  hp?: number;
+  maxHp?: number;
+  hitUntil?: number;
+  state?: "patrol" | "windup" | "lunge" | "cooldown";
+  stateUntil?: number;
+  facing?: 1 | -1;
+  patrolOriginX?: number;
+  patrolRadius?: number;
+  patrolDir?: 1 | -1;
+  lungeSpeed?: number;
+  windupDurationMs?: number;
+  attackCooldownMs?: number;
+  attackRange?: number;
+  hpBarBg?: Phaser.GameObjects.Graphics;
+  hpBarFill?: Phaser.GameObjects.Graphics;
+  hpText?: Phaser.GameObjects.Text;
+  dangerIcon?: Phaser.GameObjects.Text;
 }
 
 interface Chasm {
@@ -378,37 +395,51 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startChasmFall(chasm: Chasm, time: number) {
-    if (this.isFallingInChasm) return;
+    if (this.isFallingInChasm || this.chasmRespawnModal || this.ended) return;
     this.isFallingInChasm = true;
     this.state = "hit";
     this.isGrounded = false;
-    this.playerVy = 260; // Accelerate downward
+    this.isJumping = false;
+    this.playerVy = 0;
     this.invulnerableUntil = time + 10000; // Protect while in modal
 
     sound.playHit();
-    this.cameras.main.shake(250, 0.015);
+    this.cameras.main.shake(220, 0.012);
     this.redHits += 1;
     this.score = Math.max(0, this.score - 25);
     this.comboCount = 0;
     this.reportHud();
 
+    const pitCenterX = (chasm.x1 + chasm.x2) / 2;
     if (this.showFloatText) {
-      this.floatText(this.player.x, GROUND_Y - 60, "FELL INTO CHASM! 💀 -25", "#ef4444");
+      this.floatText(pitCenterX, GROUND_Y - 50, "FELL INTO CHASM! 💀 -25", "#ef4444");
     }
 
-    // Tumble rotation into abyss
+    // Smooth physics-defying fall deep into the chasm pit
     this.setApeTexture("ape-hit");
     this.tweens.killTweensOf(this.player);
+    const startScaleY = this.player.scaleY;
+    const startScaleX = this.player.scaleX;
+
     this.tweens.add({
       targets: this.player,
-      angle: 180,
-      duration: 480,
+      y: GROUND_Y + 185,
+      x: pitCenterX,
+      angle: this.facing * 180,
+      scaleX: startScaleX * 0.7,
+      scaleY: startScaleY * 0.7,
+      alpha: 0.2,
+      duration: 620,
       ease: "Cubic.easeIn",
       onComplete: () => {
         if (this.showParticles) {
-          this.burst(this.player.x, GROUND_Y + 110, "p-dust", 8, 140);
+          this.burst(pitCenterX, GROUND_Y + 120, "p-dust", 10, 150);
+          this.burst(pitCenterX, GROUND_Y + 120, "p-chip", 6, 110);
         }
-        this.showChasmRespawnModal(chasm.x1 - 50);
+        sound.playRed();
+        this.time.delayedCall(80, () => {
+          this.showChasmRespawnModal(chasm.x1 - 50);
+        });
       },
     });
   }
@@ -416,31 +447,43 @@ export class GameScene extends Phaser.Scene {
   private showChasmRespawnModal(respawnX: number) {
     if (this.chasmRespawnModal || this.ended) return;
 
-    const modalX = this.player.x;
-    const modalY = GROUND_Y - 140;
+    // Center of screen, fixed scroll factor so it is always 100% visible on screen
+    const container = this.add.container(VIEW_W / 2, VIEW_H / 2).setDepth(200).setScrollFactor(0);
 
-    const container = this.add.container(modalX, modalY).setDepth(20);
+    // Fullscreen semi-transparent backdrop to focus player attention
+    const backdrop = this.add.graphics();
+    backdrop.fillStyle(0x04070a, 0.78);
+    backdrop.fillRect(-VIEW_W, -VIEW_H, VIEW_W * 2, VIEW_H * 2);
+    container.add(backdrop);
 
-    // Modal Background Panel with Cyber Border
+    // Cyber Modal Frame
     const bg = this.add.graphics();
-    bg.fillStyle(0x06090c, 0.94);
-    bg.fillRoundedRect(-170, -75, 340, 150, 16);
-    bg.lineStyle(2, 0xff3b30, 0.9);
-    bg.strokeRoundedRect(-170, -75, 340, 150, 16);
-    bg.lineStyle(1, 0xffd000, 0.4);
-    bg.strokeRoundedRect(-166, -71, 332, 142, 12);
+    bg.fillStyle(0x06090c, 0.96);
+    bg.fillRoundedRect(-180, -95, 360, 190, 16);
+    bg.lineStyle(2, 0xff3b30, 0.95);
+    bg.strokeRoundedRect(-180, -95, 360, 190, 16);
+    bg.lineStyle(1, 0xffd000, 0.5);
+    bg.strokeRoundedRect(-175, -90, 350, 180, 12);
     container.add(bg);
 
     // Warning Header
-    const title = this.add.text(0, -50, "⚠ FELL INTO CHASM! ⚠", {
+    const title = this.add.text(0, -62, "⚠ FELL INTO CHASM! ⚠", {
       fontFamily: "Arial Black, Impact, sans-serif",
-      fontSize: "17px",
+      fontSize: "19px",
       color: "#ff3b30",
     }).setOrigin(0.5);
     container.add(title);
 
-    // Penalty & Hint
-    const sub = this.add.text(0, -24, "-25 PTS · LEAP OVER WITH [SPACE] / [▲]", {
+    // Penalty Callout
+    const penalty = this.add.text(0, -34, "-25 PTS PENALTY", {
+      fontFamily: "Arial Black, Impact, sans-serif",
+      fontSize: "13px",
+      color: "#ffd000",
+    }).setOrigin(0.5);
+    container.add(penalty);
+
+    // Hint
+    const sub = this.add.text(0, -10, "LEAP OVER CHASM WITH [SPACE] / [▲]", {
       fontFamily: "Rubik, Arial, sans-serif",
       fontSize: "11px",
       color: "#9DA8B3",
@@ -450,41 +493,65 @@ export class GameScene extends Phaser.Scene {
 
     // Respawn Button Background
     const btnBg = this.add.graphics();
-    btnBg.fillStyle(0xffd000, 1);
-    btnBg.fillRoundedRect(-110, 4, 220, 38, 10);
+    btnBg.fillStyle(0x00ffa3, 1);
+    btnBg.fillRoundedRect(-120, 16, 240, 46, 10);
     container.add(btnBg);
 
     // Respawn Button Text
     let secondsLeft = 3;
-    const btnText = this.add.text(0, 23, `↺ RESPAWN (${secondsLeft}s)`, {
+    const btnText = this.add.text(0, 39, `↺ RESPAWN (${secondsLeft}s)`, {
       fontFamily: "Arial Black, Impact, sans-serif",
-      fontSize: "13px",
+      fontSize: "15px",
       color: "#06090c",
     }).setOrigin(0.5);
     container.add(btnText);
 
     // Interactive Button Hit Area
-    const hitArea = this.add.zone(0, 23, 220, 38).setOrigin(0.5).setInteractive({ cursor: "pointer" });
+    const hitArea = this.add.zone(0, 39, 240, 46).setOrigin(0.5).setInteractive({ cursor: "pointer" });
     container.add(hitArea);
 
+    let isRespawning = false;
+    let timerEvent: Phaser.Time.TimerEvent | null = null;
+    let keyHandler: ((e: KeyboardEvent) => void) | null = null;
+
     const doRespawn = () => {
-      if (!this.chasmRespawnModal) return;
+      if (isRespawning) return;
+      isRespawning = true;
+      if (keyHandler) {
+        window.removeEventListener("keydown", keyHandler);
+        keyHandler = null;
+      }
+      if (timerEvent) {
+        timerEvent.remove();
+        timerEvent = null;
+      }
       this.respawnFromChasm(respawnX);
     };
 
     hitArea.on("pointerdown", doRespawn);
 
+    hitArea.on("pointerover", () => {
+      btnBg.clear();
+      btnBg.fillStyle(0xffd000, 1);
+      btnBg.fillRoundedRect(-120, 16, 240, 46, 10);
+    });
+
+    hitArea.on("pointerout", () => {
+      btnBg.clear();
+      btnBg.fillStyle(0x00ffa3, 1);
+      btnBg.fillRoundedRect(-120, 16, 240, 46, 10);
+    });
+
     // Also support keyboard trigger (Space / Up / W / Enter)
-    const keyHandler = (e: KeyboardEvent) => {
+    keyHandler = (e: KeyboardEvent) => {
       if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Enter") {
-        window.removeEventListener("keydown", keyHandler);
         doRespawn();
       }
     };
     window.addEventListener("keydown", keyHandler);
 
     // Auto-countdown timer (3 seconds)
-    this.time.addEvent({
+    timerEvent = this.time.addEvent({
       delay: 1000,
       repeat: 2,
       callback: () => {
@@ -492,20 +559,30 @@ export class GameScene extends Phaser.Scene {
         if (secondsLeft > 0) {
           btnText.setText(`↺ RESPAWN (${secondsLeft}s)`);
         } else {
-          window.removeEventListener("keydown", keyHandler);
           doRespawn();
         }
       },
     });
 
     // Pop-in bounce tween
-    container.setScale(0.85);
+    container.setScale(0.8);
     this.tweens.add({
       targets: container,
       scaleX: 1,
       scaleY: 1,
-      duration: 180,
+      duration: 200,
       ease: "Back.easeOut",
+    });
+
+    container.on("destroy", () => {
+      if (keyHandler) {
+        window.removeEventListener("keydown", keyHandler);
+        keyHandler = null;
+      }
+      if (timerEvent) {
+        timerEvent.remove();
+        timerEvent = null;
+      }
     });
 
     this.chasmRespawnModal = container;
@@ -520,6 +597,8 @@ export class GameScene extends Phaser.Scene {
     sound.playJump();
     this.isFallingInChasm = false;
     this.player.setAngle(0);
+    this.fitHeight(this.player, PLAYER_HEIGHT);
+    this.player.setAlpha(1);
     this.player.x = respawnX;
     this.player.y = GROUND_Y;
     this.playerVy = 0;
@@ -588,21 +667,126 @@ export class GameScene extends Phaser.Scene {
     const sprite = this.add.image(x, actualY, key).setDepth(8).setOrigin(0.5, 1);
     this.fitHeight(sprite, targetHeight);
 
-    if (kind === "branch") {
-      sprite.setAngle(this.rng.int(-12, 12));
-      this.tweens.add({ targets: sprite, y: actualY - 6, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    } else if (kind === "mop") {
-      sprite.setAngle(this.rng.int(-8, 8));
-      this.tweens.add({ targets: sprite, angle: sprite.angle + (sprite.angle > 0 ? -5 : 5), duration: 800, yoyo: true, repeat: -1 });
-    } else if (kind === "rat") {
-      // Rat scurrying motion along grass
-      this.tweens.add({ targets: sprite, y: actualY - 3, duration: 180, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    } else if (kind === "bear") {
+    let hp = 1;
+    let maxHp = 1;
+    let hpBarBg: Phaser.GameObjects.Graphics | undefined;
+    let hpBarFill: Phaser.GameObjects.Graphics | undefined;
+    let hpText: Phaser.GameObjects.Text | undefined;
+    let dangerIcon: Phaser.GameObjects.Text | undefined;
+    let speed = 0;
+    let lungeSpeed = 0;
+    let windupDurationMs = 0;
+    let attackCooldownMs = 0;
+    let attackRange = 0;
+
+    if (kind === "bear") {
+      // Dynamic difficulty scaling for Bear by level:
+      // Bear cannot be one-shot ("tidak boleh sekali hit"): Level 1 takes 3 hits, Level 2 takes 4, Level 3 takes 5...
+      maxHp = Math.min(6, 2 + this.level.level);
+      hp = maxHp;
+      speed = 42 + this.level.level * 6; // Patrol wander speed
+      lungeSpeed = 165 + this.level.level * 25; // Aggressive attack rush speed
+      windupDurationMs = Math.max(240, 520 - this.level.level * 60); // Faster reaction at higher levels
+      attackCooldownMs = Math.max(1200, 2800 - this.level.level * 350); // Tighter attack cycles
+      attackRange = Math.min(320, 210 + this.level.level * 22);
+
+      // Cyber HP bar background
+      hpBarBg = this.add.graphics().setDepth(14);
+      hpBarBg.fillStyle(0x06090c, 0.92);
+      hpBarBg.fillRoundedRect(x - 34, actualY - 152, 68, 9, 3);
+      hpBarBg.lineStyle(1, 0xff3b30, 0.85);
+      hpBarBg.strokeRoundedRect(x - 34, actualY - 152, 68, 9, 3);
+
+      // HP bar fill
+      hpBarFill = this.add.graphics().setDepth(15);
+      hpBarFill.fillStyle(0x00ffa3, 1);
+      hpBarFill.fillRoundedRect(x - 33, actualY - 151, 66, 7, 2);
+
+      // HP text indicator
+      hpText = this.add.text(x, actualY - 162, `${hp}/${maxHp} HP`, {
+        fontFamily: "Rubik, Arial Black, sans-serif",
+        fontSize: "10px",
+        color: "#ffd000",
+        fontStyle: "bold",
+      }).setOrigin(0.5).setDepth(15);
+
+      // Danger indicator for attack windup / lunge
+      dangerIcon = this.add.text(x, actualY - 180, "⚠ ATTACK!", {
+        fontFamily: "Arial Black, Impact, sans-serif",
+        fontSize: "12px",
+        color: "#ff3b30",
+        stroke: "#06090c",
+        strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(16).setVisible(false);
+
       // Massive Bear prowl motion
-      this.tweens.add({ targets: sprite, y: actualY - 6, duration: 320, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      this.tweens.add({ targets: sprite, y: actualY - 6, duration: Math.max(220, 360 - this.level.level * 30), yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    } else if (kind === "rat") {
+      // Dynamic difficulty scaling for Rat by level: faster scurrying critter
+      speed = this.rng.int(55 + this.level.level * 16, 80 + this.level.level * 20);
+      const ratDuration = Math.max(100, 180 - this.level.level * 20);
+      this.tweens.add({ targets: sprite, y: actualY - 3, duration: ratDuration, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    } else if (kind === "mop") {
+      // Dynamic difficulty scaling for Mop: faster swing and higher angle
+      const mopDuration = Math.max(340, 780 - this.level.level * 110);
+      const mopAngle = Math.min(30, 8 + this.level.level * 6);
+      sprite.setAngle(-mopAngle);
+      this.tweens.add({
+        targets: sprite,
+        angle: mopAngle,
+        duration: mopDuration,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+      });
+      if (this.level.level >= 2) {
+        this.tweens.add({
+          targets: sprite,
+          y: actualY - (6 + this.level.level * 3),
+          duration: mopDuration * 0.9,
+          yoyo: true,
+          repeat: -1,
+          ease: "Sine.easeInOut",
+        });
+      }
+    } else if (kind === "branch") {
+      // Dynamic difficulty scaling for Branch: sharper sway
+      const branchDuration = Math.max(300, 620 - this.level.level * 80);
+      sprite.setAngle(this.rng.int(-12 - this.level.level * 3, 12 + this.level.level * 3));
+      this.tweens.add({
+        targets: sprite,
+        y: actualY - (5 + this.level.level * 2),
+        duration: branchDuration,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+      });
     }
-    const speed = kind === "rat" ? this.rng.int(40, 70) : kind === "bear" ? this.rng.int(45, 65) : 0;
-    this.obstacles.push({ sprite, kind, x, y: actualY, speed, hit: false });
+
+    this.obstacles.push({
+      sprite,
+      kind,
+      x,
+      y: actualY,
+      speed,
+      hit: false,
+      hp,
+      maxHp,
+      state: "patrol",
+      stateUntil: 0,
+      patrolOriginX: x,
+      patrolRadius: 100 + this.level.level * 15,
+      patrolDir: -1,
+      facing: -1,
+      lungeSpeed,
+      windupDurationMs,
+      attackCooldownMs,
+      attackRange,
+      hpBarBg,
+      hpBarFill,
+      hpText,
+      dangerIcon,
+    });
   }
 
   private targetTree(): Tree | null {
@@ -758,13 +942,24 @@ export class GameScene extends Phaser.Scene {
 
   private advanceLevel() {
     if (this.ended) return;
+    if (this.chasmRespawnModal) {
+      this.chasmRespawnModal.destroy();
+      this.chasmRespawnModal = null;
+    }
+    this.isFallingInChasm = false;
     const nextLevelNumber = this.level.level + 1;
     for (const tree of this.trees) tree.sprite.destroy();
     for (const candle of this.candles) {
       candle.glyph?.destroy();
       candle.sprite.destroy();
     }
-    for (const obstacle of this.obstacles) obstacle.sprite.destroy();
+    for (const obstacle of this.obstacles) {
+      obstacle.sprite.destroy();
+      obstacle.hpBarBg?.destroy();
+      obstacle.hpBarFill?.destroy();
+      obstacle.hpText?.destroy();
+      obstacle.dangerIcon?.destroy();
+    }
     for (const chasm of this.chasms) {
       chasm.graphics.destroy();
       chasm.label.destroy();
@@ -877,6 +1072,12 @@ export class GameScene extends Phaser.Scene {
 
   update(time: number, delta: number) {
     if (this.ended) return;
+
+    // While falling into chasm or displaying respawn modal, freeze player physics & movement
+    if (this.isFallingInChasm || this.chasmRespawnModal) {
+      for (const layer of this.layers) layer.tile.tilePositionX = this.cameras.main.scrollX * layer.factor;
+      return;
+    }
 
     // Real arcade hit-stop: freeze movement & timers during hit-stop frames
     if (time < this.hitStopUntil) {
@@ -1023,10 +1224,92 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const obstacle of this.obstacles) {
-      if (obstacle.speed > 0 && !obstacle.hit) {
+      if (obstacle.kind === "bear" && !obstacle.hit) {
+        const distToPlayer = Math.abs(obstacle.x - this.player.x);
+        const dxToPlayer = this.player.x - obstacle.x;
+        const actualY = GROUND_Y + 4;
+
+        // Bear state machine: patrol, windup attack, lunge charge, recovery cooldown
+        if (obstacle.state === "patrol") {
+          obstacle.x += (obstacle.patrolDir || -1) * (obstacle.speed || 45) * (delta / 1000);
+          if (obstacle.x < (obstacle.patrolOriginX || obstacle.x) - (obstacle.patrolRadius || 100)) {
+            obstacle.patrolDir = 1;
+          } else if (obstacle.x > (obstacle.patrolOriginX || obstacle.x) + (obstacle.patrolRadius || 100)) {
+            obstacle.patrolDir = -1;
+          }
+          obstacle.sprite.setFlipX(obstacle.patrolDir === 1);
+
+          // Attack trigger: player within aggression range and attack off cooldown
+          if (distToPlayer < (obstacle.attackRange || 240) && time > (obstacle.stateUntil || 0)) {
+            obstacle.state = "windup";
+            obstacle.facing = dxToPlayer > 0 ? 1 : -1;
+            obstacle.sprite.setFlipX(obstacle.facing === 1);
+            obstacle.stateUntil = time + (obstacle.windupDurationMs || 400);
+            obstacle.sprite.setTint(0xff5533);
+            if (obstacle.dangerIcon) {
+              obstacle.dangerIcon.setVisible(true).setText("⚠ ATTACK!").setColor("#ff3b30");
+            }
+            if (this.showFloatText) {
+              this.floatText(obstacle.x, obstacle.y - 180, "BEAR ROAR! 🐻⚡", "#ff5533");
+            }
+          }
+        } else if (obstacle.state === "windup") {
+          obstacle.facing = dxToPlayer > 0 ? 1 : -1;
+          obstacle.sprite.setFlipX(obstacle.facing === 1);
+          if (time >= (obstacle.stateUntil || 0)) {
+            obstacle.state = "lunge";
+            obstacle.stateUntil = time + 340; // High speed attack charge
+            if (obstacle.dangerIcon) {
+              obstacle.dangerIcon.setText("💥 CLAW!").setColor("#ff0000");
+            }
+            if (!this.prefersReducedMotion) {
+              this.cameras.main.shake(90, 0.0035);
+            }
+          }
+        } else if (obstacle.state === "lunge") {
+          obstacle.x += (obstacle.facing || -1) * (obstacle.lungeSpeed || 190) * (delta / 1000);
+          if (time >= (obstacle.stateUntil || 0)) {
+            obstacle.state = "cooldown";
+            obstacle.stateUntil = time + (obstacle.attackCooldownMs || 2000);
+            obstacle.sprite.clearTint();
+            if (obstacle.dangerIcon) obstacle.dangerIcon.setVisible(false);
+          }
+        } else if (obstacle.state === "cooldown") {
+          obstacle.x += (obstacle.patrolDir || -1) * (obstacle.speed || 45) * 0.4 * (delta / 1000);
+          if (time >= (obstacle.stateUntil || 0)) {
+            obstacle.state = "patrol";
+          }
+        }
+
+        obstacle.sprite.setX(obstacle.x);
+
+        // Synchronize Bear HP bar & danger icon position
+        if (obstacle.hpBarBg && obstacle.hpBarFill && obstacle.hpText) {
+          const barX = obstacle.x;
+          const barY = actualY - 152;
+          obstacle.hpBarBg.clear();
+          obstacle.hpBarBg.fillStyle(0x06090c, 0.92);
+          obstacle.hpBarBg.fillRoundedRect(barX - 34, barY, 68, 9, 3);
+          obstacle.hpBarBg.lineStyle(1, 0xff3b30, 0.85);
+          obstacle.hpBarBg.strokeRoundedRect(barX - 34, barY, 68, 9, 3);
+
+          const hpPct = Math.max(0, (obstacle.hp || 1) / (obstacle.maxHp || 1));
+          obstacle.hpBarFill.clear();
+          const fillColor = hpPct > 0.5 ? 0x00ffa3 : hpPct > 0.25 ? 0xffd000 : 0xff3b30;
+          obstacle.hpBarFill.fillStyle(fillColor, 1);
+          obstacle.hpBarFill.fillRoundedRect(barX - 33, barY + 1, Math.max(2, 66 * hpPct), 7, 2);
+
+          obstacle.hpText.setPosition(barX, barY - 10);
+          obstacle.hpText.setText(`${obstacle.hp}/${obstacle.maxHp} HP`);
+        }
+        if (obstacle.dangerIcon) {
+          obstacle.dangerIcon.setPosition(obstacle.x, actualY - 176);
+        }
+      } else if (obstacle.speed > 0 && !obstacle.hit) {
         obstacle.x -= obstacle.speed * (delta / 1000);
         obstacle.sprite.setX(obstacle.x);
       }
+
       if (obstacle.hit || this.state === "hit") continue;
       const dx = obstacle.sprite.x - this.player.x;
       const dy = obstacle.sprite.y - (this.player.y - 55);
@@ -1066,76 +1349,112 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
 
-      // 2. BEAR AXE ATTACK MECHANIC: Player strikes bear with axe
-      if (obstacle.kind === "bear") {
+      // 2. BEAR AXE ATTACK MECHANIC: Multi-hit combat ("bear tidak boleh sekali hit")
+      if (obstacle.kind === "bear" && !obstacle.hit) {
         const inChopRange = Math.abs(dx) < 135 && (Math.sign(dx) === this.facing || Math.abs(dx) < 70);
-        const isAttacking = this.state === "chop" || inChopRange;
+        const isAttacking = (this.state === "chop" || inChopRange) && this.state !== "hit";
 
-        if (isAttacking && this.state !== "hit") {
-          obstacle.hit = true;
+        if (isAttacking && time > (obstacle.hitUntil || 0)) {
+          obstacle.hitUntil = time + 320; // Hit recovery / invulnerability frames against immediate spam
           this.state = "chop";
           this.setApeTexture("ape-chop1");
           this.time.delayedCall(80, () => {
             if (this.state === "chop") this.setApeTexture("ape-chop2");
           });
 
-          // Bear defeat impact effects
+          // Impact effects
           sound.playChop();
-          sound.playGreen(this.comboCount + 2);
-          this.cameras.main.shake(160, 0.006);
-
+          this.cameras.main.shake(140, 0.0055);
           if (this.showParticles) {
-            this.burst(obstacle.sprite.x, obstacle.sprite.y - 20, "p-spark", 8, 160);
-            this.burst(obstacle.sprite.x, obstacle.sprite.y - 10, "p-chip", 6, 100);
+            this.burst(obstacle.x, obstacle.sprite.y - 45, "p-spark", 8, 160);
+            this.burst(obstacle.x, obstacle.sprite.y - 25, "p-chip", 6, 110);
           }
 
-          // Defeat fell animation
+          // Damage Bear HP (bear tidak boleh sekali hit)
+          obstacle.hp = Math.max(0, (obstacle.hp || 1) - 1);
+
+          // Flinch & knockback
           obstacle.sprite.setTint(0xff3b30);
-          this.tweens.killTweensOf(obstacle.sprite);
-          this.tweens.add({
-            targets: obstacle.sprite,
-            x: obstacle.sprite.x + (this.facing * 75),
-            y: obstacle.sprite.y - 35,
-            angle: this.facing * 40,
-            alpha: 0,
-            duration: 350,
-            ease: "Power2",
-            onComplete: () => obstacle.sprite.destroy(),
+          obstacle.x += (this.facing * 36);
+          obstacle.sprite.setX(obstacle.x);
+          this.time.delayedCall(160, () => {
+            if (!obstacle.hit) obstacle.sprite.clearTint();
           });
 
-          // Drop 3 green pump candles popping out in an arc (+30 total reward)
-          for (let i = -1; i <= 1; i++) {
-            const cx = obstacle.sprite.x + i * 42;
-            const cy = obstacle.sprite.y - 45;
-            const candleSprite = this.add.image(cx, cy, "candle-green").setDepth(6);
-            this.fitHeight(candleSprite, 56);
-            const glyph = this.add.text(cx, cy - 28, "▲", {
-              fontFamily: "Arial Black",
-              fontSize: "14px",
-              color: "#00FFA3",
-            }).setOrigin(0.5).setDepth(7);
-            const candle: Candle = {
-              sprite: candleSprite,
-              kind: "green",
-              baseY: cy,
-              phase: i * 0.7,
-              taken: false,
-              glyph,
-            };
-            this.candles.push(candle);
+          if (obstacle.hp > 0) {
+            // Bear survived hit! Show remaining HP
+            if (this.showFloatText) {
+              this.floatText(obstacle.x, obstacle.sprite.y - 120, `AXE HIT! 🪓 ${obstacle.hp}/${obstacle.maxHp} HP`, "#FFD000");
+            }
+            // Counter-hit interrupt during attack windup or charge
+            if (obstacle.state === "windup" || obstacle.state === "lunge") {
+              obstacle.state = "cooldown";
+              obstacle.stateUntil = time + 900;
+              if (obstacle.dangerIcon) obstacle.dangerIcon.setVisible(false);
+              if (this.showFloatText) {
+                this.floatText(obstacle.x, obstacle.sprite.y - 145, "COUNTER HIT! ⚡", "#00FFA3");
+              }
+            }
+          } else {
+            // BEAR REKT! (Bear is defeated after multiple hits)
+            obstacle.hit = true;
+            sound.playGreen(this.comboCount + 2);
+            this.cameras.main.shake(180, 0.007);
+
+            // Clean up HP bar and danger icons
+            obstacle.hpBarBg?.destroy();
+            obstacle.hpBarFill?.destroy();
+            obstacle.hpText?.destroy();
+            obstacle.dangerIcon?.destroy();
+
+            // Defeat fell animation
+            this.tweens.killTweensOf(obstacle.sprite);
             this.tweens.add({
-              targets: candleSprite,
-              y: cy - 40,
-              duration: 200,
-              yoyo: true,
-              ease: "Sine.easeOut",
+              targets: obstacle.sprite,
+              x: obstacle.x + (this.facing * 85),
+              y: obstacle.sprite.y - 40,
+              angle: this.facing * 45,
+              alpha: 0,
+              duration: 380,
+              ease: "Power2",
+              onComplete: () => obstacle.sprite.destroy(),
             });
+
+            // Drop 3 green pump candles popping out in an arc (+30 total reward)
+            for (let i = -1; i <= 1; i++) {
+              const cx = obstacle.x + i * 42;
+              const cy = obstacle.sprite.y - 45;
+              const candleSprite = this.add.image(cx, cy, "candle-green").setDepth(6);
+              this.fitHeight(candleSprite, 56);
+              const glyph = this.add.text(cx, cy - 28, "▲", {
+                fontFamily: "Arial Black",
+                fontSize: "14px",
+                color: "#00FFA3",
+              }).setOrigin(0.5).setDepth(7);
+              const candle: Candle = {
+                sprite: candleSprite,
+                kind: "green",
+                baseY: cy,
+                phase: i * 0.7,
+                taken: false,
+                glyph,
+              };
+              this.candles.push(candle);
+              this.tweens.add({
+                targets: candleSprite,
+                y: cy - 40,
+                duration: 200,
+                yoyo: true,
+                ease: "Sine.easeOut",
+              });
+            }
+
+            this.comboCount += 2;
+            if (this.showFloatText) {
+              this.floatText(obstacle.x, obstacle.sprite.y - 75, "BEAR REKT! 🐻💥", "#FFD000");
+            }
           }
 
-          this.comboCount += 2;
-          if (this.showFloatText) {
-            this.floatText(obstacle.sprite.x, obstacle.sprite.y - 75, "BEAR REKT! 🐻💥", "#FFD000");
-          }
           this.time.delayedCall(220, () => {
             if (this.state === "chop") this.state = "idle";
           });
@@ -1144,14 +1463,25 @@ export class GameScene extends Phaser.Scene {
       }
 
       // Jumping over ground hazards (rat, mop, bear)
-      if (!this.isGrounded && this.player.y < obstacle.sprite.y - (obstacle.kind === "bear" ? 35 : 20)) {
+      if (!this.isGrounded && this.player.y < obstacle.sprite.y - (obstacle.kind === "bear" ? 40 : 20)) {
         continue;
       }
 
-      const hitRange = obstacle.kind === "branch" ? 62 : obstacle.kind === "bear" ? 68 : 52;
+      const hitRange = obstacle.kind === "branch" ? 62 : obstacle.kind === "bear" ? (obstacle.state === "lunge" ? 86 : 72) : 52;
 
       if (Math.abs(dx) < hitRange && Math.abs(dy) < 70) {
-        obstacle.hit = true;
+        if (obstacle.kind === "bear") {
+          // Bear attack connects with player!
+          obstacle.state = "cooldown";
+          obstacle.stateUntil = time + (obstacle.attackCooldownMs || 2000);
+          obstacle.sprite.clearTint();
+          if (obstacle.dangerIcon) obstacle.dangerIcon.setVisible(false);
+        } else {
+          obstacle.hit = true;
+          this.tweens.killTweensOf(obstacle.sprite);
+          this.tweens.add({ targets: obstacle.sprite, alpha: 0, x: obstacle.sprite.x + (this.player.x < obstacle.sprite.x ? 24 : -24), duration: 180, onComplete: () => obstacle.sprite.destroy() });
+        }
+
         this.redHits += 1;
         const deltaPenalty = this.opts.redHitScorePenalty;
         this.lastScoreChange = -deltaPenalty;
@@ -1167,37 +1497,27 @@ export class GameScene extends Phaser.Scene {
         // Reset combo streak
         this.comboCount = 0;
         
-        this.cameras.main.shake(120, 0.0045);
-        const hitLabel = obstacle.kind === "bear" ? `-${deltaPenalty} BEAR CLAW!` : `-${deltaPenalty}`;
+        this.cameras.main.shake(150, 0.006);
+        const hitLabel = obstacle.kind === "bear" ? `-${deltaPenalty} BEAR CLAW! 🐻💢` : `-${deltaPenalty}`;
         this.floatText(this.player.x, this.player.y - 160, hitLabel, "#ff6a5c");
-        this.tweens.killTweensOf(obstacle.sprite);
-        this.tweens.add({ targets: obstacle.sprite, alpha: 0, x: obstacle.sprite.x + (this.player.x < obstacle.sprite.x ? 24 : -24), duration: 180, onComplete: () => obstacle.sprite.destroy() });
         this.time.delayedCall(480, () => { if (this.state === "hit") this.state = "idle"; });
       }
     }
 
     // 3. Platformer Chasm Mechanics: Leap vs Fall
     for (const chasm of this.chasms) {
-      const inChasmPit = this.player.x > chasm.x1 + 25 && this.player.x < chasm.x2 - 25;
+      const inChasmPit = this.player.x > chasm.x1 + 10 && this.player.x < chasm.x2 - 12;
       if (inChasmPit) {
         // Player is over the chasm pit!
-        if (this.isGrounded || this.player.y >= GROUND_Y) {
+        if (this.isGrounded || this.player.y >= GROUND_Y - 6) {
           this.handleChasmFall(chasm, time);
+          break;
         }
       } else if (this.player.x >= chasm.x2 && this.player.x < chasm.x2 + 200) {
         // Player cleared the chasm leap!
         if (!chasm.cleared) {
           chasm.cleared = true;
-          sound.playJump();
-          sound.playGreen(this.comboCount + 1);
-          this.greenCount += 1;
-          this.score += this.opts.pointsPerGreen;
-          this.lastScoreChange = this.opts.pointsPerGreen;
-          this.comboCount += 1;
-          if (this.showFloatText) {
-            this.floatText(chasm.x2 - 40, GROUND_Y - 80, "CLEARED CHASM! 🚀 +10", "#00FFA3");
-          }
-          this.reportHud();
+          // Zero rewards when crossing chasm as requested ("saat melewati jurang tidak mendapat apa apa loh ya")
         }
       }
     }
@@ -1223,6 +1543,10 @@ export class GameScene extends Phaser.Scene {
     this.obstacles = this.obstacles.filter((obstacle) => {
       if (obstacle.hit || obstacle.sprite.x < cullX) {
         if (obstacle.sprite.active) obstacle.sprite.destroy();
+        obstacle.hpBarBg?.destroy();
+        obstacle.hpBarFill?.destroy();
+        obstacle.hpText?.destroy();
+        obstacle.dangerIcon?.destroy();
         return false;
       }
       return true;
@@ -1267,6 +1591,19 @@ export class GameScene extends Phaser.Scene {
   private endRun(endedBy: RunEndReason) {
     if (this.ended) return;
     this.ended = true;
+
+    if (this.chasmRespawnModal) {
+      this.chasmRespawnModal.destroy();
+      this.chasmRespawnModal = null;
+    }
+    this.isFallingInChasm = false;
+
+    for (const obstacle of this.obstacles) {
+      obstacle.hpBarBg?.destroy();
+      obstacle.hpBarFill?.destroy();
+      obstacle.hpText?.destroy();
+      obstacle.dangerIcon?.destroy();
+    }
 
     // Smoothly fade out procedural BGM on run end
     sound.stopBgm();
