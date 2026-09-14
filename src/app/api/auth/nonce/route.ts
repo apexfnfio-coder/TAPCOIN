@@ -18,22 +18,26 @@ export async function POST(req: Request) {
     return fail(400, "BAD_INPUT", "Invalid wallet address.");
   }
 
-  // Clean up all previous nonces for this wallet — only one active nonce per wallet needed.
-  // This also prevents accumulation of expired/abandoned nonces in the DB.
-  await db.authNonce.deleteMany({ where: { wallet } });
+  try {
+    // Clean up all previous nonces for this wallet — only one active nonce per wallet needed.
+    // This also prevents accumulation of expired/abandoned nonces in the DB.
+    await db.authNonce.deleteMany({ where: { wallet } }).catch(() => {});
 
-  const nonce = crypto.randomBytes(16).toString("hex");
-  const expiresAt = new Date(Date.now() + 5 * 60_000);
-  await db.authNonce.create({ data: { wallet, nonce, expiresAt } });
+    const nonce = crypto.randomBytes(16).toString("hex");
+    const expiresAt = new Date(Date.now() + 5 * 60_000);
+    await db.authNonce.create({ data: { wallet, nonce, expiresAt } });
 
-  const message = [
-    "$TAP — Sign to verify wallet ownership",
-    "",
-    `Wallet: ${wallet}`,
-    `Nonce: ${nonce}`,
-    "",
-    "This signature proves ownership and costs no gas.",
-  ].join("\n");
+    const message = [
+      "$TAP — Sign to verify wallet ownership",
+      "",
+      `Wallet: ${wallet}`,
+      `Nonce: ${nonce}`,
+      "",
+      "This signature proves ownership and costs no gas.",
+    ].join("\n");
 
-  return ok({ message, nonce });
+    return ok({ message, nonce });
+  } catch (err: any) {
+    return fail(500, "DATABASE_ERROR", `Failed to generate auth nonce: ${err?.message || "Database unavailable"}`);
+  }
 }

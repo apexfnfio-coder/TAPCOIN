@@ -72,7 +72,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     try {
       const r = await fetch("/api/me", { cache: "no-store" });
       const j = await r.json();
-      setMe(j.data?.user ?? null);
+      if (j.data?.user) {
+        setMe(j.data.user);
+      } else {
+        // Auto-bootstrap guest session so player can play immediately and track high scores
+        const guestRes = await fetch("/api/auth/guest", { method: "POST" });
+        const guestJson = await guestRes.json();
+        setMe(guestJson.data?.user ?? null);
+      }
     } catch {
       setMe(null);
     } finally {

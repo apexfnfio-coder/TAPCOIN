@@ -394,23 +394,34 @@ export class GameScene extends Phaser.Scene {
     this.chasms.push({ x1, x2, cleared: false, graphics: g, label });
   }
 
+  private recomputeScore() {
+    this.score = Math.max(
+      0,
+      this.totalTreeCount * this.opts.pointsPerTree +
+      this.greenCount * this.opts.pointsPerGreen -
+      this.redHits * this.opts.redHitScorePenalty
+    );
+  }
+
   private startChasmFall(chasm: Chasm, time: number) {
-    if (this.isFallingInChasm || this.chasmRespawnModal || this.ended) return;
+    if (this.isFallingInChasm || this.ended) return;
     this.isFallingInChasm = true;
     this.state = "hit";
     this.isGrounded = false;
     this.isJumping = false;
     this.playerVy = 0;
-    this.invulnerableUntil = time + 10000; // Protect while in modal
+    this.invulnerableUntil = time + 3000;
 
     sound.playHit();
-    this.cameras.main.shake(220, 0.012);
+    this.cameras.main.shake(200, 0.01);
     this.redHits += 1;
-    this.score = Math.max(0, this.score - 25);
+    this.recomputeScore();
     this.comboCount = 0;
     this.reportHud();
 
     const pitCenterX = (chasm.x1 + chasm.x2) / 2;
+    const respawnX = chasm.x1 - 50;
+
     if (this.showFloatText) {
       this.floatText(pitCenterX, GROUND_Y - 50, "FELL INTO CHASM! 💀 -25", "#ef4444");
     }
@@ -421,24 +432,46 @@ export class GameScene extends Phaser.Scene {
     const startScaleY = this.player.scaleY;
     const startScaleX = this.player.scaleX;
 
+    let hasRespawned = false;
+    const doSafeRespawn = () => {
+      if (hasRespawned || this.ended) return;
+      hasRespawned = true;
+      this.respawnFromChasm(respawnX);
+    };
+
+    // Responsive recovery: player can tap screen or press Jump at any point to immediately respawn
+    const keyRespawn = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Enter") {
+        window.removeEventListener("keydown", keyRespawn);
+        doSafeRespawn();
+      }
+    };
+    window.addEventListener("keydown", keyRespawn);
+    this.input.once("pointerdown", () => {
+      window.removeEventListener("keydown", keyRespawn);
+      doSafeRespawn();
+    });
+
     this.tweens.add({
       targets: this.player,
-      y: GROUND_Y + 185,
+      y: GROUND_Y + 165,
       x: pitCenterX,
       angle: this.facing * 180,
-      scaleX: startScaleX * 0.7,
-      scaleY: startScaleY * 0.7,
-      alpha: 0.2,
-      duration: 620,
+      scaleX: startScaleX * 0.72,
+      scaleY: startScaleY * 0.72,
+      alpha: 0.25,
+      duration: 520,
       ease: "Cubic.easeIn",
       onComplete: () => {
+        window.removeEventListener("keydown", keyRespawn);
         if (this.showParticles) {
           this.burst(pitCenterX, GROUND_Y + 120, "p-dust", 10, 150);
           this.burst(pitCenterX, GROUND_Y + 120, "p-chip", 6, 110);
         }
         sound.playRed();
-        this.time.delayedCall(80, () => {
-          this.showChasmRespawnModal(chasm.x1 - 50);
+        // Seamless automatic recovery onto safe ledge - no modal freeze!
+        this.time.delayedCall(100, () => {
+          doSafeRespawn();
         });
       },
     });
@@ -601,7 +634,7 @@ export class GameScene extends Phaser.Scene {
     this.player.setAlpha(1);
     this.player.x = respawnX;
     this.player.y = GROUND_Y;
-    this.playerVy = 0;
+    this.playerVy = -160;
     this.isGrounded = true;
     this.isJumping = false;
     this.state = "idle";
@@ -611,6 +644,10 @@ export class GameScene extends Phaser.Scene {
     if (this.showParticles) {
       this.burst(respawnX, GROUND_Y - 5, "p-spark", 8, 120);
       this.burst(respawnX, GROUND_Y - 5, "p-dust", 6, 90);
+    }
+
+    if (this.showFloatText) {
+      this.floatText(respawnX, GROUND_Y - 80, "↺ RESPAWNED!", "#00FFA3");
     }
 
     // Flashing gold invulnerability aura
@@ -848,7 +885,7 @@ export class GameScene extends Phaser.Scene {
       this.totalTreeCount += 1;
       const delta = this.opts.pointsPerTree;
       this.lastScoreChange = delta;
-      this.score += delta;
+      this.recomputeScore();
 
       const isLevelClearing = this.levelTreeCount >= this.level.targetTrees;
 
@@ -1001,7 +1038,7 @@ export class GameScene extends Phaser.Scene {
       this.greenCount += 1;
       const delta = this.opts.pointsPerGreen;
       this.lastScoreChange = delta;
-      this.score += delta;
+      this.recomputeScore();
       
       // Phase 3: Combo counter
       this.comboCount += 1;
@@ -1034,7 +1071,7 @@ export class GameScene extends Phaser.Scene {
       this.lastScoreChange = -delta;
       this.hitUntil = this.time.now + 1200;
       this.timeLeftMs = Math.max(0, this.timeLeftMs - this.opts.redHitPenaltySec * 1000);
-      this.score = Math.max(0, this.score - delta);
+      this.recomputeScore();
       this.state = "hit";
       this.setApeTexture("ape-hit");
       
@@ -1340,7 +1377,7 @@ export class GameScene extends Phaser.Scene {
 
         // Award green bonus points (+10)
         this.greenCount += 1;
-        this.score += this.opts.pointsPerGreen;
+        this.recomputeScore();
         this.lastScoreChange = this.opts.pointsPerGreen;
         this.comboCount += 1;
         if (this.showFloatText) {
@@ -1486,7 +1523,7 @@ export class GameScene extends Phaser.Scene {
         const deltaPenalty = this.opts.redHitScorePenalty;
         this.lastScoreChange = -deltaPenalty;
         this.timeLeftMs = Math.max(0, this.timeLeftMs - this.opts.redHitPenaltySec * 1000);
-        this.score = Math.max(0, this.score - deltaPenalty);
+        this.recomputeScore();
         this.hitUntil = this.time.now + 850;
         this.state = "hit";
         this.setApeTexture("ape-hit");

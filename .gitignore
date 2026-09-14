@@ -12,4 +12,9 @@ prisma/dev.db-journal
 *.tsbuildinfo
 TAPCOIN.rar
 backups/
+temp_trailer_assembly/
+temp_trailer_scenes/
+.agents/teamwork_preview_*
+*.mp4
+!public/assets/media/*.mp4
 

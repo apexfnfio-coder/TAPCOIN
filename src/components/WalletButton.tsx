@@ -187,10 +187,43 @@ export function WalletButton() {
 
   async function checkEligibility() {
     try {
-      const result = await fetch("/api/wallet/eligibility", { cache: "no-store" }).then((r) => r.json());
-      if (result.ok) return result.data.eligibility as Eligibility;
+      const res = await fetch("/api/wallet/eligibility", { cache: "no-store" });
+      const text = await res.text();
+      const result = text ? JSON.parse(text) : null;
+      if (result?.ok) return result.data.eligibility as Eligibility;
     } catch { /* no-op */ }
     return null;
+  }
+
+  async function postJson(url: string, body: any) {
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (err: any) {
+      throw new Error(`Network error: ${err?.message || "Failed to reach server"}`);
+    }
+
+    const text = await res.text();
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {
+      throw new Error(
+        res.status >= 500
+          ? `Server database error (${res.status}). Verify Railway DATABASE_URL.`
+          : `Invalid server response (${res.status}).`
+      );
+    }
+
+    if (!res.ok || !json?.ok) {
+      throw new Error(json?.error?.message || `Request failed with status ${res.status}`);
+    }
+
+    return json;
   }
 
   async function connect(w: WalletDef) {
@@ -203,31 +236,35 @@ export function WalletButton() {
     }
     try {
       setPhase("connecting");
-      const res = await provider.connect({ onlyIfTrusted: false });
+      let res: any;
+      try {
+        res = await provider.connect({ onlyIfTrusted: false });
+      } catch {
+        res = await provider.connect();
+      }
       const pubkey = (res?.publicKey ?? provider.publicKey)?.toString();
       if (!pubkey) throw new Error("Wallet did not return a public key.");
 
       setPhase("signing");
-      const nonceResponse = await fetch("/api/auth/nonce", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: pubkey }),
-      }).then((r) => r.json());
-      if (!nonceResponse.ok) throw new Error(nonceResponse.error?.message || "Could not start wallet verification.");
+      const nonceResponse = await postJson("/api/auth/nonce", { wallet: pubkey });
 
       if (!provider.signMessage) throw new Error(`${w.name} does not support message signing.`);
       const encoded = new TextEncoder().encode(nonceResponse.data.message);
-      const sigRes = await provider.signMessage(encoded, "utf8");
+      let sigRes: any;
+      try {
+        sigRes = await provider.signMessage(encoded, "utf8");
+      } catch {
+        sigRes = await provider.signMessage(encoded);
+      }
       const sigBytes: Uint8Array = sigRes?.signature ?? sigRes;
       const { default: bs58 } = await import("bs58");
       const signature = bs58.encode(sigBytes);
 
-      const verifyResponse = await fetch("/api/auth/wallet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: pubkey, signature, nonce: nonceResponse.data.nonce }),
-      }).then((r) => r.json());
-      if (!verifyResponse.ok) throw new Error(verifyResponse.error?.message || "Wallet verification failed.");
+      await postJson("/api/auth/wallet", {
+        wallet: pubkey,
+        signature,
+        nonce: nonceResponse.data.nonce,
+      });
 
       await refreshMe();
       closeWalletModal();

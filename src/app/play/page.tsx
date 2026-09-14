@@ -147,13 +147,8 @@ export default function PlayPage() {
     setLocalRun(result);
     setPhase("results");
 
-    // In demo mode, runs are local only
-    if (demoMode) {
-      return;
-    }
-
     try {
-      const response = await fetch("/api/runs", {
+      const res = await fetch("/api/runs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -167,12 +162,14 @@ export default function PlayPage() {
           redHits: result.redHits,
           durationMs: result.durationMs,
           endedBy: result.endedBy,
-          competitionId: lobby?.liveCompetition?.id,
+          competitionId: demoMode ? undefined : lobby?.liveCompetition?.id,
           clientVersion: "2.0.0",
         }),
-      }).then((value) => value.json());
+      });
+      const text = await res.text();
+      const response = text ? JSON.parse(text) : null;
 
-      if (!response.ok) return;
+      if (!response?.ok) return;
       const data = response.data;
       setSubmitResult({
         runId: data.run.id,
