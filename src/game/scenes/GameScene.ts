@@ -356,7 +356,7 @@ export class GameScene extends Phaser.Scene {
     g.fillRect(x2 + 12, GROUND_Y - 28, 4, 6);
 
     // Floating cyber hazard indicator
-    const label = this.add.text(x1 + width / 2, GROUND_Y - 34, "⚠ JURANG ⚠", {
+    const label = this.add.text(x1 + width / 2, GROUND_Y - 34, "⚠ DANGER ⚠", {
       fontFamily: "Arial Black, Arial",
       fontSize: "12px",
       color: "#ffd000",
@@ -432,7 +432,7 @@ export class GameScene extends Phaser.Scene {
     container.add(bg);
 
     // Warning Header
-    const title = this.add.text(0, -50, "⚠ JATUH KE JURANG! ⚠", {
+    const title = this.add.text(0, -50, "⚠ FELL INTO CHASM! ⚠", {
       fontFamily: "Arial Black, Impact, sans-serif",
       fontSize: "17px",
       color: "#ff3b30",
@@ -440,7 +440,7 @@ export class GameScene extends Phaser.Scene {
     container.add(title);
 
     // Penalty & Hint
-    const sub = this.add.text(0, -24, "-25 PTS · LOMPAT DENGAN [SPACE] / [▲]", {
+    const sub = this.add.text(0, -24, "-25 PTS · LEAP OVER WITH [SPACE] / [▲]", {
       fontFamily: "Rubik, Arial, sans-serif",
       fontSize: "11px",
       color: "#9DA8B3",
@@ -456,7 +456,7 @@ export class GameScene extends Phaser.Scene {
 
     // Respawn Button Text
     let secondsLeft = 3;
-    const btnText = this.add.text(0, 23, `↺ COBA LAGI (${secondsLeft}s)`, {
+    const btnText = this.add.text(0, 23, `↺ RESPAWN (${secondsLeft}s)`, {
       fontFamily: "Arial Black, Impact, sans-serif",
       fontSize: "13px",
       color: "#06090c",
@@ -490,7 +490,7 @@ export class GameScene extends Phaser.Scene {
       callback: () => {
         secondsLeft -= 1;
         if (secondsLeft > 0) {
-          btnText.setText(`↺ COBA LAGI (${secondsLeft}s)`);
+          btnText.setText(`↺ RESPAWN (${secondsLeft}s)`);
         } else {
           window.removeEventListener("keydown", keyHandler);
           doRespawn();
@@ -1176,7 +1176,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // 3. Platformer Chasm ("Jurang") Mechanics: Leap vs Fall
+    // 3. Platformer Chasm Mechanics: Leap vs Fall
     for (const chasm of this.chasms) {
       const inChasmPit = this.player.x > chasm.x1 + 25 && this.player.x < chasm.x2 - 25;
       if (inChasmPit) {

@@ -44,7 +44,7 @@ test("GameScene avoids spawning obstacles inside chasms or overlapping obstacles
   assert.ok(gameSceneSrc.includes("nearObs"), "spawnObstacle must prevent stacking on existing obstacles");
 });
 
-// 3. Platformer Chasm ("Jurang") Mechanics
+// 3. Platformer Chasm Mechanics
 test("GameScene declares Chasm interface and collection", () => {
   const gameSceneSrc = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
   assert.ok(gameSceneSrc.includes("interface Chasm"), "GameScene must declare Chasm interface");
@@ -55,7 +55,7 @@ test("GameScene implements spawnChasm with 180px gap and danger indicator", () =
   const gameSceneSrc = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
   assert.ok(gameSceneSrc.includes("private spawnChasm(x: number)"), "GameScene must implement spawnChasm");
   assert.ok(gameSceneSrc.includes("width = 180"), "Chasm gap width must be 180px");
-  assert.ok(gameSceneSrc.includes("⚠ JURANG ⚠"), "Chasm must display danger indicator label");
+  assert.ok(gameSceneSrc.includes("⚠ DANGER ⚠"), "Chasm must display danger indicator label");
 });
 
 test("GameScene implements Chasm Leap detection awarding +10 PTS and combo boost", () => {
