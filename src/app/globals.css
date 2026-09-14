@@ -555,28 +555,338 @@ img { max-width: 100%; }
   position: absolute; inset: 0; z-index: 5; pointer-events: none;
   background: linear-gradient(180deg, rgba(6, 9, 12, 0.06) 0%, rgba(6, 9, 12, 0.22) 45%, rgba(6, 9, 12, 0.86) 100%);
 }
-.px-content {
-  position: relative;
-  z-index: 6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 44px 24px 36px;
+/* ==========================================================================
+   HERO SHOWCASE SPLIT & MASCOT STAGE CABINET
+   ========================================================================== */
+.lobby-hero .content.hero-showcase-split {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 30px 28px !important;
+  box-sizing: border-box;
 }
 
-.hero-ape-container {
+.hero-showcase-split {
+  display: grid;
+  grid-template-columns: 1.32fr 0.95fr;
+  gap: 28px;
+  align-items: center;
+  position: relative;
+  z-index: 6;
+}
+
+.hero-col-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  min-width: 0;
+  z-index: 7;
+}
+
+.hero-col-mascot {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 180px;
+  position: relative;
+  z-index: 7;
+  min-width: 0;
+}
+
+/* Badge Group & Quick Prefs */
+.hero-header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
-.lobby-ape {
-  max-height: 175px;
+.hero-badge-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eyebrow-chip {
+  font-family: var(--font-display, "Arial Black", sans-serif);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--gold, #ffd000);
+  background: rgba(255, 208, 0, 0.12);
+  border: 1px solid rgba(255, 208, 0, 0.35);
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.live-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #00ffa3;
+  background: rgba(0, 255, 163, 0.1);
+  border: 1px solid rgba(0, 255, 163, 0.3);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #00ffa3;
+  box-shadow: 0 0 8px #00ffa3;
+  animation: liveDotGlow 1.8s ease-in-out infinite;
+}
+
+@keyframes liveDotGlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+.hero-quick-prefs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pref-pill-btn {
+  background: rgba(6, 9, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--cream-dim, #e2e8f0);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pref-pill-btn:hover {
+  background: rgba(255, 208, 0, 0.15);
+  border-color: rgba(255, 208, 0, 0.5);
+  color: #ffd000;
+}
+
+.pref-pill-btn.is-active {
+  background: rgba(0, 255, 163, 0.15);
+  border-color: #00ffa3;
+  color: #00ffa3;
+}
+
+/* Hero Title Typography */
+.hero-showcase-split .display-lg {
+  font-size: clamp(24px, 2.7vw, 36px);
+  line-height: 1.14;
+  letter-spacing: 0.5px;
+  margin: 10px 0 12px;
+  text-align: left;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.75);
+}
+
+.hero-showcase-split .gold-text {
+  color: #ffd000;
+  text-shadow: 0 0 16px rgba(255, 208, 0, 0.4);
+}
+
+/* Legend Alignments */
+.hero-showcase-split .hero-legend-wrapper {
+  margin: 8px 0 12px;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.hero-showcase-split .candle-legend {
+  justify-content: flex-start;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.hero-showcase-split .legend-card {
+  flex: 1 1 140px;
+  min-width: 130px;
+  padding: 8px 12px;
+}
+
+/* Subcopy */
+.hero-showcase-split .lobby-copy {
+  margin: 4px 0 14px;
+  text-align: left;
+  max-width: 520px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #c4d0dc;
+}
+
+/* CTA Actions */
+.hero-showcase-split .lobby-actions {
+  justify-content: flex-start;
+  margin-top: 6px;
+  gap: 12px;
+  width: 100%;
+}
+
+.hero-showcase-split .hero-wallets-block {
+  align-items: flex-start;
+  text-align: left;
+  margin-top: 14px;
+  width: 100%;
+}
+
+.hero-showcase-split .wallet-required-note {
+  font-size: 11.5px;
+  color: #9da8b3;
+  margin-bottom: 6px;
+}
+
+/* Mascot Stage Cabinet Showcase */
+.mascot-stage-cabinet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 320px;
+  padding: 20px 16px 14px;
+}
+
+.mascot-rank-tag {
+  position: absolute;
+  top: -6px;
+  right: 6px;
+  font-family: var(--font-display, "Arial Black", sans-serif);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #ffd000;
+  background: rgba(6, 9, 12, 0.9);
+  border: 1px solid rgba(255, 208, 0, 0.5);
+  padding: 3px 9px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6), 0 0 10px rgba(255, 208, 0, 0.2);
+  z-index: 10;
+}
+
+.tag-spark {
+  color: #00ffa3;
+  margin-right: 4px;
+}
+
+.mascot-ambient-aura {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  top: 10%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 255, 163, 0.16) 0%, rgba(255, 208, 0, 0.08) 45%, transparent 70%);
+  filter: blur(24px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mascot-character-wrap {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 220px;
+}
+
+.mascot-showcase-img {
+  max-height: 215px;
   width: auto;
   object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 16px rgba(0, 255, 163, 0.2));
+  transform-origin: bottom center;
+  animation: mascotIdleBreathe 3.4s ease-in-out infinite;
+}
+
+@keyframes mascotIdleBreathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-7px) scale(1.02);
+  }
+}
+
+.mascot-ground-shadow {
+  width: 170px;
+  height: 18px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 45%, transparent 75%);
+  border-radius: 50%;
+  margin-top: -10px;
+  z-index: 4;
+  animation: shadowGroundPulse 3.4s ease-in-out infinite;
+}
+
+@keyframes shadowGroundPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(0.9);
+    opacity: 0.55;
+  }
+}
+
+.mascot-pedestal {
+  width: 220px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -3px;
+  z-index: 3;
+}
+
+.pedestal-surface {
+  width: 100%;
+  height: 12px;
+  background: linear-gradient(180deg, #1d2c34 0%, #0c141a 100%);
+  border: 1px solid rgba(0, 255, 163, 0.4);
+  border-radius: 50% / 100% 100% 0 0;
+  box-shadow: 0 -2px 10px rgba(0, 255, 163, 0.25);
+}
+
+.pedestal-trim {
+  width: 88%;
+  height: 5px;
+  background: #ffd000;
+  opacity: 0.85;
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(255, 208, 0, 0.6);
+  margin-top: 1px;
+}
+
+.pedestal-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #9da8b3;
+  background: rgba(6, 9, 12, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-top: 7px;
+  white-space: nowrap;
+}
+
+.pedestal-label-icon {
+  font-size: 11px;
 }
 
 .lobby-copy {
@@ -3688,35 +3998,104 @@ html, body {
     border-radius: 14px !important;
     margin-bottom: 12px !important;
   }
-  .px-content {
-    padding: 18px 12px 16px !important;
+  /* Mobile & Tablet Overrides for Hero Showcase Split */
+  .lobby-hero .content.hero-showcase-split {
+    padding: 16px 12px 14px !important;
   }
-  .hero-ape-container {
-    height: 110px !important;
+  .hero-showcase-split {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    text-align: center !important;
+  }
+  .hero-col-info {
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .hero-col-mascot {
+    order: -1 !important; /* Mascot appears right above the title */
+    margin-bottom: 0 !important;
+  }
+  .mascot-stage-cabinet {
+    max-width: 190px !important;
+    padding: 6px 8px 2px !important;
+  }
+  .mascot-rank-tag {
+    font-size: 8px !important;
+    padding: 2px 6px !important;
+    top: -4px !important;
+    right: 0 !important;
+  }
+  .mascot-character-wrap {
+    height: 125px !important;
+  }
+  .mascot-showcase-img {
+    max-height: 120px !important;
+  }
+  .mascot-ground-shadow {
+    width: 110px !important;
+    height: 12px !important;
+    margin-top: -6px !important;
+  }
+  .mascot-pedestal {
+    width: 140px !important;
+  }
+  .pedestal-surface {
+    height: 9px !important;
+  }
+  .pedestal-trim {
+    height: 4px !important;
+  }
+  .pedestal-label {
+    display: none !important;
+  }
+  .hero-header-meta {
+    flex-direction: column !important;
+    gap: 6px !important;
+    align-items: center !important;
     margin-bottom: 4px !important;
   }
-  .lobby-ape {
-    max-height: 105px !important;
-    width: auto !important;
-    object-fit: contain !important;
+  .hero-badge-group {
+    justify-content: center !important;
   }
-  .eyebrow {
-    font-size: 10px !important;
-    letter-spacing: 1.5px !important;
-    margin-bottom: 4px !important;
+  .eyebrow-chip {
+    font-size: 9.5px !important;
+    padding: 3px 8px !important;
   }
-  .display-lg {
-    font-size: clamp(20px, 6vw, 26px) !important;
+  .live-status-chip {
+    font-size: 9px !important;
+    padding: 3px 8px !important;
+  }
+  .hero-showcase-split .display-lg {
+    font-size: clamp(20px, 6vw, 25px) !important;
     line-height: 1.2 !important;
     letter-spacing: 0.5px !important;
-    margin: 4px 0 8px !important;
+    margin: 4px 0 6px !important;
+    text-align: center !important;
   }
-  .lobby-copy {
-    font-size: 12px !important;
+  .hero-showcase-split .hero-legend-wrapper {
+    justify-content: center !important;
+    margin: 6px 0 8px !important;
+  }
+  .hero-showcase-split .candle-legend {
+    justify-content: center !important;
+  }
+  .hero-showcase-split .lobby-copy {
+    font-size: 11.5px !important;
     line-height: 1.45 !important;
-    margin: 6px auto 12px !important;
+    margin: 4px auto 10px !important;
     padding: 0 4px !important;
     max-width: 100% !important;
+    text-align: center !important;
+  }
+  .hero-showcase-split .lobby-actions {
+    justify-content: center !important;
+  }
+  .hero-showcase-split .hero-wallets-block {
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .hero-showcase-split .wallet-supported-badges {
+    justify-content: center !important;
   }
 
   /* Side-by-side Candle Legend Chips */

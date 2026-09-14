@@ -9,7 +9,7 @@ const VIEW_H = 720;
 const GROUND_Y = 550;
 const CHOP_RANGE = 145;
 const BLOCK_DIST = 110;
-const PLAYER_HEIGHT = 232;
+const PLAYER_HEIGHT = 195;
 const TREE_HEIGHT = 440;
 const STUMP_HEIGHT = 150;
 
@@ -77,6 +77,8 @@ export class GameScene extends Phaser.Scene {
   private lastJumpPressedTime = 0;
   private wasJumpDown = false;
   private isJumping = false;
+  private isFallingInChasm = false;
+  private chasmRespawnModal: Phaser.GameObjects.Container | null = null;
   private hitStopUntil = 0;
   private invulnerableUntil = 0;
   private layers: { tile: Phaser.GameObjects.TileSprite; factor: number }[] = [];
@@ -249,46 +251,123 @@ export class GameScene extends Phaser.Scene {
     const x1 = x;
     const x2 = x + width;
 
-    // Cutout abyss and hazard warning chevrons
-    const g = this.add.graphics().setDepth(4);
+    // Graphics at depth 3.5 (under player/trees, but blends naturally with ground strata)
+    const g = this.add.graphics().setDepth(3.5);
 
-    // Abyss dark void
-    g.fillStyle(0x06090c, 1);
-    g.fillRect(x1, GROUND_Y - 4, width, 180);
+    // 1. Deep Cavern Abyss Void (deep gradient darkness)
+    g.fillGradientStyle(0x180f08, 0x180f08, 0x020406, 0x020406, 1, 1, 1, 1);
+    g.fillRect(x1 + 4, GROUND_Y - 6, width - 8, 190);
 
-    // Hazard red underglow at bottom of chasm
-    g.fillStyle(0xff3b30, 0.28);
-    g.fillRect(x1 + 8, GROUND_Y + 70, width - 16, 80);
-
-    // Neon hazard lip border lines
-    g.lineStyle(3, 0xffd000, 0.9);
+    // 2. Left Jagged Canyon Cliff Wall (earth strata, rocky cliff slope inward)
+    g.fillStyle(0x3d2716, 1); // Dark rich topsoil
     g.beginPath();
-    g.moveTo(x1 - 4, GROUND_Y - 2);
-    g.lineTo(x1 + 6, GROUND_Y - 2);
-    g.moveTo(x2 - 6, GROUND_Y - 2);
-    g.lineTo(x2 + 4, GROUND_Y - 2);
-    g.strokePath();
+    g.moveTo(x1 - 8, GROUND_Y - 8);
+    g.lineTo(x1 + 12, GROUND_Y - 8);
+    g.lineTo(x1 + 8, GROUND_Y + 30);
+    g.lineTo(x1 + 18, GROUND_Y + 70);
+    g.lineTo(x1 + 12, GROUND_Y + 120);
+    g.lineTo(x1 + 6, GROUND_Y + 180);
+    g.lineTo(x1 - 10, GROUND_Y + 180);
+    g.closePath();
+    g.fillPath();
 
-    // Red warning perimeter across the gap
-    g.lineStyle(1.5, 0xff3b30, 0.5);
+    // Rocky highlight strata on left cliff
+    g.fillStyle(0x5a3a20, 1);
     g.beginPath();
-    g.moveTo(x1, GROUND_Y);
-    g.lineTo(x2, GROUND_Y);
-    g.strokePath();
+    g.moveTo(x1 - 4, GROUND_Y - 6);
+    g.lineTo(x1 + 8, GROUND_Y - 6);
+    g.lineTo(x1 + 4, GROUND_Y + 25);
+    g.lineTo(x1 + 12, GROUND_Y + 55);
+    g.lineTo(x1 + 6, GROUND_Y + 90);
+    g.lineTo(x1 - 2, GROUND_Y + 90);
+    g.closePath();
+    g.fillPath();
+
+    // Grass edge hanging over left ledge
+    g.fillStyle(0x3e8a2a, 1);
+    g.fillRect(x1 - 12, GROUND_Y - 10, 22, 6);
+    g.fillStyle(0x2d681c, 1);
+    g.fillRect(x1 - 4, GROUND_Y - 4, 10, 8); // Hanging roots
+
+    // 3. Right Jagged Canyon Cliff Wall
+    g.fillStyle(0x3d2716, 1);
+    g.beginPath();
+    g.moveTo(x2 + 8, GROUND_Y - 8);
+    g.lineTo(x2 - 12, GROUND_Y - 8);
+    g.lineTo(x2 - 8, GROUND_Y + 30);
+    g.lineTo(x2 - 16, GROUND_Y + 75);
+    g.lineTo(x2 - 10, GROUND_Y + 125);
+    g.lineTo(x2 - 6, GROUND_Y + 180);
+    g.lineTo(x2 + 10, GROUND_Y + 180);
+    g.closePath();
+    g.fillPath();
+
+    // Rocky highlight on right cliff
+    g.fillStyle(0x5a3a20, 1);
+    g.beginPath();
+    g.moveTo(x2 + 4, GROUND_Y - 6);
+    g.lineTo(x2 - 8, GROUND_Y - 6);
+    g.lineTo(x2 - 4, GROUND_Y + 25);
+    g.lineTo(x2 - 10, GROUND_Y + 60);
+    g.lineTo(x2 - 5, GROUND_Y + 95);
+    g.lineTo(x2 + 2, GROUND_Y + 95);
+    g.closePath();
+    g.fillPath();
+
+    // Grass edge hanging over right ledge
+    g.fillStyle(0x3e8a2a, 1);
+    g.fillRect(x2 - 10, GROUND_Y - 10, 22, 6);
+    g.fillStyle(0x2d681c, 1);
+    g.fillRect(x2 - 6, GROUND_Y - 4, 10, 8); // Hanging roots
+
+    // 4. Magma Hazard Underglow at Pit Floor
+    g.fillStyle(0xff2200, 0.35);
+    g.fillRect(x1 + 18, GROUND_Y + 110, width - 36, 60);
+    g.fillStyle(0xff8800, 0.2);
+    g.fillRect(x1 + 28, GROUND_Y + 130, width - 56, 40);
+
+    // 5. Pit Spikes & Jagged Stalagmites
+    g.fillStyle(0x1a120b, 1);
+    for (let sx = x1 + 25; sx < x2 - 25; sx += 24) {
+      g.beginPath();
+      g.moveTo(sx, GROUND_Y + 175);
+      g.lineTo(sx + 12, GROUND_Y + 125);
+      g.lineTo(sx + 24, GROUND_Y + 175);
+      g.closePath();
+      g.fillPath();
+    }
+
+    // 6. Hazard Warning Barricade Posts with Diagonal Stripes on turf edge
+    // Left post
+    g.fillStyle(0x4a2e18, 1);
+    g.fillRect(x1 - 18, GROUND_Y - 32, 6, 24);
+    // Right post
+    g.fillRect(x2 + 12, GROUND_Y - 32, 6, 24);
+
+    // Hazard crossbeams
+    g.fillStyle(0xffd000, 0.9);
+    g.fillRect(x1 - 22, GROUND_Y - 28, 14, 6);
+    g.fillStyle(0x06090c, 0.9);
+    g.fillRect(x1 - 18, GROUND_Y - 28, 4, 6);
+
+    g.fillStyle(0xffd000, 0.9);
+    g.fillRect(x2 + 8, GROUND_Y - 28, 14, 6);
+    g.fillStyle(0x06090c, 0.9);
+    g.fillRect(x2 + 12, GROUND_Y - 28, 4, 6);
 
     // Floating cyber hazard indicator
-    const label = this.add.text(x1 + width / 2, GROUND_Y - 28, "⚠ JURANG ⚠", {
+    const label = this.add.text(x1 + width / 2, GROUND_Y - 34, "⚠ JURANG ⚠", {
       fontFamily: "Arial Black, Arial",
       fontSize: "12px",
-      color: "#ff3b30",
+      color: "#ffd000",
       stroke: "#06090c",
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(9);
 
     this.tweens.add({
       targets: label,
-      scaleX: 1.1,
-      scaleY: 1.1,
+      scaleX: 1.12,
+      scaleY: 1.12,
       duration: 480,
       yoyo: true,
       repeat: -1,
@@ -298,39 +377,178 @@ export class GameScene extends Phaser.Scene {
     this.chasms.push({ x1, x2, cleared: false, graphics: g, label });
   }
 
-  private handleChasmFall(chasm: Chasm, time: number) {
-    if (time < this.invulnerableUntil) return;
-    this.invulnerableUntil = time + 900;
+  private startChasmFall(chasm: Chasm, time: number) {
+    if (this.isFallingInChasm) return;
+    this.isFallingInChasm = true;
+    this.state = "hit";
+    this.isGrounded = false;
+    this.playerVy = 260; // Accelerate downward
+    this.invulnerableUntil = time + 10000; // Protect while in modal
 
     sound.playHit();
-    this.cameras.main.shake(160, 0.012);
+    this.cameras.main.shake(250, 0.015);
     this.redHits += 1;
     this.score = Math.max(0, this.score - 25);
     this.comboCount = 0;
     this.reportHud();
 
     if (this.showFloatText) {
-      this.floatText(this.player.x, GROUND_Y - 140, "REKT IN CHASM! -25", "#ef4444");
+      this.floatText(this.player.x, GROUND_Y - 60, "FELL INTO CHASM! 💀 -25", "#ef4444");
     }
 
-    // Rocket bounce up and reset safely to left ledge
-    this.player.x = chasm.x1 - 45;
-    this.player.y = GROUND_Y - 40;
-    this.playerVy = -520;
-    this.isGrounded = false;
-    this.isJumping = true;
-
-    // Flash invulnerability tween
+    // Tumble rotation into abyss
+    this.setApeTexture("ape-hit");
+    this.tweens.killTweensOf(this.player);
     this.tweens.add({
       targets: this.player,
-      alpha: 0.3,
-      duration: 100,
-      yoyo: true,
-      repeat: 3,
+      angle: 180,
+      duration: 480,
+      ease: "Cubic.easeIn",
       onComplete: () => {
-        this.player.alpha = 1;
+        if (this.showParticles) {
+          this.burst(this.player.x, GROUND_Y + 110, "p-dust", 8, 140);
+        }
+        this.showChasmRespawnModal(chasm.x1 - 50);
       },
     });
+  }
+
+  private showChasmRespawnModal(respawnX: number) {
+    if (this.chasmRespawnModal || this.ended) return;
+
+    const modalX = this.player.x;
+    const modalY = GROUND_Y - 140;
+
+    const container = this.add.container(modalX, modalY).setDepth(20);
+
+    // Modal Background Panel with Cyber Border
+    const bg = this.add.graphics();
+    bg.fillStyle(0x06090c, 0.94);
+    bg.fillRoundedRect(-170, -75, 340, 150, 16);
+    bg.lineStyle(2, 0xff3b30, 0.9);
+    bg.strokeRoundedRect(-170, -75, 340, 150, 16);
+    bg.lineStyle(1, 0xffd000, 0.4);
+    bg.strokeRoundedRect(-166, -71, 332, 142, 12);
+    container.add(bg);
+
+    // Warning Header
+    const title = this.add.text(0, -50, "⚠ JATUH KE JURANG! ⚠", {
+      fontFamily: "Arial Black, Impact, sans-serif",
+      fontSize: "17px",
+      color: "#ff3b30",
+    }).setOrigin(0.5);
+    container.add(title);
+
+    // Penalty & Hint
+    const sub = this.add.text(0, -24, "-25 PTS · LOMPAT DENGAN [SPACE] / [▲]", {
+      fontFamily: "Rubik, Arial, sans-serif",
+      fontSize: "11px",
+      color: "#9DA8B3",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+    container.add(sub);
+
+    // Respawn Button Background
+    const btnBg = this.add.graphics();
+    btnBg.fillStyle(0xffd000, 1);
+    btnBg.fillRoundedRect(-110, 4, 220, 38, 10);
+    container.add(btnBg);
+
+    // Respawn Button Text
+    let secondsLeft = 3;
+    const btnText = this.add.text(0, 23, `↺ COBA LAGI (${secondsLeft}s)`, {
+      fontFamily: "Arial Black, Impact, sans-serif",
+      fontSize: "13px",
+      color: "#06090c",
+    }).setOrigin(0.5);
+    container.add(btnText);
+
+    // Interactive Button Hit Area
+    const hitArea = this.add.zone(0, 23, 220, 38).setOrigin(0.5).setInteractive({ cursor: "pointer" });
+    container.add(hitArea);
+
+    const doRespawn = () => {
+      if (!this.chasmRespawnModal) return;
+      this.respawnFromChasm(respawnX);
+    };
+
+    hitArea.on("pointerdown", doRespawn);
+
+    // Also support keyboard trigger (Space / Up / W / Enter)
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW" || e.code === "Enter") {
+        window.removeEventListener("keydown", keyHandler);
+        doRespawn();
+      }
+    };
+    window.addEventListener("keydown", keyHandler);
+
+    // Auto-countdown timer (3 seconds)
+    this.time.addEvent({
+      delay: 1000,
+      repeat: 2,
+      callback: () => {
+        secondsLeft -= 1;
+        if (secondsLeft > 0) {
+          btnText.setText(`↺ COBA LAGI (${secondsLeft}s)`);
+        } else {
+          window.removeEventListener("keydown", keyHandler);
+          doRespawn();
+        }
+      },
+    });
+
+    // Pop-in bounce tween
+    container.setScale(0.85);
+    this.tweens.add({
+      targets: container,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 180,
+      ease: "Back.easeOut",
+    });
+
+    this.chasmRespawnModal = container;
+  }
+
+  private respawnFromChasm(respawnX: number) {
+    if (this.chasmRespawnModal) {
+      this.chasmRespawnModal.destroy();
+      this.chasmRespawnModal = null;
+    }
+
+    sound.playJump();
+    this.isFallingInChasm = false;
+    this.player.setAngle(0);
+    this.player.x = respawnX;
+    this.player.y = GROUND_Y;
+    this.playerVy = 0;
+    this.isGrounded = true;
+    this.isJumping = false;
+    this.state = "idle";
+    this.setApeTexture("ape-idle");
+    this.invulnerableUntil = this.time.now + 1800;
+
+    if (this.showParticles) {
+      this.burst(respawnX, GROUND_Y - 5, "p-spark", 8, 120);
+      this.burst(respawnX, GROUND_Y - 5, "p-dust", 6, 90);
+    }
+
+    // Flashing gold invulnerability aura
+    this.tweens.add({
+      targets: this.player,
+      alpha: 0.35,
+      duration: 100,
+      yoyo: true,
+      repeat: 5,
+      onComplete: () => {
+        this.player.setAlpha(1);
+      },
+    });
+  }
+
+  private handleChasmFall(chasm: Chasm, time: number) {
+    this.startChasmFall(chasm, time);
   }
 
   private spawnObstacle(targetX: number) {
@@ -362,25 +580,29 @@ export class GameScene extends Phaser.Scene {
     const roll = this.rng.next();
     const kind: Obstacle["kind"] = roll < 0.28 ? "rat" : roll < 0.52 ? "bear" : roll < 0.78 ? "mop" : "branch";
     const key = `obstacle-${kind}`;
-    const y = kind === "branch" ? GROUND_Y - 110 : kind === "bear" ? GROUND_Y - 48 : GROUND_Y - (kind === "mop" ? 44 : 20);
-    const sprite = this.add.image(x, y, key).setDepth(8);
-    const targetHeight = kind === "branch" ? 82 : kind === "bear" ? 92 : kind === "mop" ? 86 : 46;
+    
+    // Realistic scale hierarchy: Bear (210px towering beast), Ape (195px), Mop (88px), Branch (68px), Rat (34px small floor critter)
+    const targetHeight = kind === "branch" ? 68 : kind === "bear" ? 210 : kind === "mop" ? 88 : 34;
+    const actualY = kind === "branch" ? GROUND_Y - 8 : kind === "bear" ? GROUND_Y + 4 : GROUND_Y;
+
+    const sprite = this.add.image(x, actualY, key).setDepth(8).setOrigin(0.5, 1);
     this.fitHeight(sprite, targetHeight);
+
     if (kind === "branch") {
       sprite.setAngle(this.rng.int(-12, 12));
-      this.tweens.add({ targets: sprite, y: y - 8, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      this.tweens.add({ targets: sprite, y: actualY - 6, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     } else if (kind === "mop") {
       sprite.setAngle(this.rng.int(-8, 8));
       this.tweens.add({ targets: sprite, angle: sprite.angle + (sprite.angle > 0 ? -5 : 5), duration: 800, yoyo: true, repeat: -1 });
     } else if (kind === "rat") {
-      // Rat scurrying motion
-      this.tweens.add({ targets: sprite, y: y - 4, duration: 180, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      // Rat scurrying motion along grass
+      this.tweens.add({ targets: sprite, y: actualY - 3, duration: 180, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     } else if (kind === "bear") {
-      // Bear prowl motion (slight up and down lumbering stride)
-      this.tweens.add({ targets: sprite, y: y - 5, duration: 320, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      // Massive Bear prowl motion
+      this.tweens.add({ targets: sprite, y: actualY - 6, duration: 320, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
     }
     const speed = kind === "rat" ? this.rng.int(40, 70) : kind === "bear" ? this.rng.int(45, 65) : 0;
-    this.obstacles.push({ sprite, kind, x, y, speed, hit: false });
+    this.obstacles.push({ sprite, kind, x, y: actualY, speed, hit: false });
   }
 
   private targetTree(): Tree | null {

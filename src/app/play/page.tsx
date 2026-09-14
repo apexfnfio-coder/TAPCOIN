@@ -259,98 +259,128 @@ export default function PlayPage() {
           <i /><i /><i /><i /><i /><i />
         </div>
 
-        <div className="content px-content">
-          <div className="hero-ape-container">
-            <img src="/assets/ape/idle.png" alt="$TAP Ape" className="float-ape lobby-ape" />
-          </div>
+        <div className="content px-content hero-showcase-split">
+          {/* Left Column: Arcade Metadata, Title, Legend, Copy, CTAs */}
+          <div className="hero-col-info">
+            <div className="hero-header-meta">
+              <div className="hero-badge-group">
+                <span className="eyebrow-chip">{strings.gameTitle}</span>
+                <span className="live-status-chip">
+                  <span className="live-dot" /> LIVE ON SOLANA
+                </span>
+              </div>
+              <div className="hero-quick-prefs">
+                <button
+                  type="button"
+                  className="pref-pill-btn"
+                  onClick={() => {
+                    sound.playClick();
+                    setShowTutorial(true);
+                  }}
+                  title="Open interactive rules tutorial"
+                >
+                  📖 Tutorial
+                </button>
+                <button
+                  type="button"
+                  className={`pref-pill-btn ${colorblindMode ? "is-active" : ""}`}
+                  onClick={() => {
+                    sound.playClick();
+                    setColorblindMode(!colorblindMode);
+                  }}
+                  title={colorblindMode ? strings.colorblindOn : strings.colorblindOff}
+                >
+                  👁️ {colorblindMode ? "Cyan/Orange" : "Colorblind"}
+                </button>
+              </div>
+            </div>
 
-          <div className="hero-header-meta">
-            <div className="eyebrow" style={{ margin: 0 }}>{strings.gameTitle}</div>
-            <div className="hero-quick-prefs">
+            <h1 className="display display-lg">
+              CHOP TIMBER. <span className="gold-text">RIDE THE PUMP.</span> DON'T GET REKT.
+            </h1>
+
+            {/* Visual Candle Legend */}
+            <div className="hero-legend-wrapper">
+              <CandleLegend colorblindMode={colorblindMode} />
+            </div>
+
+            <p className="sub lobby-copy">{strings.heroSubcopy}</p>
+
+            {/* CTAs */}
+            <div className="lobby-actions">
               <button
                 type="button"
-                className="pref-pill-btn"
-                onClick={() => {
-                  sound.playClick();
-                  setShowTutorial(true);
-                }}
-                title="Open interactive rules tutorial"
+                className="btn btn-wood btn-lg demo-btn"
+                onClick={startDemoRun}
               >
-                📖 Tutorial
+                <span className="btn-icon">⚡</span>
+                <span>{strings.tryDemo}</span>
               </button>
+
               <button
                 type="button"
-                className={`pref-pill-btn ${colorblindMode ? "is-active" : ""}`}
-                onClick={() => {
-                  sound.playClick();
-                  setColorblindMode(!colorblindMode);
-                }}
-                title={colorblindMode ? strings.colorblindOn : strings.colorblindOff}
+                className="btn btn-gold btn-lg glow-cta"
+                onClick={startRealRun}
+                disabled={starting || meLoading || !config || config.maintenance}
               >
-                👁️ {colorblindMode ? "Cyan/Orange" : "Colorblind"}
+                <span className="btn-icon">🪓</span>
+                <span>
+                  {starting
+                    ? strings.starting
+                    : walletConnected
+                    ? strings.playNow
+                    : strings.connectWallet}
+                </span>
               </button>
             </div>
+
+            {/* Supported Wallets */}
+            {!walletConnected && (
+              <div className="hero-wallets-block">
+                <p className="wallet-required-note">{strings.walletRequiredNote}</p>
+                <WalletBadges />
+              </div>
+            )}
+
+            {walletConnected && eligibility && config?.leaderboardEligibility.enabled && (
+              <div className={`eligibility-card ${eligibility.eligible ? "ok" : "warn"}`}>
+                <b>Leaderboard Access:</b>
+                <span>{eligibility.message}</span>
+              </div>
+            )}
+
+            {config?.maintenance && (
+              <div className="error-box" style={{ marginTop: 14 }}>
+                Maintenance mode active — official runs are temporarily suspended.
+              </div>
+            )}
           </div>
 
-          <h1 className="display display-lg">
-            CHOP TIMBER. <span className="gold-text">RIDE THE PUMP.</span> DON'T GET REKT.
-          </h1>
-
-          {/* Phase 1.1: Core Mechanic Visual Legend (Visible without scrolling) */}
-          <div className="hero-legend-wrapper">
-            <CandleLegend colorblindMode={colorblindMode} />
+          {/* Right Column: Character Stage Showcase */}
+          <div className="hero-col-mascot">
+            <div className="mascot-stage-cabinet">
+              <div className="mascot-rank-tag">
+                <span className="tag-spark">★</span> RANK: DEGEN APE
+              </div>
+              <div className="mascot-ambient-aura" />
+              <div className="mascot-character-wrap">
+                <img
+                  src="/assets/ape/idle.png"
+                  alt="$TAP Ape Mascot"
+                  className="mascot-showcase-img float-ape"
+                />
+              </div>
+              <div className="mascot-ground-shadow" />
+              <div className="mascot-pedestal">
+                <div className="pedestal-surface" />
+                <div className="pedestal-trim" />
+                <div className="pedestal-label">
+                  <span className="pedestal-label-icon">🪓</span>
+                  <span>EQUIPPED: RUSTY HATCHET · +10 DMG</span>
+                </div>
+              </div>
+            </div>
           </div>
-
-          <p className="sub lobby-copy">{strings.heroSubcopy}</p>
-
-          {/* CTAs: Demo Mode & Connect/Play */}
-          <div className="lobby-actions">
-            <button
-              type="button"
-              className="btn btn-wood btn-lg demo-btn"
-              onClick={startDemoRun}
-            >
-              <span className="btn-icon">⚡</span>
-              <span>{strings.tryDemo}</span>
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-gold btn-lg glow-cta"
-              onClick={startRealRun}
-              disabled={starting || meLoading || !config || config.maintenance}
-            >
-              <span className="btn-icon">🪓</span>
-              <span>
-                {starting
-                  ? strings.starting
-                  : walletConnected
-                  ? strings.playNow
-                  : strings.connectWallet}
-              </span>
-            </button>
-          </div>
-
-          {/* Supported Solana Wallets Badges under Connect */}
-          {!walletConnected && (
-            <div className="hero-wallets-block">
-              <p className="wallet-required-note">{strings.walletRequiredNote}</p>
-              <WalletBadges />
-            </div>
-          )}
-
-          {walletConnected && eligibility && config?.leaderboardEligibility.enabled && (
-            <div className={`eligibility-card ${eligibility.eligible ? "ok" : "warn"}`}>
-              <b>Leaderboard Access:</b>
-              <span>{eligibility.message}</span>
-            </div>
-          )}
-
-          {config?.maintenance && (
-            <div className="error-box" style={{ marginTop: 14 }}>
-              Maintenance mode active — official runs are temporarily suspended.
-            </div>
-          )}
         </div>
       </section>
 

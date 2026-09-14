@@ -64,12 +64,12 @@ test("GameScene implements Chasm Leap detection awarding +10 PTS and combo boost
   assert.ok(gameSceneSrc.includes("this.greenCount += 1"), "Chasm leap must increment greenCount");
 });
 
-test("GameScene implements Chasm Fall penalty (-25 PTS) and anti-softlock ledge rebound", () => {
+test("GameScene implements Chasm Fall penalty (-25 PTS) and tumble fall respawn modal", () => {
   const gameSceneSrc = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
   assert.ok(gameSceneSrc.includes("handleChasmFall("), "Must implement handleChasmFall");
-  assert.ok(gameSceneSrc.includes("REKT IN CHASM! -25"), "Chasm fall must display penalty float text");
+  assert.ok(gameSceneSrc.includes("startChasmFall"), "Must implement startChasmFall tumbling animation");
   assert.ok(gameSceneSrc.includes("this.redHits += 1"), "Chasm fall must increment redHits");
-  assert.ok(gameSceneSrc.includes("this.playerVy = -520"), "Chasm fall must rebound player upward to safety");
+  assert.ok(gameSceneSrc.includes("showChasmRespawnModal") || gameSceneSrc.includes("respawnFromChasm"), "Must implement chasm respawn modal");
 });
 
 test("GameScene advanceLevel clears previous chasms and respawns widely", () => {
