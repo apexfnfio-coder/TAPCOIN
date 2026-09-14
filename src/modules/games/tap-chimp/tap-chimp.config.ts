@@ -12,4 +12,4 @@ export const TAP_CHIMP_MODULE_CONFIG: GameModuleConfig = {
 };
 
 export const TAP_CHIMP_SAFE_PRICE_USD = 0.0042;
-export const TAP_CHIMP_MIN_HOLDING_USD = 10;
+export const TAP_CHIMP_MIN_HOLDING_USD = 0;

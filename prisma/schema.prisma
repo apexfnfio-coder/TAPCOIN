@@ -142,3 +142,18 @@ model AuditLog {
   @@index([createdAt])
   @@index([actorId])
 }
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  userId     String
+  username   String
+  wallet     String
+  text       String
+  badge      String   @default("DEGEN")
+  badgeColor String   @default("#ab9ff2")
+  avatar     String   @default("/assets/ui/avatar-default.png")
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+

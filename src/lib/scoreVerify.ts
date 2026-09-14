@@ -1,6 +1,14 @@
 import type { GameConfig } from "./config";
 import { DEFAULT_GAME_SLUG, isKnownGameSlug } from "@/modules/games/core/game-registry";
-import { computeTapChimpScore, createTapChimpLevel, normalizeOutcome, normalizeLevel } from "@/modules/games/tap-chimp";
+import {
+  computeTapChimpScore,
+  createTapChimpLevel,
+  cumulativeMaxDurationSec,
+  cumulativeMinTreesForLevel,
+  cumulativeTargetTreesForLevel,
+  normalizeOutcome,
+  normalizeLevel,
+} from "@/modules/games/tap-chimp";
 import type { GameRunOutcome, GameSlug } from "@/modules/games/core/game.types";
 
 export interface RunPayload {
@@ -46,25 +54,28 @@ export function verifyRun(p: RunPayload, cfg: GameConfig): RunVerdict {
   const progress = Math.max(0, Math.min(targetTrees, Math.floor(p.progress ?? p.trees)));
   const expectedScore = computeTapChimpScore({ level, trees: p.trees, green: p.green, redHits: p.redHits, endedBy }, cfg);
 
+  const priorMinTrees = cumulativeMinTreesForLevel(level, cfg);
+  const cumulativeTarget = cumulativeTargetTreesForLevel(level, cfg);
+
   if (p.score !== expectedScore) flags.push("SCORE_MISMATCH");
   if (targetTrees !== levelDef.targetTrees) flags.push("TARGET_MISMATCH");
-  if (p.trees < progress) flags.push("PROGRESS_EXCEEDS_TREES");
-  if (endedBy === "completed" && p.trees < levelDef.targetTrees) flags.push("LEVEL_NOT_COMPLETE");
+  if (p.trees < priorMinTrees + progress) flags.push("PROGRESS_EXCEEDS_TREES");
+  if (endedBy === "completed" && p.trees < cumulativeTarget) flags.push("LEVEL_NOT_COMPLETE");
   if (endedBy !== "completed" && progress > levelDef.targetTrees) flags.push("PROGRESS_EXCEEDS_TARGET");
-  if (p.trees > levelDef.targetTrees + 2) flags.push("TREE_OVERFLOW");
+  if (p.trees > cumulativeTarget + 2) flags.push("TREE_OVERFLOW");
   if (p.redHits > levelDef.maxRedHits) flags.push("TOO_MANY_RED_HITS");
 
-  const maxMs = levelDef.maxDurationSec * 1000;
+  const maxMs = cumulativeMaxDurationSec(level, cfg) * 1000;
   if (p.durationMs <= 0) flags.push("BAD_DURATION");
-  if (p.durationMs > maxMs + 1500) flags.push("DURATION_EXCEEDS_LEVEL_MAX");
+  if (p.durationMs > maxMs + 2500) flags.push("DURATION_EXCEEDS_LEVEL_MAX");
 
-  const minClearMs = Math.max(1000, levelDef.targetTrees * levelDef.treeHp * levelDef.chopIntervalMs * 0.72);
+  const minClearMs = Math.max(1000, cumulativeTarget * levelDef.treeHp * levelDef.chopIntervalMs * 0.72);
   if (endedBy === "completed" && p.durationMs < minClearMs) flags.push("DURATION_TOO_SHORT_FOR_CLEAR");
 
-  const maxTrees = Math.ceil(p.durationMs / levelDef.chopIntervalMs / levelDef.treeHp) + 2;
+  const maxTrees = Math.ceil(p.durationMs / (levelDef.chopIntervalMs * 0.75) / 2) + 6;
   if (p.trees > maxTrees) flags.push("IMPOSSIBLE_TREE_COUNT");
 
-  const maxCandles = Math.ceil(p.durationMs / 1000) * 3 + 10;
+  const maxCandles = Math.ceil(p.durationMs / 1000) * 4 + 15;
   if (p.green + p.redHits > maxCandles) flags.push("IMPOSSIBLE_CANDLE_COUNT");
 
   for (const v of [p.score, p.trees, p.green, p.redHits, p.durationMs, level, targetTrees, progress]) {

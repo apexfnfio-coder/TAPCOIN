@@ -7,7 +7,15 @@ const env = {
 };
 
 console.log("→ [build] Setting up database with:", databaseUrl);
-execSync("npx prisma db push --accept-data-loss", { stdio: "inherit", env });
+try {
+  execSync("npx prisma db push --accept-data-loss", { stdio: "inherit", env });
+} catch (err) {
+  console.warn("⚠️ Database setup notice:", err?.message || err);
+}
 
 console.log("→ [build] Building Next.js production app...");
-execSync("npx next build", { stdio: "inherit", env });
+try {
+  execSync("npx --no-install next build", { stdio: "inherit", env });
+} catch {
+  execSync("npx next build", { stdio: "inherit", env });
+}

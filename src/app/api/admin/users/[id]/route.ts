@@ -5,12 +5,13 @@ import { requireAdmin } from "@/lib/guard";
 import { audit } from "@/lib/audit";
 
 /** Admin: user detail with activity. */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if ("res" in auth) return auth.res;
 
   const user = await db.user.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       runs: { orderBy: { createdAt: "desc" }, take: 20, include: { competition: { select: { name: true } } } },
       competitionRows: { include: { competition: { select: { name: true, status: true } } } },
@@ -56,7 +57,8 @@ const Patch = z.object({
 });
 
 /** Admin: suspend / reactivate / role change. */
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if ("res" in auth) return auth.res;
   const admin = auth.user;
@@ -70,7 +72,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
   if (!patch.status && !patch.role) return fail(400, "BAD_INPUT", "Nothing to update.");
 
-  const target = await db.user.findUnique({ where: { id: params.id } });
+  const target = await db.user.findUnique({ where: { id } });
   if (!target) return fail(404, "NOT_FOUND", "User not found.");
   if (target.id === admin.id) return fail(400, "SELF_ACTION", "You cannot modify your own account.");
 

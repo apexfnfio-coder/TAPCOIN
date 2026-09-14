@@ -14,13 +14,13 @@ export class BootScene extends Phaser.Scene {
     const barX = (W - barW) / 2;
     const barY = H / 2 + 10;
 
-    this.add.rectangle(W / 2, H / 2, W, H, 0x070d0a);
+    this.add.rectangle(W / 2, H / 2, W, H, 0x06090c);
 
     const label = this.add
       .text(W / 2, H / 2 - 40, "LOADING… 0%", {
         fontFamily: "Arial Black",
         fontSize: "24px",
-        color: "#efe3c8",
+        color: "#F4F6F8",
       })
       .setOrigin(0.5);
 
@@ -28,20 +28,20 @@ export class BootScene extends Phaser.Scene {
       .text(W / 2, H / 2 + 58, "Tip: green candles = bonus, red = danger", {
         fontFamily: "Arial",
         fontSize: "15px",
-        color: "#7d8a7f",
+        color: "#9DA8B3",
       })
       .setOrigin(0.5);
 
     const barBg = this.add.graphics();
-    barBg.fillStyle(0x101d15, 1);
+    barBg.fillStyle(0x0e151c, 1);
     barBg.fillRoundedRect(barX - 3, barY - 3, barW + 6, barH + 6, 8);
-    barBg.lineStyle(1, 0x23402e, 1);
+    barBg.lineStyle(1, 0x162432, 1);
     barBg.strokeRoundedRect(barX - 3, barY - 3, barW + 6, barH + 6, 8);
 
     const bar = this.add.graphics();
     this.load.on("progress", (p: number) => {
       bar.clear();
-      bar.fillStyle(0xf2b53c, 1);
+      bar.fillStyle(0xFFD000, 1);
       bar.fillRoundedRect(barX, barY, Math.max(8, barW * p), barH, 6);
       label.setText(`LOADING… ${Math.round(p * 100)}%`);
     });

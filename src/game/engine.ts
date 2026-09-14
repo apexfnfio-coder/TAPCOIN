@@ -12,7 +12,8 @@ export async function createGame(
   opts: GameOptions,
   bridge: GameBridge
 ): Promise<TapGame> {
-  const Phaser = (await import("phaser")).default;
+  const phaserModule = await import("phaser");
+  const Phaser = phaserModule.default || phaserModule;
 
   const boot = new BootScene();
   const gameScene = new GameScene();
@@ -23,7 +24,7 @@ export async function createGame(
     width: 1280,
     height: 720,
     transparent: false,
-    backgroundColor: 0x070d0a,
+    backgroundColor: 0x06090c,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { antialias: true, transparent: false },
     fps: { target: 60 },

@@ -3,6 +3,9 @@ import { ok } from "@/lib/http";
 import { getSessionUser } from "@/lib/auth";
 import { DEFAULT_GAME_SLUG, isKnownGameSlug } from "@/modules/games/core/game-registry";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /** Public competition listing with live status resolution. */
 export async function GET(req: Request) {
   const url = new URL(req.url);

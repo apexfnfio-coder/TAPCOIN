@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useApp } from "./Providers";
 
+
 declare global {
   interface Window {
     solana?: any;
     solflare?: any;
-    backpack?: any;
+    jupiter?: any;
   }
 }
 
@@ -16,14 +17,128 @@ interface WalletDef {
   id: string;
   name: string;
   color: string;
-  letter: string;
+  icon: React.ReactNode;
+  installUrl: string;
   getProvider: () => any;
 }
 
+function getJupiterProvider(): any {
+  if (typeof window === "undefined") return null;
+  const w = window as any;
+
+  // 1. Direct window.jupiter or window.jupiter.solana
+  if (w.jupiter?.solana && typeof w.jupiter.solana.connect === "function") return w.jupiter.solana;
+  if (w.jupiter && typeof w.jupiter.connect === "function") return w.jupiter;
+
+  // 2. window.jupiterWallet
+  if (w.jupiterWallet && typeof w.jupiterWallet.connect === "function") return w.jupiterWallet;
+
+  // 3. Check multi-wallet providers list on window.solana
+  if (Array.isArray(w.solana?.providers)) {
+    const jup = w.solana.providers.find(
+      (p: any) =>
+        p?.isJupiter ||
+        p?.name?.toLowerCase()?.includes("jupiter") ||
+        p?._wallet?.name?.toLowerCase()?.includes("jupiter")
+    );
+    if (jup && typeof jup.connect === "function") return jup;
+  }
+
+  // 4. window.solana explicitly flagged as Jupiter
+  if (
+    w.solana?.isJupiter ||
+    w.solana?.name?.toLowerCase()?.includes("jupiter") ||
+    w.solana?._wallet?.name?.toLowerCase()?.includes("jupiter")
+  ) {
+    if (typeof w.solana.connect === "function") return w.solana;
+  }
+
+  // 5. If window.solana exists and is NOT Phantom and NOT Solflare, it is the user's primary/active Solana wallet (e.g. Jupiter)
+  if (
+    w.solana &&
+    !w.solana.isPhantom &&
+    !w.solana.isSolflare &&
+    typeof w.solana.connect === "function"
+  ) {
+    return w.solana;
+  }
+
+  // 6. Check standard wallets list on window
+  if (Array.isArray(w.solanaWallets)) {
+    const jup = w.solanaWallets.find((item: any) => item?.name?.toLowerCase()?.includes("jupiter"));
+    if (jup) return jup;
+  }
+
+  // 7. If user clicked Jupiter and window.solana is present, use window.solana
+  if (w.solana && typeof w.solana.connect === "function") {
+    return w.solana;
+  }
+
+  return null;
+}
+
+function getPhantomProvider(): any {
+  if (typeof window === "undefined") return null;
+  const w = window as any;
+  if (w.phantom?.solana?.isPhantom) return w.phantom.solana;
+  if (w.solana?.isPhantom) return w.solana;
+  if (Array.isArray(w.solana?.providers)) {
+    const p = w.solana.providers.find((prov: any) => prov.isPhantom);
+    if (p) return p;
+  }
+  return null;
+}
+
+function getSolflareProvider(): any {
+  if (typeof window === "undefined") return null;
+  const w = window as any;
+  if (w.solflare?.isSolflare) return w.solflare;
+  if (w.solflare && typeof w.solflare.connect === "function") return w.solflare;
+  if (w.solana?.isSolflare) return w.solana;
+  if (Array.isArray(w.solana?.providers)) {
+    const s = w.solana.providers.find((prov: any) => prov.isSolflare);
+    if (s) return s;
+  }
+  return null;
+}
+
 const WALLETS: WalletDef[] = [
-  { id: "phantom", name: "Phantom", color: "#7c63d9", letter: "Ph", getProvider: () => window.solana?.isPhantom ? window.solana : null },
-  { id: "solflare", name: "Solflare", color: "#f6a622", letter: "Sf", getProvider: () => window.solflare?.isSolflare ? window.solflare : (window.solana?.isSolflare ? window.solana : null) },
-  { id: "backpack", name: "Backpack", color: "#e33e3e", letter: "Bp", getProvider: () => window.backpack?.solana ?? window.backpack ?? null },
+  {
+    id: "phantom",
+    name: "Phantom",
+    color: "#AB9FF2",
+    icon: <img src="/assets/logos/phantom.png" alt="Phantom" width={26} height={26} style={{ objectFit: "contain" }} />,
+    installUrl: "https://phantom.app",
+    getProvider: getPhantomProvider,
+  },
+  {
+    id: "solflare",
+    name: "Solflare",
+    color: "#FC7227",
+    icon: <img src="/assets/logos/solflare.png" alt="Solflare" width={26} height={26} style={{ objectFit: "contain" }} />,
+    installUrl: "https://solflare.com",
+    getProvider: getSolflareProvider,
+  },
+  {
+    id: "jupiter",
+    name: "Jupiter",
+    color: "#18c495",
+    icon: <img src="/assets/logos/jupiter.png" alt="Jupiter" width={26} height={26} style={{ objectFit: "contain" }} />,
+    installUrl: "https://jup.ag",
+    getProvider: getJupiterProvider,
+  },
+  {
+    id: "browser-solana",
+    name: "Detected Solana Extension",
+    color: "#9945FF",
+    icon: <img src="/assets/logos/solana.png" alt="Solana" width={26} height={26} style={{ objectFit: "contain" }} />,
+    installUrl: "https://solana.com",
+    getProvider: () => {
+      if (typeof window === "undefined") return null;
+      const w = window as any;
+      return w.solana ?? w.phantom?.solana ?? w.solflare ?? w.jupiter?.solana ?? null;
+    },
+  },
 ];
 
 type Phase = "idle" | "connecting" | "signing" | "error";
@@ -160,14 +275,15 @@ export function WalletButton() {
                   {error && <div className="wallet-notice">{error}</div>}
                   {WALLETS.map((wallet) => (
                     <button key={wallet.id} className="wallet-opt" disabled={phase === "connecting" || phase === "signing"} onClick={() => connect(wallet)}>
-                      <span className="wicon" style={{ background: wallet.color }}>{wallet.letter}</span>
-                      <span>{wallet.name}</span><span className="arrow">→</span>
+                      <span className="wicon-svg-wrap">{wallet.icon}</span>
+                      <span className="wallet-opt-name">{wallet.name}</span>
+                      <span className="arrow">→</span>
                     </button>
                   ))}
                   {phase === "signing" && <p className="sub wallet-signing">Please confirm the request in your wallet…</p>}
                   <div className="wallet-requirement">
-                    <b>✦ Competitive Rankings Tier</b>
-                    <span>Holding $10+ in $TAP qualifies your high scores for official leaderboard prizes. Everyone can play and enjoy casual runs.</span>
+                    <b>✦ Instant & Gasless Login</b>
+                    <span>Connect your wallet to play, track your high scores, and participate in tournaments.</span>
                   </div>
                 </>
               )}

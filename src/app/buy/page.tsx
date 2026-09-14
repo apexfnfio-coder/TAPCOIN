@@ -51,15 +51,16 @@ export default function BuyPage() {
           )}
         </div>
 
-        {hasCA && token?.explorerUrl && (
+        {hasCA && (
           <a
-            className="btn btn-ghost btn-block glow-cta"
-            style={{ marginBottom: 10 }}
-            href={`${token.explorerUrl.replace(/\/$/, "")}/token/${token.contractAddress}`}
+            className="btn btn-gold btn-block glow-cta"
+            style={{ marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            href={`https://dexscreener.com/solana/${token?.contractAddress}`}
             target="_blank"
             rel="noreferrer"
           >
-            View on Explorer ↗
+            <span>📈 Chart & Trade on DexScreener</span>
+            <span>↗</span>
           </a>
         )}
       </div>
@@ -71,11 +72,22 @@ export default function BuyPage() {
         ) : token && token.buyLinks.length > 0 ? (
           token.buyLinks.map((l) => (
             <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="wallet-opt">
-              <span className="wicon" style={{ background: "var(--wood)" }}>↗</span>
+              <span className="wicon" style={{ background: "var(--gold)" }}>📈</span>
               {l.label}
               <span className="arrow">→</span>
             </a>
           ))
+        ) : hasCA ? (
+          <a
+            href={`https://dexscreener.com/solana/${token.contractAddress}`}
+            target="_blank"
+            rel="noreferrer"
+            className="wallet-opt"
+          >
+            <span className="wicon" style={{ background: "var(--gold)" }}>📈</span>
+            DexScreener
+            <span className="arrow">→</span>
+          </a>
         ) : (
           <div className="empty-state" style={{ padding: "16px 8px" }}>
             <div className="big">No trading venues announced</div>

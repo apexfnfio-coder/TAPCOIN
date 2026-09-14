@@ -1,10 +1,14 @@
 import { db } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /** Competition detail + its leaderboard. */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const comp = await db.competition.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { _count: { select: { entries: true } } },
   });
   if (!comp || comp.status === "archived") return fail(404, "NOT_FOUND", "Competition not found.");

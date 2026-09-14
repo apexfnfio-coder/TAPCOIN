@@ -17,7 +17,8 @@ const Patch = z.object({
   status: z.enum(["scheduled", "live", "ended", "archived"]).optional(),
 });
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if ("res" in auth) return auth.res;
   const ip = clientIp(req);
@@ -29,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return fail(400, "BAD_INPUT", "Malformed payload.");
   }
 
-  const comp = await db.competition.findUnique({ where: { id: params.id } });
+  const comp = await db.competition.findUnique({ where: { id } });
   if (!comp) return fail(404, "NOT_FOUND", "Competition not found.");
 
   const startsAt = body.startsAt ? new Date(body.startsAt) : comp.startsAt;
@@ -55,12 +56,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return ok({ competition: { id: updated.id, status: updated.status, gameSlug: updated.gameSlug } });
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const auth = await requireAdmin();
   if ("res" in auth) return auth.res;
   const ip = clientIp(req);
 
-  const comp = await db.competition.findUnique({ where: { id: params.id } });
+  const comp = await db.competition.findUnique({ where: { id } });
   if (!comp) return fail(404, "NOT_FOUND", "Competition not found.");
 
   await db.competition.update({ where: { id: comp.id }, data: { status: "archived" } });

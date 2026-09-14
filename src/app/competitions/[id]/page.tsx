@@ -70,7 +70,15 @@ export default function CompetitionDetailPage({ params }: { params: { id: string
 
   useEffect(() => {
     load();
-    // Subscribe to live SSE updates while this competition is open
+
+    // 1. Polling fallback every 4s so leaderboard always stays fresh even without SSE
+    const poll = setInterval(() => load(), 4000);
+
+    // 2. Immediate reload on window/tab focus
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+
+    // 3. Live SSE updates if connected
     let es: EventSource | null = null;
     try {
       es = new EventSource("/api/realtime?topics=competitions");
@@ -78,7 +86,12 @@ export default function CompetitionDetailPage({ params }: { params: { id: string
       es.onopen = () => setSseConnected(true);
       es.onerror = () => setSseConnected(false);
     } catch { /* no SSE */ }
-    return () => es?.close();
+
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener("focus", onFocus);
+      es?.close();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
@@ -184,8 +197,16 @@ export default function CompetitionDetailPage({ params }: { params: { id: string
 
           {/* Leaderboard */}
           <div className="panel reveal d2" style={{ overflow: "hidden" }}>
-            <div className="panel-pad" style={{ paddingBottom: 0 }}>
-              <h2 className="card-title">Leaderboard</h2>
+            <div className="panel-pad" style={{ paddingBottom: 10, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h2 className="card-title" style={{ margin: 0 }}>Leaderboard</h2>
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => load()}
+                title="Reload leaderboard rankings"
+                style={{ fontSize: 12, padding: "6px 12px" }}
+              >
+                ⟳ Reload
+              </button>
             </div>
             {leaderboard.length === 0 ? (
               <div className="empty-state">

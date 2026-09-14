@@ -5,9 +5,9 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "$TAP — Chop. Collect. Compete.",
+  title: "$TAP Arcade — Chop Timber. Ride The Pump. Don't Get Rekt.",
   description:
-    "$TAP is a competitive arcade game. Chop trees, dodge red candles, collect green candles, and climb the leaderboard.",
+    "The high-octane Solana arcade battle station. Chop timber, ride God Candle surges, dodge brutal bear market dumps, and lock in your airdrop bag.",
 };
 
 export const viewport: Viewport = {
@@ -16,7 +16,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#070d0a",
+  themeColor: "#06090c",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -33,6 +33,15 @@ export default function LeaderboardPage() {
   useEffect(() => {
     setEntries(null);
     load(period, gameSlug);
+
+    // 1. Polling fallback every 5s so leaderboard constantly stays in sync
+    const poll = setInterval(() => load(period, gameSlug), 5000);
+
+    // 2. Refresh immediately on window focus
+    const onFocus = () => load(period, gameSlug);
+    window.addEventListener("focus", onFocus);
+
+    // 3. SSE subscription
     let es: EventSource | null = null;
     try {
       es = new EventSource("/api/realtime?topics=leaderboard");
@@ -40,7 +49,12 @@ export default function LeaderboardPage() {
       es.onopen = () => setLive(true);
       es.onerror = () => setLive(false);
     } catch { /* no SSE */ }
-    return () => es?.close();
+
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener("focus", onFocus);
+      es?.close();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period, gameSlug]);
 
@@ -53,6 +67,14 @@ export default function LeaderboardPage() {
             <div className="sub strip-sub">Module: {gameSlug} · {config?.leaderboardEligibility.text || "Verified runs only."}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => load(period, gameSlug)}
+              title="Reload leaderboard"
+              style={{ fontSize: 12, padding: "7px 12px" }}
+            >
+              ⟳ Reload
+            </button>
             <span className={`chip ${live ? "live" : ""}`}><span className="dot" />{live ? "Live" : "Static"}</span>
             <div className="tabs">
               {(["daily", "weekly", "all"] as Period[]).map((p) => (

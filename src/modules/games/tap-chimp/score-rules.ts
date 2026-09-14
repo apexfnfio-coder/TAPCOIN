@@ -63,6 +63,36 @@ export function maxDurationForLevelSec(
   return Math.max(configured, minimumFairSec);
 }
 
+export function cumulativeTargetTreesForLevel(level: number, cfg: Pick<GameConfig, "levelGoalBase" | "levelGoalGrowth">): number {
+  const safeLevel = normalizeLevel(level);
+  let total = 0;
+  for (let i = 1; i <= safeLevel; i += 1) {
+    total += targetTreesForLevel(i, cfg);
+  }
+  return total;
+}
+
+export function cumulativeMinTreesForLevel(level: number, cfg: Pick<GameConfig, "levelGoalBase" | "levelGoalGrowth">): number {
+  const safeLevel = normalizeLevel(level);
+  let total = 0;
+  for (let i = 1; i < safeLevel; i += 1) {
+    total += targetTreesForLevel(i, cfg);
+  }
+  return total;
+}
+
+export function cumulativeMaxDurationSec(
+  level: number,
+  cfg: Pick<GameConfig, "maxLevelDurationSec" | "maxDurationSec" | "levelGoalBase" | "levelGoalGrowth" | "treeHp" | "chopIntervalMs">
+): number {
+  const safeLevel = normalizeLevel(level);
+  let total = 0;
+  for (let i = 1; i <= safeLevel; i += 1) {
+    total += maxDurationForLevelSec(i, cfg);
+  }
+  return total;
+}
+
 export function computeTapChimpScore(input: TapChimpScoreInput, cfg: GameConfig): number {
   const treeScore = Math.max(0, Math.floor(input.trees)) * cfg.pointsPerTree;
   const greenScore = Math.max(0, Math.floor(input.green)) * cfg.pointsPerGreen;

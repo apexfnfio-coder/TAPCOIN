@@ -8,6 +8,7 @@ import { evaluateTokenEligibility } from "@/lib/tokenEligibility";
 import { audit } from "@/lib/audit";
 import { publish } from "@/lib/hub";
 import { DEFAULT_GAME_SLUG, isKnownGameSlug } from "@/modules/games/core/game-registry";
+import { cumulativeMaxDurationSec } from "@/modules/games/tap-chimp";
 
 const Submit = z.object({
   gameSlug: z.string().max(40).optional(),
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
       trees: body.trees,
       green: body.green,
       redHits: body.redHits,
-      durationMs: Math.min(body.durationMs, cfg.game.maxLevelDurationSec * 1000),
+      durationMs: Math.min(body.durationMs, cumulativeMaxDurationSec(verdict.level, cfg.game) * 1000),
       valid: verdict.valid,
       flags: [...new Set(verdict.flags)].join(","),
       clientVersion: (body.clientVersion || "").slice(0, 32),

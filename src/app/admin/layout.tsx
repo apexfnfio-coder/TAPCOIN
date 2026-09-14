@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useApp } from "@/components/Providers";
 
 const ITEMS = [
@@ -16,23 +15,33 @@ const ITEMS = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { me, meLoading } = useApp();
+  const { me, meLoading, openWalletModal } = useApp();
   const pathname = usePathname();
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!meLoading && (!me || me.role !== "admin")) {
-      router.replace("/");
-    }
-  }, [me, meLoading, router]);
+  if (meLoading) return <div className="container" style={{ paddingTop: 60 }}><div className="skeleton" style={{ height: 120 }} /></div>;
 
-  if (meLoading) return <div className="container"><div className="spinner" /></div>;
   if (!me || me.role !== "admin") {
+    const isConnected = !!me?.walletAddress;
     return (
-      <div className="container" style={{ paddingTop: 60, maxWidth: 480 }}>
-        <div className="panel empty-state">
-          <div className="big">Restricted area</div>
-          <div>Admin access required.</div>
+      <div className="container" style={{ paddingTop: 60, maxWidth: 500 }}>
+        <div className="panel panel-pad" style={{ textAlign: "center" }}>
+          <div className="eyebrow">SECURITY GATE</div>
+          <h2 className="card-title" style={{ marginTop: 6, marginBottom: 8 }}>ADMIN CONSOLE</h2>
+          <p className="sub" style={{ margin: "0 0 18px" }}>
+            This management area is restricted to authorized administrator wallets.
+          </p>
+          {!isConnected ? (
+            <button className="btn btn-gold btn-lg" onClick={openWalletModal} style={{ width: "100%" }}>
+              Connect Admin Wallet
+            </button>
+          ) : (
+            <div className="wallet-notice" style={{ marginTop: 8 }}>
+              Connected as <b>{me.walletAddress ? `${me.walletAddress.slice(0, 4)}...${me.walletAddress.slice(-4)}` : "Guest"}</b> (Unauthorized).
+              <div style={{ marginTop: 6, fontSize: 12, color: "var(--muted)" }}>
+                Please reconnect using an authorized admin wallet.
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -89,7 +89,16 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
     };
   }
 
-  if (!tokenCa || !minUsd) {
+  // If minimum hold is disabled or 0, or leaderboard is open, all players are eligible
+  if (minUsd <= 0 || !config.leaderboardEligibility?.enabled || config.leaderboardEligibility?.state === "open") {
+    return {
+      wallet, tokenCa, minUsd: 0, priceUsd: 0, balance: null, valueUsd: null,
+      eligible: true, status: "eligible", priceSource: "none",
+      message: "Open leaderboard — play and compete for top ranks!",
+    };
+  }
+
+  if (!tokenCa) {
     return {
       wallet, tokenCa, minUsd, priceUsd: 0, balance: null, valueUsd: null,
       eligible: false, status: "unverified", priceSource: "none",

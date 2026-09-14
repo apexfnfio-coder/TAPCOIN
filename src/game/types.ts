@@ -26,6 +26,8 @@ export interface HudState {
   green: number;
   redHits: number;
   treeHpPct: number | null;
+  combo: number;
+  scoreColorClass: string;
 }
 
 export interface GameBridge {
@@ -34,7 +36,7 @@ export interface GameBridge {
   onReady: () => void;
 }
 
-export const touchInput = { left: false, right: false };
+export const touchInput = { left: false, right: false, jump: false };
 
 export interface GameOptions {
   runDurationSec: number;
@@ -56,4 +58,8 @@ export interface GameOptions {
   difficultyGrowth: number;
   maxLevelDurationSec: number;
   initialLevel?: number;
+  /** When true, candles use blue/orange palette instead of green/red */
+  colorblindMode?: boolean;
+  /** When true, disables camera shake, particle bursts, and animations */
+  prefersReducedMotion?: boolean;
 }

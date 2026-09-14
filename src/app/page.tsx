@@ -1,6 +1,8 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import PlayPage from "./play/page";
 
 export default function HomePage() {
-  redirect("/play");
+  return <PlayPage />;
 }
 

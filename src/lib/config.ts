@@ -49,6 +49,7 @@ export interface TokenConfig {
 export interface LinksConfig {
   twitter: string;
   telegram: string;
+  tiktok?: string;
   discord: string;
   website: string;
 }
@@ -95,17 +96,28 @@ export const DEFAULT_CONFIG: PublicConfig = {
     contractAddress: OFFICIAL_TAP_MINT,
     cluster: process.env.NEXT_PUBLIC_SOLANA_CLUSTER || "mainnet-beta",
     decimals: 6,
-    buyLinks: [],
-    explorerUrl: "https://solscan.io",
+    buyLinks: [
+      {
+        label: "DexScreener",
+        url: `https://dexscreener.com/solana/${OFFICIAL_TAP_MINT}`,
+      },
+    ],
+    explorerUrl: `https://dexscreener.com/solana/${OFFICIAL_TAP_MINT}`,
     priceUsd: TAP_CHIMP_SAFE_PRICE_USD,
     priceSource: "api",
-    minHoldingUsd: TAP_CHIMP_MIN_HOLDING_USD,
+    minHoldingUsd: 0,
   },
-  links: { twitter: "", telegram: "", discord: "", website: "" },
+  links: {
+    twitter: "https://x.com/solanatapcoin",
+    telegram: "https://t.me/tapcoinSolana",
+    tiktok: "https://www.tiktok.com/@tappumpfun",
+    discord: "",
+    website: "",
+  },
   leaderboardEligibility: {
-    enabled: true,
-    state: "requires-token",
-    text: "Leaderboard entries require a connected wallet with at least $10 worth of verified $TAP.",
+    enabled: false,
+    state: "open",
+    text: "Open leaderboard — play and compete for top ranks!",
   },
   announcement: "",
   maintenance: false,
