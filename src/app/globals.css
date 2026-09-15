@@ -323,6 +323,18 @@ img { max-width: 100%; }
 .hud-box .v { font-family: var(--font-display); font-size: 18px; color: var(--gold); line-height: 1.15; }
 .hud-box .v.cream { color: var(--cream); }
 .hud-score .v { font-size: 20px; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+.hud-lives { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.hud-hearts { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; line-height: 1; }
+.hud-heart { display: inline-block; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.hud-heart.is-alive { filter: drop-shadow(0 0 4px rgba(255, 59, 48, 0.65)); animation: heartPulse 1.8s ease-in-out infinite; }
+.hud-heart.is-empty { opacity: 0.38; filter: grayscale(1); transform: scale(0.85); }
+@keyframes heartPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+.hud-buffs-container { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+.hud-buff-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-family: var(--font-display); font-size: 10.5px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; line-height: 1.2; }
+.hud-buff-badge.shield-buff { background: rgba(0, 255, 163, 0.15); border: 1px solid var(--green); color: var(--green); box-shadow: 0 0 10px rgba(0, 255, 163, 0.4); }
+.hud-buff-badge.frenzy-buff { background: rgba(255, 208, 0, 0.2); border: 1px solid var(--gold); color: var(--gold); box-shadow: 0 0 12px rgba(255, 208, 0, 0.55); }
+.pulse-buff { animation: buffPulse 0.9s ease-in-out infinite alternate; }
+@keyframes buffPulse { 0% { transform: scale(0.96); opacity: 0.88; } 100% { transform: scale(1.04); opacity: 1; } }
 .hud-timer.low .v { color: var(--red); animation: pulse 0.8s infinite; }
 .hud-level-progress { position: absolute; top: 58px; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); height: 8px; background: rgba(6,9,12,0.74); border: 1px solid var(--line-soft); border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
 .hud-level-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--green-deep), var(--gold-hi)); transition: width 0.18s; }
@@ -1492,6 +1504,14 @@ body[data-game-active="true"] .play-hint {
   }
   body[data-game-active="true"] .hud-box .v {
     font-size: 14px !important;
+  }
+  body[data-game-active="true"] .hud-hearts {
+    font-size: 11px !important;
+    gap: 1px !important;
+  }
+  body[data-game-active="true"] .hud-buff-badge {
+    font-size: 9px !important;
+    padding: 1px 6px !important;
   }
   body[data-game-active="true"] .hud-demo-badge {
     padding: 3px 8px !important;

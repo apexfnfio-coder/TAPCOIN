@@ -102,3 +102,61 @@ Direct and render a cohesive 6-act promotional video showcasing the authentic $T
 ## Verification Resources
 - Browser automation recorder: `scripts/record-walkthrough.mjs` and CDP screencast pipeline.
 - Video synthesis & ffmpeg encoder: filter_complex for dynamic zoompan, crossfades, typography overlays, and audio mixing.
+
+## 2026-09-15T05:46:54Z
+
+Perform an exhaustive, professional, and rigorous end-to-end audit of the entire $TAP Solana arcade gaming platform (`e:/TAPCOIN`). Inspect and test all three critical pillars — Security & Anti-Cheat, UI/UX & Responsive Experience, and Game Engine & Tokenomics Logic — providing concrete vulnerability assessments, UI/UX grading, logic proofs, and verified recommendations.
+
+Working directory: e:/TAPCOIN
+Integrity mode: development
+
+## Requirements
+
+### R1. Security & Anti-Cheat Audit (Keamanan)
+Perform an adversarial security audit on the web3 and backend architecture:
+- **Season Paywall & Bypass Resistance:** Verify that no unpaid user can register a valid run or pollute the leaderboard via API manipulation, direct `/api/runs` payload injection, or falsified transaction signatures.
+- **Solana On-Chain Payment Verification:** Inspect `src/app/api/access/verify/route.ts` and `src/lib/solanaRpc.ts` to confirm transaction signature uniqueness (`signature @unique`), recipient address validation (`95sKZtgoYZS2Qntti4DhUvPqTC6Ra5rWa7wpmiW6ojr7`), exact lamport amount checking (`10_000_000` lamports / 0.01 SOL), and immunity to replay/tampering attacks.
+- **Authentication & Role Guards:** Audit wallet authentication (nonce generation, ed25519 signature checks, HTTP-only session cookies), ensuring admin endpoints (`/api/admin/*`) strictly verify admin roles and zero sensitive private keys are stored, logged, or transmitted.
+
+### R2. UI/UX & Responsive Design Audit (UI/UX)
+Evaluate visual aesthetics, layout density, responsiveness, and degen arcade feel across desktop and mobile:
+- **Desktop Battle Station:** Inspect the desktop layout (`/play`, `/`, `/leaderboard`, `/admin`) to ensure zero awkward empty whitespace, crisp arcade framing, clean dock positioning of the Global Trollbox, and legible HUD telemetry.
+- **Mobile Responsiveness & Touch Controls:** Inspect mobile viewports (down to 360px width) for navigation overlap, button touch targets (jump, attack, wallet connect), modal usability (`SeasonPassModal`), and proper viewport height without unintended page scrolling during gameplay.
+- **Copywriting & Tokenomics Clarity:** Audit user-facing text to verify complete de-slopping (authentic arcade degen voice) and crystal-clear presentation of the 10% Leaderboard Prize Pool / 90% Buyback & Burn tokenomics split across modals, banners, and the `/how-to-play` playbook.
+
+### R3. Game Engine & Core Gameplay Logic Audit (Game Logic)
+Verify mathematical correctness and gameplay integrity in Phaser 3:
+- **Combat & Enemy AI:** Audit Bear multi-hit HP scaling by level, telegraphing/lunge attack logic, hit recoil, and Rat Stomp rebound mechanics.
+- **Platformer Physics & Hazards:** Audit chasm/jurang spawn clearance (`SAFE_TREE_CLEARANCE`), chasm leap detection (guaranteeing zero points awarded for jumping chasms), tumble fall penalties, jump buffering, and coyote time responsiveness.
+- **Level Progression & Scoring:** Verify level advancing logic, tree target milestones, combo multiplier escalation from green candles, and red candle dump penalties.
+
+### R4. Tokenomics & Treasury Pool Logic Audit (Ekonomi & Math)
+Audit backend and frontend math for the seasonal prize distribution:
+- **Game Fee Aggregation:** Verify that `/api/treasury/pool` and `/api/admin/overview` correctly aggregate confirmed `amountSol` from `PaymentTx` for the active season.
+- **Allocation Invariant:** Confirm that `prizePoolSol === totalGameFeesSol * 0.10` and `buybackBurnPoolSol === totalGameFeesSol * 0.90` at all times, with dev wallet balance displayed strictly as treasury reserve proof.
+- **Public Competition Decoupling:** Confirm that public competition routes redirect cleanly to `/leaderboard` and no stale competition IDs exist in game state.
+
+## Acceptance Criteria
+
+### Security & Integrity
+- [ ] Adversarial test proves unpaid or guest users cannot submit runs with `valid: true`.
+- [ ] Transaction signature reuse (replay attack) is rejected with HTTP 409 or appropriate error.
+- [ ] Zero private keys, mnemonic seeds, or administrative secrets exist in client bundles or public repositories.
+- [ ] Solana RPC queries implement fallback caching to avoid rate-limit denial of service.
+
+### UI/UX & Quality
+- [ ] Desktop `/play` renders a high-octane battle station without vacant dead space.
+- [ ] Mobile navigation and arcade controls function seamlessly with zero horizontal scroll or layout clipping.
+- [ ] Public competitions are 100% hidden from navigation and redirected from `/competitions`.
+- [ ] Tokenomics 10/90 split is prominently and accurately explained in `SeasonPassModal`, `/leaderboard`, and `/how-to-play`.
+
+### Logic & Build Verification
+- [ ] All automated test suites (`tests/season-treasury.test.mjs`, `tests/e2e/rat-bear-share-chat.test.mjs`, `tests/e2e/chasm-tree-desktop.test.mjs`) pass with 0 failures.
+- [ ] Production build (`npm run build`) compiles cleanly with 0 TypeScript/ESLint errors across all 38 routes.
+- [ ] Detailed formal audit report generated with severity ratings (Critical, High, Medium, Low, Informational) and actionable verdicts.
+
+## Verification Resources
+- Test suites: `node tests/season-treasury.test.mjs`, `node tests/e2e/rat-bear-share-chat.test.mjs`, `node tests/e2e/chasm-tree-desktop.test.mjs`
+- Build verification: `npm run build`
+- Endpoint testing scripts in `scripts/` and curl/fetch assertions.
+

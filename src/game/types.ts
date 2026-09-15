@@ -28,6 +28,11 @@ export interface HudState {
   treeHpPct: number | null;
   combo: number;
   scoreColorClass: string;
+  lives: number;
+  maxLives: number;
+  shieldActive: boolean;
+  shieldTimeLeft: number;
+  frenzyActive: boolean;
 }
 
 export interface GameBridge {

@@ -63,12 +63,16 @@ export class BootScene extends Phaser.Scene {
     this.load.image("candle-green", "/assets/candle-green.png");
     this.load.image("candle-red", "/assets/candle-red.png");
 
-    // gameplay obstacles / props (PNG assets)
+    // gameplay obstacles / props / powerups (PNG assets)
     this.load.image("prop-sign", "/assets/props/sign.png");
-    this.load.image("obstacle-mop", "/assets/props/mop.png");
-    this.load.image("obstacle-rat", "/assets/props/rat.png");
-    this.load.image("obstacle-branch", "/assets/props/branch.png");
     this.load.image("obstacle-bear", "/assets/props/bear.png");
+    this.load.image("obstacle-bear-attack", "/assets/props/bear-attack.png");
+    this.load.image("obstacle-bear-hit", "/assets/props/bear-hit.png");
+    this.load.image("prop-crate", "/assets/props/mystery-crate.png");
+    this.load.image("powerup-heart", "/assets/props/powerup-heart.png");
+    this.load.image("powerup-shield", "/assets/props/powerup-shield.png");
+    this.load.image("powerup-frenzy", "/assets/props/powerup-frenzy.png");
+    this.load.image("powerup-time", "/assets/props/powerup-time.png");
 
     // particles (PNG assets)
     this.load.image("p-chip", "/assets/particles/chip.png");

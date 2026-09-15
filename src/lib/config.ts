@@ -71,7 +71,7 @@ export interface PublicConfig {
 
 export const DEFAULT_CONFIG: PublicConfig = {
   game: {
-    runDurationSec: 150,
+    runDurationSec: 60,
     treeHp: 5,
     chopIntervalMs: 450,
     pointsPerTree: 100,
@@ -83,12 +83,12 @@ export const DEFAULT_CONFIG: PublicConfig = {
     treeSpacingMax: 1450,
     candleChanceGreen: 0.56,
     candleChanceRed: 0.28,
-    maxDurationSec: 150,
+    maxDurationSec: 60,
     defaultGameSlug: TAP_CHIMP_SLUG,
     levelGoalBase: 4,
     levelGoalGrowth: 1.2,
     difficultyGrowth: 0.09,
-    maxLevelDurationSec: 150,
+    maxLevelDurationSec: 60,
   },
   token: {
     symbol: "$TAP",

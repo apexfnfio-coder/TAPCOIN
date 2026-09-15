@@ -39,6 +39,11 @@ export function GameCanvas({
     treeHpPct: null,
     combo: 0,
     scoreColorClass: "",
+    lives: 4,
+    maxLives: 4,
+    shieldActive: false,
+    shieldTimeLeft: 0,
+    frenzyActive: false,
   });
 
   const [activeControls, setActiveControls] = useState({ left: false, right: false, jump: false });
@@ -120,6 +125,11 @@ export function GameCanvas({
       treeHpPct: null,
       combo: 0,
       scoreColorClass: "",
+      lives: 4,
+      maxLives: 4,
+      shieldActive: false,
+      shieldTimeLeft: 0,
+      frenzyActive: false,
     }));
     setDisplayScore(0);
     currentScoreRef.current = 0;
@@ -230,6 +240,16 @@ export function GameCanvas({
       <div className="game-hud">
         <div className="hud-top">
           <div className="hud-top-cluster hud-top-left">
+            <div className="hud-box hud-lives" title={`Lives: ${hud.lives ?? 4}/${hud.maxLives ?? 4}`}>
+              <div className="k">Lives</div>
+              <div className="v hud-hearts">
+                {Array.from({ length: hud.maxLives ?? 4 }).map((_, i) => (
+                  <span key={i} className={`hud-heart ${i < (hud.lives ?? 4) ? "is-alive" : "is-empty"}`}>
+                    {i < (hud.lives ?? 4) ? "❤️" : "🤍"}
+                  </span>
+                ))}
+              </div>
+            </div>
             <div className="hud-box hud-level">
               <div className="k">Level</div>
               <div className="v cream">{hud.level}</div>
@@ -254,6 +274,20 @@ export function GameCanvas({
                 {displayScore.toLocaleString()}
               </div>
             </div>
+            {(hud.shieldActive || hud.frenzyActive) && (
+              <div className="hud-buffs-container">
+                {hud.shieldActive && (
+                  <div className="hud-buff-badge shield-buff pulse-buff">
+                    <span>🛡️</span> SHIELD {hud.shieldTimeLeft}s
+                  </div>
+                )}
+                {hud.frenzyActive && (
+                  <div className="hud-buff-badge frenzy-buff pulse-buff">
+                    <span>🔥</span> FRENZY!
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="hud-top-cluster hud-top-right">

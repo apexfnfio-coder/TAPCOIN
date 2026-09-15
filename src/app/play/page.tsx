@@ -94,6 +94,16 @@ export default function PlayPage() {
 
   const levelPreview = useMemo(() => config ? createTapChimpLevel(1, config.game) : null, [config]);
 
+  // Automatically start demo practice if ?demo=1 query parameter is present
+  useEffect(() => {
+    if (typeof window !== "undefined" && config) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("demo") === "1") {
+        startDemoRun();
+      }
+    }
+  }, [config, startDemoRun]);
+
   // Load sound state & first-run tutorial check
   useEffect(() => {
     setSoundMuted(sound.isMuted());
