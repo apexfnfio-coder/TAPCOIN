@@ -32,11 +32,11 @@ export default function AdminDashboard() {
       <div className="kpi-grid">
         <div className="stat-tile">
           <div className="k">Total Users</div>
-          <div className="v">{data.totals.users.toLocaleString()}</div>
+          <div className="v">{data.totals.users.toLocaleString("en-US")}</div>
         </div>
         <div className="stat-tile" style={{ borderColor: "rgba(0, 255, 163, 0.4)" }}>
           <div className="k">Official Season Players</div>
-          <div className="v" style={{ color: "var(--green)" }}>{data.officialPlayers.toLocaleString()}</div>
+          <div className="v" style={{ color: "var(--green)" }}>{data.officialPlayers.toLocaleString("en-US")}</div>
         </div>
         <div className="stat-tile" style={{ borderColor: "rgba(255, 208, 0, 0.4)" }}>
           <div className="k">10% Leaderboard Pool</div>
@@ -52,11 +52,11 @@ export default function AdminDashboard() {
         </div>
         <div className="stat-tile">
           <div className="k">Valid runs</div>
-          <div className="v cream">{data.totals.runs.toLocaleString()}</div>
+          <div className="v cream">{data.totals.runs.toLocaleString("en-US")}</div>
         </div>
         <div className="stat-tile">
           <div className="k">Trees chopped</div>
-          <div className="v cream">{data.totals.trees.toLocaleString()}</div>
+          <div className="v cream">{data.totals.trees.toLocaleString("en-US")}</div>
         </div>
         <div className="stat-tile" style={data.flaggedRuns > 0 ? { borderColor: "var(--red-deep)" } : undefined}>
           <div className="k">Flagged / Unpaid runs</div>
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
                     <td><b>{r.username}</b><div className="sub mono" style={{ fontSize: 11 }}>{r.gameSlug}</div></td>
                     <td style={{ textAlign: "right" }}>{r.level}</td>
                     <td style={{ textAlign: "right" }}>{r.progress}/{r.targetTrees}</td>
-                    <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)" }}>{r.score.toLocaleString()}</td>
+                    <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)" }}>{r.score.toLocaleString("en-US")}</td>
                     <td style={{ textAlign: "right" }}>{r.valid ? <span className="chip live">{r.endedBy}</span> : <span className="chip danger" title={r.flags || ""}>Flagged</span>}</td>
                   </tr>
                 ))}

@@ -192,7 +192,7 @@ export function HomeArcadeClient() {
                 </div>
                 <div className="home-stat-card">
                   <div className="v">
-                    {homeStats?.totals?.trees ? homeStats.totals.trees.toLocaleString() : "142,850+"}
+                    {homeStats?.totals?.trees ? homeStats.totals.trees.toLocaleString("en-US") : "142,850+"}
                   </div>
                   <div className="k">Total Trees Cleared</div>
                 </div>
@@ -380,7 +380,7 @@ export function HomeArcadeClient() {
                 <img className="podium-avatar" src="/assets/ui/avatar-default.png" alt="" />
                 <div className="podium-rank">2</div>
                 <div className="podium-name">{homeStats.top[1]?.username || "Degen_Silver"}</div>
-                <div className="podium-score">{(homeStats.top[1]?.score || 3820).toLocaleString()} PTS</div>
+                <div className="podium-score">{(homeStats.top[1]?.score || 3820).toLocaleString("en-US")} PTS</div>
                 <div style={{ fontSize: 11, color: "var(--cream-dim)", marginTop: 4 }}>Level {homeStats.top[1]?.level || 3} Chimp</div>
               </div>
 
@@ -390,7 +390,7 @@ export function HomeArcadeClient() {
                 <img className="podium-avatar" src="/assets/ui/avatar-default.png" alt="" />
                 <div className="podium-rank">1</div>
                 <div className="podium-name">{homeStats.top[0]?.username || "Chimp_King"}</div>
-                <div className="podium-score">{(homeStats.top[0]?.score || 6450).toLocaleString()} PTS</div>
+                <div className="podium-score">{(homeStats.top[0]?.score || 6450).toLocaleString("en-US")} PTS</div>
                 <div style={{ fontSize: 11, color: "var(--gold)", fontWeight: 700, marginTop: 4 }}>Canopy Monarch · Lvl {homeStats.top[0]?.level || 5}</div>
               </div>
 
@@ -399,7 +399,7 @@ export function HomeArcadeClient() {
                 <img className="podium-avatar" src="/assets/ui/avatar-default.png" alt="" />
                 <div className="podium-rank">3</div>
                 <div className="podium-name">{homeStats.top[2]?.username || "Banana_Chad"}</div>
-                <div className="podium-score">{(homeStats.top[2]?.score || 2910).toLocaleString()} PTS</div>
+                <div className="podium-score">{(homeStats.top[2]?.score || 2910).toLocaleString("en-US")} PTS</div>
                 <div style={{ fontSize: 11, color: "var(--cream-dim)", marginTop: 4 }}>Level {homeStats.top[2]?.level || 2} Chimp</div>
               </div>
             </div>

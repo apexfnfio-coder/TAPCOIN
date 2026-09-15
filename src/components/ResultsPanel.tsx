@@ -70,7 +70,7 @@ export function ResultsPanel({
 
   const copyShareText = () => {
     sound.playClick();
-    const text = `🪓 I chopped ${local.trees} trees and scored ${local.score.toLocaleString()} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nCan you beat my chart climb? Play now: ${window.location.origin}/play\n#TAPCOIN #SolanaGaming`;
+    const text = `🪓 I chopped ${local.trees} trees and scored ${local.score.toLocaleString("en-US")} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nCan you beat my chart climb? Play now: ${window.location.origin}/play\n#TAPCOIN #SolanaGaming`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
@@ -79,7 +79,7 @@ export function ResultsPanel({
 
   const openTwitterShare = () => {
     sound.playClick();
-    const tweet = `🪓 Just sliced green candles & scored ${local.score.toLocaleString()} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nDodge red, chop green. Play on Solana:\n${window.location.origin}/play\n#TAPCOIN $TAP`;
+    const tweet = `🪓 Just sliced green candles & scored ${local.score.toLocaleString("en-US")} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nDodge red, chop green. Play on Solana:\n${window.location.origin}/play\n#TAPCOIN $TAP`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -129,7 +129,7 @@ export function ResultsPanel({
     // Big score
     ctx.fillStyle = "#f5f3e8";
     ctx.font = "bold 64px Arial, sans-serif";
-    ctx.fillText(local.score.toLocaleString(), 40, 170);
+    ctx.fillText(local.score.toLocaleString("en-US"), 40, 170);
 
     ctx.fillStyle = "#f2b53c";
     ctx.font = "16px Arial, sans-serif";
@@ -192,7 +192,7 @@ export function ResultsPanel({
           </div>
 
           <div className="results-score" style={{ fontVariantNumeric: "tabular-nums" }}>
-            {local.score.toLocaleString()}
+            {local.score.toLocaleString("en-US")}
           </div>
 
           {/* Demo Mode Notice */}
@@ -257,7 +257,7 @@ export function ResultsPanel({
           )}
           {result?.competition && (
             <p className="sub">
-              Tournament <b>{result.competition.name}</b> — Best: <b style={{ color: "var(--gold)" }}>{result.competition.bestScore.toLocaleString()}</b>
+              Tournament <b>{result.competition.name}</b> — Best: <b style={{ color: "var(--gold)" }}>{result.competition.bestScore.toLocaleString("en-US")}</b>
             </p>
           )}
 
@@ -334,7 +334,7 @@ export function ResultsPanel({
                 <span className="gold-text" style={{ fontWeight: 800 }}>$TAP CHOP GAME</span>
                 <span className="share-date">{new Date().toLocaleDateString()}</span>
               </div>
-              <div className="share-preview-score">{local.score.toLocaleString()} PTS</div>
+              <div className="share-preview-score">{local.score.toLocaleString("en-US")} PTS</div>
               <div className="share-preview-details">
                 <span>LVL {local.level}</span> · <span>{local.trees} Trees</span> · <span style={{ color: "var(--green)" }}>+{local.green} Greens</span>
               </div>

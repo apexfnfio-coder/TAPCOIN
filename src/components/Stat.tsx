@@ -31,7 +31,7 @@ export function Stat({
     <>
       {prefix && <span style={{ color: "var(--muted)" }}>{prefix} </span>}
       <span style={{ fontFamily: "var(--font-display)", color: color || "var(--gold)" }}>
-        {typeof value === "number" ? value.toLocaleString() : value}
+        {typeof value === "number" ? value.toLocaleString("en-US") : value}
       </span>
       {suffix && <span style={{ color: "var(--muted)" }}> {suffix}</span>}
     </>

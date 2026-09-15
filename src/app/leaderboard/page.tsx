@@ -147,7 +147,7 @@ export default function LeaderboardPage() {
           <span className="rank-badge r1">#{myRank.rank}</span>
           <div>
             <b>Your position</b>
-            <div className="sub">Best score: {myRank.score.toLocaleString()} · Highest level: {myRank.level}</div>
+            <div className="sub">Best score: {myRank.score.toLocaleString("en-US")} · Highest level: {myRank.level}</div>
           </div>
         </div>
       )}
@@ -163,7 +163,7 @@ export default function LeaderboardPage() {
               <img className="podium-avatar" src={e.avatar || "/assets/ui/avatar-default.png"} alt="" />
               <div className="podium-rank">{e.rank}</div>
               <div className="podium-name">{e.username}</div>
-              <div className="podium-score">{e.score.toLocaleString()}</div>
+              <div className="podium-score">{e.score.toLocaleString("en-US")}</div>
             </div>
           ))}
         </div>
@@ -196,9 +196,9 @@ export default function LeaderboardPage() {
                       {me?.id === e.userId && <span className="chip">You</span>}
                     </span>
                   </td>
-                  <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)", fontSize: 16 }}>{e.score.toLocaleString()}</td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)", fontSize: 16 }}>{e.score.toLocaleString("en-US")}</td>
                   <td style={{ textAlign: "right" }}>{e.level}</td>
-                  <td style={{ textAlign: "right" }}>{e.trees.toLocaleString()}</td>
+                  <td style={{ textAlign: "right" }}>{e.trees.toLocaleString("en-US")}</td>
                   <td style={{ textAlign: "right" }} className="sub">{e.runs}</td>
                 </tr>
               ))}

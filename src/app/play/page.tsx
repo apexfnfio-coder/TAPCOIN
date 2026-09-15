@@ -58,6 +58,11 @@ export default function PlayPage() {
   const [colorblindMode, setColorblindMode] = useState(false);
   const [showRewardsModal, setShowRewardsModal] = useState(false);
   const [soundMuted, setSoundMuted] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Live global trees count wired dynamically from /api/stats/home
   const [globalWeeklyTrees, setGlobalWeeklyTrees] = useState<number>(142850);
@@ -93,16 +98,6 @@ export default function PlayPage() {
   }, []);
 
   const levelPreview = useMemo(() => config ? createTapChimpLevel(1, config.game) : null, [config]);
-
-  // Automatically start demo practice if ?demo=1 query parameter is present
-  useEffect(() => {
-    if (typeof window !== "undefined" && config) {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("demo") === "1") {
-        startDemoRun();
-      }
-    }
-  }, [config, startDemoRun]);
 
   // Load sound state & first-run tutorial check
   useEffect(() => {
@@ -182,6 +177,16 @@ export default function PlayPage() {
     setRunKey((value) => value + 1);
     setPhase("playing");
   }, []);
+
+  // Automatically start demo practice if ?demo=1 query parameter is present
+  useEffect(() => {
+    if (typeof window !== "undefined" && config) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("demo") === "1") {
+        startDemoRun();
+      }
+    }
+  }, [config, startDemoRun]);
 
   const handleEnd = useCallback(async (result: RunResult) => {
     setLocalRun(result);
@@ -278,7 +283,7 @@ export default function PlayPage() {
   return (
     <div className="container play-lobby" style={{ paddingTop: 20 }}>
       {/* First-Run Tutorial Overlay */}
-      {showTutorial && (
+      {mounted && showTutorial && (
         <TutorialOverlay onComplete={() => setShowTutorial(false)} />
       )}
 
@@ -481,7 +486,7 @@ export default function PlayPage() {
             <div className="stat-grid compact-stat-grid" style={{ marginTop: 12 }}>
               <Stat
                 label={strings.bestScore}
-                value={me && me.bestScore > 0 ? me.bestScore.toLocaleString() : null}
+                value={me && me.bestScore > 0 ? me.bestScore.toLocaleString("en-US") : null}
                 emptyState={
                   walletConnected ? (
                     <span className="empty-first-run">{strings.firstRunStartsNow}</span>
@@ -514,13 +519,13 @@ export default function PlayPage() {
 
               <Stat
                 label={strings.totalTrees}
-                value={me && me.totalTrees > 0 ? me.totalTrees.toLocaleString() : null}
+                value={me && me.totalTrees > 0 ? me.totalTrees.toLocaleString("en-US") : null}
                 emptyState={
                   walletConnected ? (
                     <span className="empty-first-run">0 trees</span>
                   ) : (
                     <span className="empty-fallback-stat" title="Global players weekly progress">
-                      {globalWeeklyTrees.toLocaleString()} (Global weekly)
+                      {globalWeeklyTrees.toLocaleString("en-US")} (Global weekly)
                     </span>
                   )
                 }
@@ -528,7 +533,7 @@ export default function PlayPage() {
 
               <Stat
                 label={strings.tapRewards}
-                value={me && me.totalGreen > 0 ? `~${(me.totalGreen * 10).toLocaleString()} $TAP` : null}
+                value={me && me.totalGreen > 0 ? `~${(me.totalGreen * 10).toLocaleString("en-US")} $TAP` : null}
                 color="var(--amber)"
                 onClick={() => setShowRewardsModal(true)}
                 emptyState={
@@ -545,7 +550,7 @@ export default function PlayPage() {
             </div>
 
             <div className="global-fallback-note">
-              <span>Weekly Canopy Goal: <b>{globalWeeklyTrees.toLocaleString()} trees</b> cleared across all runs.</span>
+              <span>Weekly Canopy Goal: <b>{globalWeeklyTrees.toLocaleString("en-US")} trees</b> cleared across all runs.</span>
             </div>
           </div>
 

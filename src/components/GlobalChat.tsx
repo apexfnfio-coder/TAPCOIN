@@ -309,10 +309,10 @@ export function GlobalChat({ docked = false }: GlobalChatProps) {
                     </div>
                     <div className="rank-info-col">
                       <span className="rank-name">{entry.username}</span>
-                      <span className="rank-sub">{entry.trees.toLocaleString()} trees • Lvl {entry.level}</span>
+                      <span className="rank-sub">{entry.trees.toLocaleString("en-US")} trees • Lvl {entry.level}</span>
                     </div>
                     <div className="rank-score-col">
-                      <span className="rank-score-val">{entry.score.toLocaleString()}</span>
+                      <span className="rank-score-val">{entry.score.toLocaleString("en-US")}</span>
                       <span className="rank-score-label">PTS</span>
                     </div>
                   </div>

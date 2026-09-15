@@ -102,10 +102,10 @@ export default function ProfilePage() {
       </div>
 
       <div className="stat-grid reveal d2" style={{ marginTop: 20 }}>
-        <div className="stat-tile"><div className="k">Best score</div><div className="v">{me.bestScore.toLocaleString()}</div></div>
+        <div className="stat-tile"><div className="k">Best score</div><div className="v">{me.bestScore.toLocaleString("en-US")}</div></div>
         <div className="stat-tile"><div className="k">Total runs</div><div className="v cream">{me.totalRuns}</div></div>
-        <div className="stat-tile"><div className="k">Trees chopped</div><div className="v cream">{me.totalTrees.toLocaleString()}</div></div>
-        <div className="stat-tile"><div className="k">Green candles</div><div className="v cream" style={{ color: "var(--green)" }}>{me.totalGreen.toLocaleString()}</div></div>
+        <div className="stat-tile"><div className="k">Trees chopped</div><div className="v cream">{me.totalTrees.toLocaleString("en-US")}</div></div>
+        <div className="stat-tile"><div className="k">Green candles</div><div className="v cream" style={{ color: "var(--green)" }}>{me.totalGreen.toLocaleString("en-US")}</div></div>
         <div className="stat-tile"><div className="k">Red hits</div><div className="v cream" style={{ color: "var(--red)" }}>{me.totalRedHits}</div></div>
         <div className="stat-tile"><div className="k">Time played</div><div className="v cream">{playMin}m</div></div>
       </div>
@@ -126,9 +126,9 @@ export default function ProfilePage() {
             <tbody>
               {runs.map((r) => (
                 <tr key={r.id}>
-                  <td className="sub">{new Date(r.createdAt).toLocaleString()}</td>
+                  <td className="sub">{new Date(r.createdAt).toLocaleString("en-US")}</td>
                   <td>{r.competition ? <span className="chip live">{r.competition}</span> : <span className="chip">Free play</span>}</td>
-                  <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)" }}>{r.score.toLocaleString()}</td>
+                  <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)" }}>{r.score.toLocaleString("en-US")}</td>
                   <td style={{ textAlign: "right" }}>{r.trees}</td>
                   <td style={{ textAlign: "right" }}>{r.green}</td>
                   <td style={{ textAlign: "right" }}>{Math.round(r.durationMs / 1000)}s</td>

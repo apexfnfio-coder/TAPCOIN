@@ -271,7 +271,7 @@ export function GameCanvas({
             <div className="hud-box hud-score">
               <div className="k">Score</div>
               <div className={`v ${hud.scoreColorClass || ""}`} data-score-value={displayScore}>
-                {displayScore.toLocaleString()}
+                {displayScore.toLocaleString("en-US")}
               </div>
             </div>
             {(hud.shieldActive || hud.frenzyActive) && (
