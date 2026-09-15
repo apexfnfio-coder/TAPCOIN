@@ -13,7 +13,7 @@ export async function GET() {
 
   const currentSeason = getCurrentSeason();
 
-  const [users, usersToday, runs, runsToday, sums, liveCompetitions, flaggedRuns, recentRuns, recentAudit, officialPlayers, pool, recentPayments] =
+  const [users, usersToday, runs, runsToday, sums, liveCompetitions, flaggedRuns, recentRuns, recentAudit, officialPlayers, pool, recentPayments, feeSums] =
     await Promise.all([
       db.user.count(),
       db.user.count({ where: { createdAt: { gte: today } } }),
@@ -48,7 +48,15 @@ export async function GET() {
         take: 5,
         include: { user: { select: { username: true } } },
       }).catch(() => []),
+      db.paymentTx.aggregate({
+        where: { season: currentSeason, status: "confirmed" },
+        _sum: { amountSol: true },
+      }).catch(() => ({ _sum: { amountSol: 0 } })),
     ]);
+
+  const totalGameFeesSol = feeSums._sum.amountSol ?? 0;
+  const prizePoolSol = Number((totalGameFeesSol * 0.10).toFixed(4));
+  const buybackBurnPoolSol = Number((totalGameFeesSol * 0.90).toFixed(4));
 
   return ok({
     totals: {
@@ -61,7 +69,9 @@ export async function GET() {
     season: currentSeason,
     treasuryPool: {
       balanceSol: Number(pool.balanceSol.toFixed(4)),
-      prizePoolSol: Number(pool.prizePoolSol.toFixed(4)),
+      prizePoolSol,
+      buybackBurnPoolSol,
+      totalGameFeesSol,
     },
     today: { users: usersToday, runs: runsToday },
     liveCompetitions,

@@ -100,23 +100,10 @@ export default function PlayPage() {
   }, [me]);
 
   useEffect(() => {
-    fetch("/api/competitions?filter=live&gameSlug=tap-chimp", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((json) => {
-        const competition = json.data?.competitions?.[0];
-        setLobby((previous) => ({
-          liveCompetition: competition ? { id: competition.id, name: competition.name, endsAt: competition.endsAt, participants: competition.participants } : null,
-          recentRuns: previous?.recentRuns || [],
-        }));
-      })
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
     if (!me) return;
     fetch("/api/runs?limit=5", { cache: "no-store" })
       .then((response) => response.json())
-      .then((json) => { if (json.ok) setLobby((previous) => ({ liveCompetition: previous?.liveCompetition || null, recentRuns: json.data.runs })); })
+      .then((json) => { if (json.ok) setLobby((previous) => ({ liveCompetition: null, recentRuns: json.data.runs })); })
       .catch(() => {});
   }, [me]);
 
@@ -193,7 +180,6 @@ export default function PlayPage() {
           redHits: result.redHits,
           durationMs: result.durationMs,
           endedBy: result.endedBy,
-          competitionId: demoMode ? undefined : lobby?.liveCompetition?.id,
           clientVersion: "2.0.0",
         }),
       });
@@ -307,12 +293,28 @@ export default function PlayPage() {
                   <span className="live-dot" /> LIVE ON SOLANA
                 </span>
                 {treasuryPool && (
-                  <span className="pool-prize-chip" style={{ background: "rgba(0, 255, 163, 0.15)", border: "1px solid rgba(0, 255, 163, 0.4)", color: "var(--green)", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
-                    🏆 10% DEV POOL: {treasuryPool.prizePoolSol} SOL
+                  <span
+                    className="pool-prize-chip"
+                    title="10% of Game Fees distributed to top leaderboard ranks monthly"
+                    style={{ background: "rgba(0, 255, 163, 0.15)", border: "1px solid rgba(0, 255, 163, 0.4)", color: "var(--green)", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}
+                  >
+                    🏆 10% LEADERBOARD POOL: {treasuryPool.prizePoolSol} SOL
                   </span>
                 )}
                 {treasuryPool && (
-                  <span className="pool-players-chip" style={{ background: "rgba(255, 208, 0, 0.12)", border: "1px solid rgba(255, 208, 0, 0.4)", color: "var(--gold)", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                  <span
+                    className="pool-burn-chip"
+                    title="90% of Game Fees committed to $TAP Buyback & Burn"
+                    style={{ background: "rgba(255, 59, 48, 0.15)", border: "1px solid rgba(255, 59, 48, 0.4)", color: "#ff6b6b", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}
+                  >
+                    🔥 90% BUYBACK & BURN
+                  </span>
+                )}
+                {treasuryPool && (
+                  <span
+                    className="pool-players-chip"
+                    style={{ background: "rgba(255, 208, 0, 0.12)", border: "1px solid rgba(255, 208, 0, 0.4)", color: "var(--gold)", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 700 }}
+                  >
                     👥 {treasuryPool.officialPlayersCount} Registered Players
                   </span>
                 )}

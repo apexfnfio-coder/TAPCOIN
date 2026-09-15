@@ -1,4 +1,4 @@
-# $TAP Production Architecture
+﻿# $TAP Production Architecture
 
 ## Product decisions
 
@@ -11,11 +11,11 @@
 
 ## Runtime boundaries
 
-1. **Web application** — Next.js App Router pages, responsive navigation, wallet UI, loading/error/empty states.
-2. **Game engine** — Phaser scenes, parallax world, keyboard/touch movement, automatic chopping, collisions, damage states, particles, and real run events.
-3. **Backend** — authenticated API routes, RBAC guards, Zod validation, rate limiting, audit recording, score verification.
-4. **Database** — users, sessions, wallet nonces, runs, competitions, competition entries, centralized config, audit log.
-5. **Web3** — browser wallet discovery, nonce signing, public-key verification, configurable token/trading information. The application never invents balances, hashes, or transaction success.
+1. **Web application** â€” Next.js App Router pages, responsive navigation, wallet UI, loading/error/empty states.
+2. **Game engine** â€” Phaser scenes, parallax world, keyboard/touch movement, automatic chopping, collisions, damage states, particles, and real run events.
+3. **Backend** â€” authenticated API routes, RBAC guards, Zod validation, rate limiting, audit recording, score verification.
+4. **Database** â€” users, sessions, wallet nonces, runs, competitions, competition entries, centralized config, audit log.
+5. **Web3** â€” browser wallet discovery, nonce signing, public-key verification, configurable token/trading information. The application never invents balances, hashes, or transaction success.
 
 ## Server-authoritative data
 
@@ -52,7 +52,7 @@ For economically meaningful on-chain rewards, the next hardening phase should ad
 - HTTP-only, SameSite cookies; secure flag in production
 - One-use five-minute wallet nonces and Ed25519 verification
 - Explicit RBAC on all admin endpoints
-- Per-endpoint response projection to avoid database-field leakage
+- Explicit per-endpoint response projection to avoid database-field leakage
 - Security headers and restrictive CSP
 - Input validation and basic abuse rate limits
 - No secrets in client bundles; no storage/request of wallet secrets
@@ -62,8 +62,18 @@ For economically meaningful on-chain rewards, the next hardening phase should ad
 
 1. Generate a strong `SESSION_SECRET` and configure `ADMIN_WALLETS`.
 2. Set the production PostgreSQL `DATABASE_URL`; change Prisma datasource provider to `postgresql`; create and deploy a reviewed migration.
-3. Configure official token mint and trading links in Admin → Settings only after launch details are verified.
+3. Configure official token mint and trading links in Admin â†’ Settings only after launch details are verified.
 4. Install Redis-backed rate limiting/pub-sub before multi-instance deployment.
 5. Enforce HTTPS and add the deployment domain to the CSP/connect allowlist where required.
 6. Configure backups, monitoring, alerting, error reporting, and key rotation.
 7. Load-test run submission and leaderboard queries with production-scale data.
+
+## Observations from Code Audit (2026-09-14)
+
+- The modular game registry is implemented and functional.
+- The `$TAP Chimp` module includes level generation, scoring rules, and configuration.
+- API routes show usage of middleware for authentication and validation (consistent with Zod boundary validation claim).
+- Server-side score verification is present (`src/lib/scoreVerify.ts`).
+- Current architecture supports isolated builds via `NEXT_DIST_DIR` for sandbox-safe validation.
+- Security headers and CSP are implied by next-secure headers usage (observed in network calls in dev tools, but not directly in code).
+- Rate limiting appears to be in-memory (based on architecture doc); recommendation to migrate to Redis for horizontal scaling.

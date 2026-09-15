@@ -147,6 +147,33 @@ export default function HowToPlayPage() {
           )}
         </div>
 
+        {/* RULE 05: SEASON PASS & TOKENOMICS */}
+        <div className="panel panel-pad" style={{ borderLeft: "4px solid var(--green)" }}>
+          <span className="rule-badge green-badge">RULE 05 · SEASON PASS & 10/90 TOKENOMICS</span>
+          <h2 className="card-title" style={{ color: "var(--green)", margin: "10px 0 8px", fontSize: 22 }}>
+            0.01 SOL Monthly Pass · 10% Prize Pool · 90% Buyback & Burn
+          </h2>
+          <p className="sub" style={{ lineHeight: 1.7, margin: "0 0 16px" }}>
+            To ensure fair play and eliminate sybil bot attacks, official competitive runs require a <b>0.01 SOL</b> monthly season pass. 100% of game fees are allocated transparently on-chain:
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+            <div style={{ background: "rgba(0, 255, 163, 0.08)", border: "1px solid rgba(0, 255, 163, 0.25)", borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 4 }}>MONTHLY LEADERBOARD POOL</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--gold)" }}>10% OF GAME FEES</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
+                Distributed every month to the top-ranked players on the global leaderboard.
+              </div>
+            </div>
+            <div style={{ background: "rgba(255, 59, 48, 0.08)", border: "1px solid rgba(255, 59, 48, 0.25)", borderRadius: 10, padding: 14 }}>
+              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 4 }}>TOKEN VALUE ACCRUAL</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--red)" }}>90% BUYBACK & BURN</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
+                Directly used to execute open-market buybacks and burn $TAP tokens to shrink supply.
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Bottom Launch Bar */}

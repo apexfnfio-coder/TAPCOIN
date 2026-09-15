@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { PublicKey, SystemProgram, Transaction, Connection } from "@solana/web3.js";
@@ -168,7 +168,7 @@ export function SeasonPassModal({ isOpen, onClose, onUnlocked }: Props) {
             <div style={{ fontSize: 48, marginBottom: 12 }}>⚡</div>
             <h4 style={{ color: "var(--green)", fontSize: 20, margin: "0 0 8px 0" }}>SEASON PASS UNLOCKED!</h4>
             <p style={{ color: "var(--text-dim)", fontSize: 14, margin: "0 0 16px 0" }}>
-              Your official access is active for this entire month. High scores will rank on the global leaderboard for the 10% Dev Treasury pool.
+              Your official access is active for this entire month. High scores will rank on the global leaderboard for the 10% Leaderboard Rewards Pool (90% $TAP Buyback & Burn).
             </p>
             {solscanUrl && (
               <div style={{ marginBottom: 20 }}>
@@ -194,12 +194,12 @@ export function SeasonPassModal({ isOpen, onClose, onUnlocked }: Props) {
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                 <span style={{ color: "var(--text-dim)" }}>Leaderboard Prize:</span>
-                <span style={{ color: "var(--text)", fontWeight: 600 }}>Win 10% Dev Treasury Pool</span>
+                <span style={{ color: "var(--text)", fontWeight: 600 }}>Win 10% Leaderboard Prize Pool</span>
               </div>
             </div>
 
             <div style={{ marginBottom: 16, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
-              🛡️ <strong>Anti-Cheat & Prize Guarantee:</strong> To prevent bots, sybils, and leaderboard spoofing, every player confirms 0.01 SOL entry to the dev treasury wallet. 10% of this entire wallet is distributed monthly to top leaderboard ranks.
+              🛡️ <strong>Anti-Cheat & Prize Guarantee:</strong> To prevent bots, sybils, and leaderboard spoofing, every player confirms a 0.01 SOL seasonal entry fee. 10% of entry fees fund the monthly leaderboard rewards pool. 90% is committed to $TAP token buyback & burn to support token liquidity and price.
             </div>
 
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8, padding: 10, marginBottom: 16 }}>

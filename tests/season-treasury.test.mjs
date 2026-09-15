@@ -81,7 +81,8 @@ test("Admin panel provides access toggles, Solscan links, and payment history", 
   
   const adminOverview = fs.readFileSync(path.resolve("src/app/admin/page.tsx"), "utf8");
   assert.ok(adminOverview.includes("Official Season Players"), "Admin overview must track official registered players");
-  assert.ok(adminOverview.includes("10% Dev Treasury Pool"), "Admin overview must show 10% Dev Treasury Pool");
+  assert.ok(adminOverview.includes("10% Leaderboard Pool"), "Admin overview must show 10% Leaderboard Pool");
+  assert.ok(adminOverview.includes("90% Buyback & Burn Pool"), "Admin overview must show 90% Buyback & Burn Pool");
 });
 
 // 8. Navigation & Live Badges
@@ -89,18 +90,39 @@ test("Nav.tsx displays live 10% prize pool and GlobalChat shows live online coun
   const navContent = fs.readFileSync(path.resolve("src/components/Nav.tsx"), "utf8");
   assert.ok(navContent.includes("prize-pool-nav-pill"), "Nav must render 10% pool pill");
   assert.ok(navContent.includes("/api/treasury/pool"), "Nav must fetch from /api/treasury/pool");
+  assert.ok(navContent.includes("ENABLE_COMPETITIONS = false"), "Competitions must be hidden from primary navigation");
 
   const chatContent = fs.readFileSync(path.resolve("src/components/GlobalChat.tsx"), "utf8");
   assert.ok(chatContent.includes("onlineUsers"), "GlobalChat must track online degens");
   assert.ok(chatContent.includes("ONLINE"), "GlobalChat must display ONLINE indicator");
 });
 
-// 9. Play page integration
-test("play/page.tsx gates official runs with SeasonPassModal and exempts admins", () => {
+// 9. Play page integration & Competition Decoupling
+test("play/page.tsx gates official runs with SeasonPassModal, displays 10/90 tokenomics, and omits competitions", () => {
   const playContent = fs.readFileSync(path.resolve("src/app/play/page.tsx"), "utf8");
   assert.ok(playContent.includes("SeasonPassModal"), "Play page must include SeasonPassModal");
   assert.ok(playContent.includes("showSeasonModal"), "Play page must trigger modal when unpaid");
-  assert.ok(playContent.includes("10% DEV POOL"), "Play page must showcase live prize pool");
+  assert.ok(playContent.includes("10% LEADERBOARD POOL"), "Play page must showcase live prize pool");
+  assert.ok(playContent.includes("90% BUYBACK & BURN"), "Play page must showcase buyback & burn tokenomics");
+  assert.ok(!playContent.includes("/api/competitions"), "Play page must not fetch public competitions");
+  assert.ok(!playContent.includes("competitionId:"), "Play page must not submit competitionId in runs");
+});
+
+// 10. Public Competitions Redirect to /leaderboard
+test("Public competition routes redirect to /leaderboard", () => {
+  const compIndex = fs.readFileSync(path.resolve("src/app/competitions/page.tsx"), "utf8");
+  assert.ok(compIndex.includes('redirect("/leaderboard")'), "Competitions index must redirect to /leaderboard");
+
+  const compDetail = fs.readFileSync(path.resolve("src/app/competitions/[id]/page.tsx"), "utf8");
+  assert.ok(compDetail.includes('redirect("/leaderboard")'), "Competition details must redirect to /leaderboard");
+});
+
+// 11. Treasury Pool API 10% Leaderboard & 90% Buyback/Burn Allocation
+test("api/treasury/pool route allocates 10% to leaderboard and 90% to buyback & burn from game fees", () => {
+  const poolRoute = fs.readFileSync(path.resolve("src/app/api/treasury/pool/route.ts"), "utf8");
+  assert.ok(poolRoute.includes("totalGameFeesSol * 0.10"), "Prize pool must be 10% of game fees");
+  assert.ok(poolRoute.includes("totalGameFeesSol * 0.90"), "Buyback burn pool must be 90% of game fees");
+  assert.ok(poolRoute.includes("buybackBurnPoolSol"), "API must return buybackBurnPoolSol");
 });
 
 console.log("==================================================");

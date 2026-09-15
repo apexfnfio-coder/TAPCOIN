@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -6,7 +6,7 @@ interface Overview {
   totals: { users: number; runs: number; trees: number; green: number };
   officialPlayers: number;
   season: string;
-  treasuryPool: { balanceSol: number; prizePoolSol: number };
+  treasuryPool: { balanceSol: number; prizePoolSol: number; buybackBurnPoolSol?: number; totalGameFeesSol?: number };
   today: { users: number; runs: number };
   liveCompetitions: number;
   flaggedRuns: number;
@@ -39,8 +39,12 @@ export default function AdminDashboard() {
           <div className="v" style={{ color: "var(--green)" }}>{data.officialPlayers.toLocaleString()}</div>
         </div>
         <div className="stat-tile" style={{ borderColor: "rgba(255, 208, 0, 0.4)" }}>
-          <div className="k">10% Dev Treasury Pool</div>
+          <div className="k">10% Leaderboard Pool</div>
           <div className="v" style={{ color: "var(--gold)", fontFamily: "monospace" }}>{data.treasuryPool.prizePoolSol.toFixed(4)} SOL</div>
+        </div>
+        <div className="stat-tile" style={{ borderColor: "rgba(255, 59, 48, 0.4)" }}>
+          <div className="k">90% Buyback & Burn Pool</div>
+          <div className="v" style={{ color: "var(--red)", fontFamily: "monospace" }}>{(data.treasuryPool.buybackBurnPoolSol ?? 0).toFixed(4)} SOL</div>
         </div>
         <div className="stat-tile">
           <div className="k">Treasury Wallet Balance</div>

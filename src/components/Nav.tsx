@@ -116,9 +116,9 @@ export function Nav() {
             {prizePool !== null && (
               <div
                 className="prize-pool-nav-pill"
-                title="10% Dev Treasury Monthly Prize Pool (Calculated Live from Solana Mainnet)"
+                title="10% of game fees funds leaderboard rewards"
               >
-                <span className="prize-pool-nav-label">🏆 10% POOL:</span>
+                <span className="prize-pool-nav-label">🏆 10% REWARDS:</span>
                 <span className="prize-pool-nav-val">{prizePool.toFixed(4)} SOL</span>
               </div>
             )}
@@ -179,7 +179,7 @@ export function Nav() {
           </div>
           {prizePool !== null && (
             <div className="mobile-drawer-pool">
-              <span className="mobile-drawer-pool-lbl">🏆 10% DEV POOL</span>
+              <span className="mobile-drawer-pool-lbl">🏆 10% PRIZE POOL</span>
               <span className="mobile-drawer-pool-val">{prizePool.toFixed(4)} SOL</span>
             </div>
           )}
@@ -206,3 +206,4 @@ export function Nav() {
     </>
   );
 }
+

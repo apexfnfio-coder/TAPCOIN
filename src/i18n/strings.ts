@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Centralized string catalog for $TAP game UI.
  * Standardized copy across lobby, HUD, results, and help dialogs.
  * Prepared for future localization (e.g., id/en).
@@ -42,9 +42,7 @@ export const strings = {
   currentRun: "MISSION BRIEFING",
   startingLevel: "Starting level",
   firstTarget: "First target",
-  liveCompetition: "LIVE COMPETITION",
-  noLiveComp: "No live competition",
-  yourRecord: "YOUR RECORD",
+    yourRecord: "YOUR RECORD",
   bestScore: "Best score",
   totalRuns: "Runs",
   totalTrees: "Trees",
@@ -92,7 +90,7 @@ export const strings = {
     },
     wallet: {
       title: "Solana Wallet Authentication",
-      desc: "Connect your Phantom or Solflare wallet to record verifiable high scores, participate in tournaments, and lock in your airdrop bag.",
+      desc: "Connect your Phantom or Solflare wallet to record verifiable high scores, qualify for leaderboard rewards and lock in your verified score.",
     },
   },
 
@@ -106,7 +104,7 @@ export const strings = {
       "RED candles dump your score (− penalty) and drain precious run time. Dodge them at all costs!",
     step3Title: "The Chart Pumps Forever",
     step3Desc:
-      "Survive as long as you can. The chart never stops. Level up infinitely and compete for global leaderboard glory.",
+      "Survive as long as you can. The chart never stops. Level up infinitely and compete for global leaderboard rewards.",
     skip: "Skip Tutorial",
     next: "Next",
     start: "Let's Chop!",
@@ -133,9 +131,9 @@ export const strings = {
   levelMultiplier: "Level multiplier",
   levelMultiplierValue: "1.2× per level",
   claimCadence: "Prize Distribution",
-  claimCadenceValue: "Monthly Season (10% Dev Treasury Pool)",
+  claimCadenceValue: "Monthly distribution (10% of game fees)",
   rewardsBackendNotice:
-    "Prize Pool: 10% of the entire official dev treasury wallet is awarded to top ranked leaderboard players at the conclusion of every monthly season.",
+    "Leaderboard rewards receive 10% of game fees. The remaining game fees support $TAP through documented buyback and burn operations.",
 
   // Sound & Accessibility
   soundToggle: "Toggle game sound",
@@ -145,3 +143,4 @@ export const strings = {
   colorblindOn: "Colorblind: Blue / Orange active",
   colorblindOff: "Colorblind: Off (Green / Red)",
 };
+
