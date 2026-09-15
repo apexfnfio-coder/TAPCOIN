@@ -329,7 +329,7 @@ export function WalletButton() {
                 </>
               ) : (
                 <>
-                  <p className="sub" style={{ marginTop: 0 }}>Select your Solana wallet to link your account, save progress, and participate in competitions.</p>
+                  <p className="sub" style={{ marginTop: 0 }}>Select your Solana wallet to link your account, save verified progress, and climb the monthly leaderboard.</p>
                   {error && <div className="wallet-notice">{error}</div>}
                   {WALLETS.map((wallet) => (
                     <button key={wallet.id} className="wallet-opt" disabled={phase === "connecting" || phase === "signing"} onClick={() => connect(wallet)}>
@@ -341,7 +341,7 @@ export function WalletButton() {
                   {phase === "signing" && <p className="sub wallet-signing">Please confirm the request in your wallet…</p>}
                   <div className="wallet-requirement">
                     <b>✦ Instant & Gasless Login</b>
-                    <span>Connect your wallet to play, track your high scores, and participate in tournaments.</span>
+                    <span>Connect your wallet to play, track verified ATH scores, and climb the monthly leaderboard.</span>
                   </div>
                 </>
               )}

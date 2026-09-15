@@ -1356,7 +1356,19 @@ button { min-height: 40px; }
   [data-game-active="true"] .nav,
   [data-game-active="true"] .mobile-nav { display: none !important; }
   [data-game-active="true"] .game-shell { width: 100vw; height: 100dvh; aspect-ratio: auto; border: 0; border-radius: 0; }
-  [data-game-active="true"] .game-host { display: none; }
+  [data-game-active="true"] .game-host { display: block !important; width: 100%; height: 100%; }
+}
+
+/* Lock viewport and hide footer during active runs */
+body[data-game-active="true"] {
+  overflow: hidden !important;
+  height: 100dvh !important;
+}
+body[data-game-active="true"] .footer {
+  display: none !important;
+}
+body[data-game-active="true"] .play-hint {
+  display: none !important;
 }
 
 @media (orientation: landscape) and (max-height: 560px) and (max-width: 900px) {

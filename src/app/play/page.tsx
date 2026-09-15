@@ -62,7 +62,10 @@ export default function PlayPage() {
   const [globalWeeklyTrees, setGlobalWeeklyTrees] = useState<number>(142850);
   const [treasuryPool, setTreasuryPool] = useState<{
     prizePoolSol: number;
-    balanceSol: number;
+    balanceSol?: number;
+    walletBalanceSol?: number;
+    totalGameFeesSol?: number;
+    buybackBurnPoolSol?: number;
     officialPlayersCount: number;
     season: string;
   } | null>(null);
@@ -207,7 +210,7 @@ export default function PlayPage() {
     } catch {
       setSubmitResult(null);
     }
-  }, [demoMode, lobby?.liveCompetition?.id, refreshMe]);
+  }, [demoMode, refreshMe]);
 
   const walletConnected = !!me?.walletAddress;
 
@@ -719,7 +722,7 @@ export default function PlayPage() {
 
               <div className="rewards-info-box" style={{ marginTop: 18 }}>
                 <p className="sub" style={{ margin: 0, lineHeight: 1.6 }}>
-                  Slicing GREEN candles accelerates your in-run score multipliers. Accumulated score points qualify you for daily $TAP token airdrop tiers and competition prize pools.
+                  Slicing GREEN candles accelerates your in-run score multipliers. Accumulated score points qualify you for the monthly leaderboard prize pool and $TAP token buyback & burn benefits.
                 </p>
                 <p className="sub" style={{ margin: "10px 0 0", color: "var(--muted)", fontSize: "11px" }}>
                   {strings.rewardsBackendNotice}

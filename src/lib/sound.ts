@@ -560,6 +560,11 @@ class SoundManager {
     } catch {}
   }
 
+  // Hazard / Chasm hit effect
+  public playHit() {
+    this.playRed();
+  }
+
   // Jump leap sound: retro arcade spring whoosh
   public playJump() {
     if (this.muted) return;

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { PublicKey, SystemProgram, Transaction, Connection } from "@solana/web3.js";
-import { short } from "@/lib/format";
 import { useApp } from "./Providers";
 
 const TREASURY_WALLET = "95sKZtgoYZS2Qntti4DhUvPqTC6Ra5rWa7wpmiW6ojr7";
@@ -152,7 +151,7 @@ export function SeasonPassModal({ isOpen, onClose, onUnlocked }: Props) {
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card season-pass-modal" style={{ maxWidth: 520, border: "1px solid rgba(0, 255, 163, 0.4)", boxShadow: "0 0 40px rgba(0, 255, 163, 0.15)" }}>
+      <div className="modal season-pass-modal panel-pad" style={{ maxWidth: 520, border: "1px solid rgba(0, 255, 163, 0.4)", boxShadow: "0 0 40px rgba(0, 255, 163, 0.15)", margin: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 24 }}>👑</span>

@@ -11,12 +11,12 @@ export async function GET() {
   const pool = await getTreasuryPool().catch(() => ({ balanceSol: 0, prizePoolSol: 0, rawLamports: 0 }));
 
   // Query confirmed game fees from PaymentTx for current season
-  const payments = await db.paymentTx.findMany({
-    where: { season: currentSeason },
-    select: { amountSol: true },
-  }).catch(() => []);
+  const feeSums = await db.paymentTx.aggregate({
+    where: { season: currentSeason, status: "confirmed" },
+    _sum: { amountSol: true },
+  }).catch(() => ({ _sum: { amountSol: 0 } }));
 
-  const totalGameFeesSol = payments.reduce((acc, p) => acc + (p.amountSol || 0.01), 0);
+  const totalGameFeesSol = feeSums._sum.amountSol ?? 0;
 
   // Tokenomics: 10% of game fees to Leaderboard Rewards, 90% to $TAP Buyback & Burn
   const leaderboardRewardSharePercent = 10;
