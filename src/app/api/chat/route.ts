@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { rateLimit } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "Connect your Solana wallet to send messages in the live chat" },
         { status: 403 }
+      );
+    }
+
+    if (!rateLimit(`chat:${user.id}`, 8, 30_000)) {
+      return NextResponse.json(
+        { error: "Slow down! Chat limit is 8 messages per 30 seconds." },
+        { status: 429 }
       );
     }
 

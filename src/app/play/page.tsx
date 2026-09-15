@@ -224,7 +224,7 @@ export default function PlayPage() {
           isDemo={demoMode}
         />
         <p className="sub play-hint">
-          <b>Desktop:</b> Use Arrow Keys or [A] / [D] to move. <b>Mobile:</b> Touch [LEFT] / [RIGHT] pads.
+          <b>Desktop:</b> Use [A] / [D] or Arrows to move · Press [SPACE] or [W] to jump. <b>Mobile:</b> Touch [LEFT] / [RIGHT] pads & [JUMP ▲].
           Chop is automatic at trees. Dodge RED candles & slice GREEN candles!
         </p>
       </div>
