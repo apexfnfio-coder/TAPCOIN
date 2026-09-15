@@ -27,6 +27,7 @@ import { sound } from "@/lib/sound";
 import { LiveTicker } from "@/components/LiveTicker";
 import { GlobalChat } from "@/components/GlobalChat";
 import { SeasonPassModal } from "@/components/SeasonPassModal";
+import { WeaponLoadout } from "@/components/WeaponLoadout";
 
 type Phase = "lobby" | "playing" | "results";
 
@@ -365,9 +366,13 @@ export default function PlayPage() {
               CHOP TIMBER. <span className="gold-text">RIDE THE PUMP.</span> DON'T GET REKT.
             </h1>
 
-            {/* Visual Candle Legend */}
-            <div className="hero-legend-wrapper">
-              <CandleLegend colorblindMode={colorblindMode} />
+            {/* Compact Tactical Battle Legend */}
+            <div className="tactical-legend-strip" role="region" aria-label="Tactical Rules Quick Cues">
+              <span className="tactical-chip green">🟢 Green: +10 PTS &amp; Combos</span>
+              <span className="tactical-chip red">🔴 Red: −25 PTS Penalty</span>
+              <span className="tactical-chip gold">🐀 Rat: +10 PTS Stomp</span>
+              <span className="tactical-chip orange">🐻 Bear: Counter-Hit ⚡</span>
+              <span className="tactical-chip" style={{ color: "var(--cream-dim)" }}>🕳️ Chasm: 0 PTS Safe Leap</span>
             </div>
 
             <p className="sub lobby-copy">{strings.heroSubcopy}</p>
@@ -394,9 +399,10 @@ export default function PlayPage() {
                   {starting
                     ? strings.starting
                     : walletConnected
-                    ? strings.playNow
+                    ? "PLAY OFFICIAL RUN (0.01 SOL)"
                     : strings.connectWallet}
                 </span>
+                <span aria-hidden="true">→</span>
               </button>
             </div>
 
@@ -450,131 +456,19 @@ export default function PlayPage() {
         </div>
       </section>
 
-      {/* SECTION 2: HOW TO PLAY (FULL RULES EXPANDED) */}
-      <section className="lobby-section how-to-play-section" aria-label="Game Rules Guide">
-        <div className="section-header">
-          <span className="eyebrow">GUIDE & MECHANICS</span>
-          <h2 className="card-title display-title">{strings.howToPlay.title}</h2>
-          <p className="sub">{strings.howToPlay.subtitle}</p>
-        </div>
-
-        <div className="rules-grid">
-          {/* Card 1: What to chop */}
-          <div className="rule-card rule-card-green">
-            <div className="rule-card-header">
-              <span className="rule-badge green-badge">BONUS TARGET</span>
-              <img src="/assets/candle-green.png" alt="" className="rule-mini-candle" />
-            </div>
-            <h3 className="rule-title">{strings.howToPlay.whatToChop.title}</h3>
-            <p className="sub">{strings.howToPlay.whatToChop.desc}</p>
-            <div className="rule-metrics">
-              <div className="metric-tag green-tag">{strings.howToPlay.whatToChop.greenBonus}</div>
-              <div className="metric-tag green-tag">{strings.howToPlay.whatToChop.treeBonus}</div>
-            </div>
-          </div>
-
-          {/* Card 2: What to avoid */}
-          <div className="rule-card rule-card-red">
-            <div className="rule-card-header">
-              <span className="rule-badge red-badge">HAZARD</span>
-              <img src="/assets/candle-red.png" alt="" className="rule-mini-candle" />
-            </div>
-            <h3 className="rule-title">{strings.howToPlay.whatToAvoid.title}</h3>
-            <p className="sub">{strings.howToPlay.whatToAvoid.desc}</p>
-            <div className="rule-metrics">
-              <div className="metric-tag red-tag">{strings.howToPlay.whatToAvoid.scorePenalty}</div>
-              <div className="metric-tag red-tag">{strings.howToPlay.whatToAvoid.timePenalty}</div>
-            </div>
-          </div>
-
-          {/* Card 3: Infinite levels */}
-          <div className="rule-card rule-card-gold">
-            <div className="rule-card-header">
-              <span className="rule-badge gold-badge">PROGRESSION</span>
-              <span className="infinity-symbol">∞</span>
-            </div>
-            <h3 className="rule-title">{strings.howToPlay.progression.title}</h3>
-            <p className="sub">{strings.howToPlay.progression.desc}</p>
-            <div className="rule-metrics">
-              <div className="metric-tag gold-tag">Infinite scaling charts</div>
-            </div>
-          </div>
-
-          {/* Card 4: Run ends on */}
-          <div className="rule-card rule-card-neutral">
-            <div className="rule-card-header">
-              <span className="rule-badge neutral-badge">CONDITIONS</span>
-              <span className="rule-icon">⏱️</span>
-            </div>
-            <h3 className="rule-title">{strings.howToPlay.runEnd.title}</h3>
-            <p className="sub">{strings.howToPlay.runEnd.desc}</p>
-            <div className="rule-metrics">
-              <div className="metric-tag neutral-tag">Timer = 0 or Manual Quit</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Wallet Requirement Card (Placed LAST in rules) */}
-        <div className="panel panel-pad wallet-rule-card">
-          <div className="wallet-rule-inner">
-            <div>
-              <h3 className="rule-title" style={{ color: "var(--gold)" }}>
-                {strings.howToPlay.wallet.title}
-              </h3>
-              <p className="sub" style={{ margin: "6px 0 12px", maxWidth: 640 }}>
-                {strings.howToPlay.wallet.desc}
-              </p>
-              <WalletBadges />
-            </div>
-            {!walletConnected && (
-              <button
-                type="button"
-                className="btn btn-gold btn-md glow-cta"
-                onClick={openWalletModal}
-              >
-                {strings.connectWallet}
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3: CURRENT RUN & YOUR RECORD STATS */}
-      <section className="lobby-section stats-section" aria-label="Player Records & Stats">
-        <div className="stats-cards-grid">
-          {/* Current Run Card */}
-          <div className="panel panel-pad terminal-card">
-            <div className="terminal-header">
-              <span className="eyebrow">{strings.currentRun}</span>
-              <span className="terminal-tag">ACTIVE RUNNER</span>
-            </div>
-            <div className="lobby-stat-row" style={{ marginTop: 12 }}>
-              <div>
-                <span className="sub">{strings.startingLevel}</span>
-                <strong className="terminal-val">01</strong>
-              </div>
-              <div>
-                <span className="sub">{strings.firstTarget}</span>
-                <strong className="terminal-val">{levelPreview?.targetTrees ?? "—"} trees</strong>
-              </div>
-            </div>
-            <div className="lobby-rule" style={{ borderLeftColor: "var(--gold-deep)", marginTop: 16 }}>
-              <span style={{ fontFamily: "var(--font-display)", fontSize: 22, color: "var(--gold)" }}>∞</span>
-              <span>{strings.infiniteLevelsRule}</span>
-            </div>
-          </div>
-
-          {/* Your Record Card (Phase 1.4: Contextual Empty States) */}
+      {/* SECTION 2: ARCADE TELEMETRY COCKPIT (PERSONAL DOSSIER & ARSENAL) */}
+      <section className="lobby-section cockpit-section" aria-label="Battle Station Telemetry">
+        <div className="play-cockpit-grid">
+          {/* Card 1: Your Personal Degen Record */}
           <div className="panel panel-pad terminal-card your-record-card">
             <div className="terminal-header">
               <span className="eyebrow">{strings.yourRecord}</span>
               {walletConnected && (
-                <span className="terminal-tag ok-tag">VERIFIED</span>
+                <span className="terminal-tag ok-tag">VERIFIED ON-CHAIN</span>
               )}
             </div>
 
             <div className="stat-grid compact-stat-grid" style={{ marginTop: 12 }}>
-              {/* Best Score with contextual state */}
               <Stat
                 label={strings.bestScore}
                 value={me && me.bestScore > 0 ? me.bestScore.toLocaleString() : null}
@@ -596,7 +490,6 @@ export default function PlayPage() {
                 }
               />
 
-              {/* Runs with contextual state */}
               <Stat
                 label={strings.totalRuns}
                 value={me && me.totalRuns > 0 ? me.totalRuns : null}
@@ -609,7 +502,6 @@ export default function PlayPage() {
                 }
               />
 
-              {/* Total trees chopped */}
               <Stat
                 label={strings.totalTrees}
                 value={me && me.totalTrees > 0 ? me.totalTrees.toLocaleString() : null}
@@ -624,7 +516,6 @@ export default function PlayPage() {
                 }
               />
 
-              {/* $TAP rewards with interactive breakdown */}
               <Stat
                 label={strings.tapRewards}
                 value={me && me.totalGreen > 0 ? `~${(me.totalGreen * 10).toLocaleString()} $TAP` : null}
@@ -643,15 +534,19 @@ export default function PlayPage() {
               />
             </div>
 
-            {/* Global fallback note */}
             <div className="global-fallback-note">
-              <span>Weekly Milestone: <b>{globalWeeklyTrees.toLocaleString()} trees</b> chopped across all runs.</span>
+              <span>Weekly Canopy Goal: <b>{globalWeeklyTrees.toLocaleString()} trees</b> cleared across all runs.</span>
             </div>
+          </div>
+
+          {/* Card 2: Active Armory Loadout */}
+          <div className="panel panel-pad terminal-card">
+            <WeaponLoadout />
           </div>
         </div>
       </section>
 
-      {/* SECTION 4: QUICK LINKS & TRANSACTIONAL BUY $TAP CTA (Phase 1.5) */}
+      {/* SECTION 3: QUICK NAVIGATION & TRANSACTIONAL BUY $TAP */}
       <section className="lobby-section quick-links-section" aria-label="Navigation & Monetization">
         <div className="quick-links-panel">
           <div className="nav-text-links">
@@ -672,7 +567,6 @@ export default function PlayPage() {
             </Link>
           </div>
 
-          {/* Phase 1.5: Distinct Transactional Buy $TAP CTA */}
           <div className="buy-tap-wrapper">
             <a
               href={config?.token.buyLinks?.[0]?.url || "https://jup.ag/swap/SOL-TAP"}

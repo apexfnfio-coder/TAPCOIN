@@ -294,24 +294,50 @@ img { max-width: 100%; }
 .game-shell { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; border: 1px solid var(--line-soft); background: transparent; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 .game-shell canvas { display: block; width: 100% !important; height: auto !important; }
 .game-hud { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-.hud-top { position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.hud-box {
-  background: rgba(6, 9, 12, 0.78); border: 1px solid var(--line-soft); border-radius: 11px;
-  padding: 8px 16px; text-align: center; backdrop-filter: blur(8px); min-width: 92px;
+.hud-top {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  right: max(10px, env(safe-area-inset-right));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  z-index: 20;
+  pointer-events: none;
 }
-.hud-box .k { font-size: 9.5px; letter-spacing: 1.6px; color: var(--cream-dim); text-transform: uppercase; font-weight: 700; }
-.hud-box .v { font-family: var(--font-display); font-size: 21px; color: var(--gold); line-height: 1.15; }
+.hud-top-cluster {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+.hud-top-left { justify-content: flex-start; }
+.hud-top-center { justify-content: center; }
+.hud-top-right { justify-content: flex-end; }
+.hud-box {
+  background: rgba(6, 9, 12, 0.82); border: 1px solid var(--line-soft); border-radius: 9px;
+  padding: 5px 12px; text-align: center; backdrop-filter: blur(8px); min-width: 0;
+}
+.hud-box .k { font-size: 8.5px; letter-spacing: 1.4px; color: var(--cream-dim); text-transform: uppercase; font-weight: 700; line-height: 1; }
+.hud-box .v { font-family: var(--font-display); font-size: 18px; color: var(--gold); line-height: 1.15; }
 .hud-box .v.cream { color: var(--cream); }
-.hud-timer { margin-right: 74px; }
+.hud-score .v { font-size: 20px; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
 .hud-timer.low .v { color: var(--red); animation: pulse 0.8s infinite; }
-.hud-level-progress { position: absolute; top: 70px; left: 14px; right: 88px; height: 12px; background: rgba(6,9,12,0.74); border: 1px solid var(--line-soft); border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+.hud-level-progress { position: absolute; top: 58px; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); height: 8px; background: rgba(6,9,12,0.74); border: 1px solid var(--line-soft); border-radius: 999px; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
 .hud-level-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--green-deep), var(--gold-hi)); transition: width 0.18s; }
-.hud-tree { position: absolute; top: 91px; left: 50%; transform: translateX(-50%); width: 210px; }
-.hud-treebar { height: 10px; background: rgba(6,9,12,0.7); border: 1px solid var(--line-soft); border-radius: 6px; overflow: hidden; }
+.hud-tree { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 180px; pointer-events: none; }
+.hud-treebar { height: 9px; background: rgba(6,9,12,0.7); border: 1px solid var(--line-soft); border-radius: 6px; overflow: hidden; }
 .hud-treebar i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-deep), var(--gold-hi)); transition: width 0.18s; }
 .hud-treebar.red i { background: linear-gradient(90deg, var(--red-deep), var(--red)); }
-.hud-quit { position: absolute; top: 12px; right: 14px; pointer-events: auto; background: rgba(6,9,12,0.78); border: 1px solid var(--line-soft); color: var(--cream-dim); border-radius: 10px; padding: 8px 13px; font-weight: 800; font-size: 12px; letter-spacing: 1px; }
-.hud-quit:hover { color: var(--cream); border-color: var(--red-deep); }
+.hud-quit {
+  position: static; pointer-events: auto; background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.45); color: #fca5a5; border-radius: 8px;
+  padding: 6px 11px; font-weight: 800; font-size: 11px; letter-spacing: 0.5px;
+  cursor: pointer; backdrop-filter: blur(8px); transition: all 0.15s ease;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.hud-quit:hover { color: #fff; background: rgba(239, 68, 68, 0.35); border-color: var(--red); }
 
 /* ---------- interactive & touch controls ---------- */
 .touch-controls {
@@ -1371,16 +1397,178 @@ body[data-game-active="true"] .play-hint {
   display: none !important;
 }
 
-@media (orientation: landscape) and (max-height: 560px) and (max-width: 900px) {
-  .page-main { padding-bottom: 0; }
-  [data-game-active="true"] .nav,
-  [data-game-active="true"] .mobile-nav { display: none !important; }
-  .play-stage { padding: 0; max-width: none; }
-  .game-shell { width: 100vw; max-width: none; height: 100dvh; aspect-ratio: auto; border: 0; border-radius: 0; }
-  .game-host, .game-host canvas { width: 100% !important; height: 100% !important; }
-  .hud-box { min-width: 54px; }
-  .touch-controls { bottom: max(7px, env(safe-area-inset-bottom)); }
-  .touch-controls .touch-btn { min-width: 120px; }
+/* Mobile landscape fullscreen during active game runs:
+   Triggers whenever game is active on mobile landscape (height <= 600px OR coarse pointer in landscape) */
+@media (orientation: landscape) and (max-height: 600px), (pointer: coarse) and (orientation: landscape) {
+  body[data-game-active="true"] {
+    overflow: hidden !important;
+    height: 100dvh !important;
+    width: 100vw !important;
+    position: fixed !important;
+    inset: 0 !important;
+  }
+  body[data-game-active="true"] .nav,
+  body[data-game-active="true"] .mobile-nav,
+  body[data-game-active="true"] .nav-burger,
+  body[data-game-active="true"] .footer,
+  body[data-game-active="true"] .play-hint,
+  body[data-game-active="true"] .site-art-backdrop {
+    display: none !important;
+  }
+  body[data-game-active="true"] .page,
+  body[data-game-active="true"] .page-main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+  body[data-game-active="true"] .arcade-battle-station {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  body[data-game-active="true"] .battle-station-stage {
+    width: 100vw !important;
+    height: 100dvh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  body[data-game-active="true"] .battle-station-telemetry {
+    display: none !important;
+  }
+  body[data-game-active="true"] .play-stage {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+  }
+  body[data-game-active="true"] .game-shell {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    z-index: 9999 !important;
+    background: #000 !important;
+    box-shadow: none !important;
+  }
+  body[data-game-active="true"] .game-host {
+    width: 100vw !important;
+    height: 100dvh !important;
+    display: block !important;
+  }
+  body[data-game-active="true"] .game-host canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    display: block !important;
+  }
+  body[data-game-active="true"] .hud-top {
+    top: max(6px, env(safe-area-inset-top)) !important;
+    left: max(10px, env(safe-area-inset-left)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    gap: 6px !important;
+  }
+  body[data-game-active="true"] .hud-box {
+    padding: 3px 8px !important;
+    border-radius: 7px !important;
+    min-width: 0 !important;
+  }
+  body[data-game-active="true"] .hud-box .k {
+    font-size: 7.5px !important;
+    letter-spacing: 1px !important;
+  }
+  body[data-game-active="true"] .hud-box .v {
+    font-size: 14px !important;
+  }
+  body[data-game-active="true"] .hud-demo-badge {
+    padding: 3px 8px !important;
+    font-size: 9px !important;
+  }
+  body[data-game-active="true"] .hud-quit {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+  body[data-game-active="true"] .hud-sound-toggle {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
+  }
+  body[data-game-active="true"] .hud-level-progress {
+    top: 42px !important;
+    height: 6px !important;
+    left: max(10px, env(safe-area-inset-left)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+  }
+  body[data-game-active="true"] .hud-tree {
+    top: 52px !important;
+    width: 130px !important;
+  }
+  body[data-game-active="true"] .hud-treebar {
+    height: 6px !important;
+  }
+  body[data-game-active="true"] .hud-combo {
+    top: 62px !important;
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+  }
+  body[data-game-active="true"] .touch-controls {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    left: max(12px, env(safe-area-inset-left)) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    padding: 0 !important;
+  }
+  body[data-game-active="true"] .touch-nav-group {
+    gap: 8px !important;
+  }
+  body[data-game-active="true"] .touch-btn {
+    min-width: 0 !important;
+    background: rgba(6, 12, 10, 0.45) !important;
+    backdrop-filter: blur(6px) !important;
+    border: 1.5px solid rgba(255, 210, 94, 0.25) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4) !important;
+  }
+  body[data-game-active="true"] .touch-btn-nav {
+    width: 56px !important;
+    height: 52px !important;
+    border-radius: 12px !important;
+  }
+  body[data-game-active="true"] .touch-btn-jump {
+    width: 68px !important;
+    height: 62px !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.35) 0%, rgba(6, 12, 10, 0.55) 100%) !important;
+    border-color: rgba(34, 197, 94, 0.6) !important;
+  }
+  body[data-game-active="true"] .touch-btn .arr {
+    font-size: 16px !important;
+  }
+  body[data-game-active="true"] .touch-btn-jump .arr {
+    font-size: 18px !important;
+  }
+  body[data-game-active="true"] .touch-btn .btn-label {
+    font-size: 8.5px !important;
+    font-weight: 800 !important;
+  }
+  body[data-game-active="true"] .touch-btn-jump .btn-label {
+    font-size: 9.5px !important;
+    font-weight: 800 !important;
+  }
+  body[data-game-active="true"] .touch-btn .kbd-hint {
+    display: none !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2278,27 +2466,25 @@ html, body {
 
 /* ===== PHASE 2.1: DEMO MODE BADGE & STYLING ===== */
 .hud-demo-badge {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 5px 14px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: rgba(245, 158, 11, 0.16);
   border: 1px solid var(--amber);
   color: #fbbf24;
   font-family: var(--font-body);
   font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 1px;
+  font-size: 10px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
   backdrop-filter: blur(6px);
   z-index: 15;
   animation: demoBadgePulse 2s ease-in-out infinite;
+  white-space: nowrap;
 }
 
 .demo-dot {
@@ -2666,9 +2852,7 @@ html, body {
 
 /* ===== PHASE 3: HUD JUICE & COMBO ===== */
 .hud-top-right {
-  position: absolute;
-  top: 10px;
-  right: 14px;
+  position: static;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -4923,6 +5107,63 @@ html, body {
     font-size: 11px;
   }
 }
+
+/* ==========================================================================
+   PLAY COCKPIT & TACTICAL BATTLE LEGEND STYLES
+   ========================================================================== */
+
+.tactical-legend-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  background: rgba(6, 9, 12, 0.78);
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 14px 0 10px;
+}
+
+.tactical-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.tactical-chip.green {
+  border-color: rgba(0, 255, 163, 0.35);
+  color: var(--green);
+}
+
+.tactical-chip.red {
+  border-color: rgba(255, 59, 48, 0.35);
+  color: var(--red);
+}
+
+.tactical-chip.gold {
+  border-color: rgba(255, 208, 0, 0.35);
+  color: var(--gold);
+}
+
+.tactical-chip.orange {
+  border-color: rgba(255, 153, 0, 0.35);
+  color: #ff9900;
+}
+
+.play-cockpit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
 
 
 

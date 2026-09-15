@@ -228,34 +228,53 @@ export function GameCanvas({
       </div>
 
       <div className="game-hud">
-        {/* Phase 2: Demo Mode badge */}
-        {isDemo && (
-          <div className="hud-demo-badge" role="status" aria-label="Demo mode active">
-            <span className="demo-dot" />
-            <span>{strings.demoBadge}</span>
-          </div>
-        )}
-
         <div className="hud-top">
-          <div className="hud-box hud-level">
-            <div className="k">Level</div>
-            <div className="v cream">{hud.level}</div>
+          <div className="hud-top-cluster hud-top-left">
+            <div className="hud-box hud-level">
+              <div className="k">Level</div>
+              <div className="v cream">{hud.level}</div>
+            </div>
+            <div className="hud-box hud-goal">
+              <div className="k">Trees</div>
+              <div className="v cream">{hud.progress}/{hud.targetTrees}</div>
+            </div>
+            {/* Demo Mode badge inside left cluster */}
+            {isDemo && (
+              <div className="hud-demo-badge" role="status" aria-label="Demo mode active">
+                <span className="demo-dot" />
+                <span>{strings.demoBadge}</span>
+              </div>
+            )}
           </div>
-          <div className="hud-box hud-goal">
-            <div className="k">Trees</div>
-            <div className="v cream">{hud.progress}/{hud.targetTrees}</div>
-          </div>
-          <div className="hud-box hud-score">
-            <div className="k">Score</div>
-            <div className={`v ${hud.scoreColorClass || ""}`} data-score-value={displayScore}>
-              {displayScore.toLocaleString()}
+
+          <div className="hud-top-cluster hud-top-center">
+            <div className="hud-box hud-score">
+              <div className="k">Score</div>
+              <div className={`v ${hud.scoreColorClass || ""}`} data-score-value={displayScore}>
+                {displayScore.toLocaleString()}
+              </div>
             </div>
           </div>
-          <div className="hud-box hud-time">
-            <div className="k">Time</div>
-            <div className={`v cream ${low ? "danger-text pulse-time" : ""}`}>
-              {mm}:{ss}
+
+          <div className="hud-top-cluster hud-top-right">
+            <div className="hud-box hud-time">
+              <div className="k">Time</div>
+              <div className={`v cream ${low ? "danger-text pulse-time" : ""}`}>
+                {mm}:{ss}
+              </div>
             </div>
+            <button
+              type="button"
+              className="hud-sound-toggle"
+              onClick={handleSoundToggle}
+              aria-label={isMuted ? strings.soundOff : strings.soundOn}
+              title={isMuted ? strings.soundOff : strings.soundOn}
+            >
+              {isMuted ? "🔇" : "🔊"}
+            </button>
+            <button type="button" className="hud-quit" onClick={quit}>
+              {strings.endRun}
+            </button>
           </div>
         </div>
 
@@ -281,22 +300,6 @@ export function GameCanvas({
             </div>
           </div>
         )}
-
-        {/* Top-right utility buttons: Sound toggle & Quit */}
-        <div className="hud-top-right">
-          <button
-            type="button"
-            className="hud-sound-toggle"
-            onClick={handleSoundToggle}
-            aria-label={isMuted ? strings.soundOff : strings.soundOn}
-            title={isMuted ? strings.soundOff : strings.soundOn}
-          >
-            {isMuted ? "🔇" : "🔊"}
-          </button>
-          <button type="button" className="hud-quit" onClick={quit}>
-            {strings.endRun}
-          </button>
-        </div>
 
         {/* Mobile touch controls: Left/Right movement on left, Jump leap on right */}
         <div className="touch-controls">
