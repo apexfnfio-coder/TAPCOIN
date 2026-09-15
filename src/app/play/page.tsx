@@ -126,12 +126,16 @@ export default function PlayPage() {
     setSoundMuted(next);
   };
 
+  const [submittingRun, setSubmittingRun] = useState(false);
+
   const startRealRun = useCallback(async () => {
     sound.playClick();
     if (!me?.walletAddress) {
       openWalletModal();
       return;
     }
+    if (starting) return;
+    setStarting(true);
 
     // Admins bypass season payment check
     if (me.role !== "admin") {
@@ -139,20 +143,24 @@ export default function PlayPage() {
         const accessRes = await fetch("/api/access/status", { cache: "no-store" }).then((r) => r.json());
         if (!accessRes?.data?.hasAccess) {
           setShowSeasonModal(true);
+          setStarting(false);
           return;
         }
       } catch {
-        // Fallback if network glitch
+        // Defensive fallback: require access check to succeed
+        setShowSeasonModal(true);
+        setStarting(false);
+        return;
       }
     }
 
     setDemoMode(false);
-    setStarting(true);
     setSubmitResult(null);
     setLocalRun(null);
     setRunKey((value) => value + 1);
     setPhase("playing");
-  }, [me?.walletAddress, me?.role, openWalletModal]);
+    setStarting(false);
+  }, [me?.walletAddress, me?.role, openWalletModal, starting]);
 
   const startDemoRun = useCallback(() => {
     sound.playClick();
@@ -167,6 +175,9 @@ export default function PlayPage() {
   const handleEnd = useCallback(async (result: RunResult) => {
     setLocalRun(result);
     setPhase("results");
+
+    if (submittingRun) return;
+    setSubmittingRun(true);
 
     try {
       const res = await fetch("/api/runs", {
@@ -209,8 +220,10 @@ export default function PlayPage() {
       await refreshMe();
     } catch {
       setSubmitResult(null);
+    } finally {
+      setSubmittingRun(false);
     }
-  }, [demoMode, refreshMe]);
+  }, [demoMode, refreshMe, submittingRun]);
 
   const walletConnected = !!me?.walletAddress;
 

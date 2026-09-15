@@ -61,16 +61,16 @@ export default function HowToPlayPage() {
           </div>
         </div>
 
-        {/* RULE 02: JUMPING OVER RED CANDLES & HAZARDS */}
+        {/* RULE 02: JUMPING OVER RED CANDLES & CHASMS */}
         <div className="panel panel-pad" style={{ borderLeft: "4px solid var(--red)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 280px", minWidth: 0 }}>
               <span className="rule-badge red-badge">RULE 02 · JUMP MECHANICS & HAZARDS</span>
               <h2 className="card-title" style={{ color: "var(--red)", margin: "10px 0 8px", fontSize: 22 }}>
-                Jump Over Red Candles & Obstacles
+                Jump Over Red Candles & Chasms
               </h2>
               <p className="sub" style={{ lineHeight: 1.7, margin: "0 0 14px" }}>
-                <b>RED candles</b> represent market dumps: hitting them penalizes your score by <b>−{penaltyPts} PTS</b> and drains <b>−{penaltySec}s</b> of run time. Avoid them by <b>JUMPING</b> cleanly over them!
+                <b>RED candles</b> represent market dumps: hitting them penalizes your score by <b>−{penaltyPts} PTS</b> and drains <b>−{penaltySec}s</b> of run time. <b>Chasms (jurang)</b> create treacherous floor gaps: falling in costs <b>−25 PTS</b> and triggers a tumble respawn. Clear both by <b>JUMPING</b> cleanly across!
               </p>
               
               {/* Controls Callout */}
@@ -99,9 +99,44 @@ export default function HowToPlayPage() {
           </div>
         </div>
 
-        {/* RULE 03: INFINITE PROGRESSION */}
+        {/* RULE 03: COMBAT & SURVIVAL (RAT STOMP & BEAR COUNTER-HIT) */}
+        <div className="panel panel-pad" style={{ borderLeft: "4px solid #ff9900" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 280px", minWidth: 0 }}>
+              <span className="rule-badge" style={{ background: "rgba(255, 153, 0, 0.15)", color: "#ff9900", border: "1px solid rgba(255, 153, 0, 0.4)" }}>
+                RULE 03 · COMBAT & SURVIVAL
+              </span>
+              <h2 className="card-title" style={{ color: "#ff9900", margin: "10px 0 8px", fontSize: 22 }}>
+                Stomp Rats &amp; Counter-Hit Charging Bears
+              </h2>
+              <p className="sub" style={{ lineHeight: 1.7, margin: "0 0 14px" }}>
+                Enemies actively patrol the forest canopy. You have tactical combat moves to fight back:
+              </p>
+              
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 14 }}>
+                <div style={{ background: "rgba(0, 255, 163, 0.08)", border: "1px solid rgba(0, 255, 163, 0.25)", borderRadius: 10, padding: 12 }}>
+                  <div style={{ fontWeight: 800, color: "var(--green)", fontSize: 14 }}>🐀 RAT STOMP (+10 PTS)</div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    Jump and land directly on top of a patrolling Rat to stomp it. You bounce upward (+50px impulse) and gain +10 PTS.
+                  </div>
+                </div>
+                <div style={{ background: "rgba(255, 59, 48, 0.08)", border: "1px solid rgba(255, 59, 48, 0.25)", borderRadius: 10, padding: 12 }}>
+                  <div style={{ fontWeight: 800, color: "var(--red)", fontSize: 14 }}>🐻 BEAR COUNTER-HIT ⚡</div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    Bears have 3 to 6 HP. Swing your axe while the Bear winds up or lunges to land a <b>COUNTER HIT!</b>, stunning it for 900ms. Felling a Bear drops 3 green candles!
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 24px" }}>
+              <img src="/assets/props/bear.png" alt="Bear Enemy" style={{ width: 84, height: "auto", filter: "drop-shadow(0 0 12px rgba(255, 153, 0, 0.5))" }} />
+            </div>
+          </div>
+        </div>
+
+        {/* RULE 04: INFINITE PROGRESSION */}
         <div className="panel panel-pad" style={{ borderLeft: "4px solid var(--gold)" }}>
-          <span className="rule-badge gold-badge">RULE 03 · INFINITE CHART CLIMB</span>
+          <span className="rule-badge gold-badge">RULE 04 · INFINITE CHART CLIMB</span>
           <h2 className="card-title" style={{ color: "var(--gold)", margin: "10px 0 8px", fontSize: 22 }}>
             Levels Climb Indefinitely
           </h2>
@@ -116,11 +151,11 @@ export default function HowToPlayPage() {
           </div>
         </div>
 
-        {/* RULE 04: SOLANA WALLET */}
+        {/* RULE 05: SOLANA WALLET */}
         <div className="panel panel-pad" style={{ borderLeft: "4px solid #ab9ff2" }}>
-          <span className="rule-badge ok-tag">RULE 04 · SOLANA INTEGRATION</span>
+          <span className="rule-badge ok-tag">RULE 05 · SOLANA INTEGRATION</span>
           <h2 className="card-title" style={{ color: "#ab9ff2", margin: "10px 0 8px", fontSize: 22 }}>
-            Connect Solana Wallet (Phantom or Solflare)
+            Connect Solana Wallet (Phantom, Solflare, Jupiter, Backpack)
           </h2>
           <p className="sub" style={{ lineHeight: 1.7, margin: "0 0 16px" }}>
             You can play demo runs as a guest at any time. To participate in the <b>Real-time Degens Chat</b>, save verified high scores to the global leaderboard, and qualify for <b>$TAP</b> community rewards, connect your official Solana wallet.
@@ -147,9 +182,9 @@ export default function HowToPlayPage() {
           )}
         </div>
 
-        {/* RULE 05: SEASON PASS & TOKENOMICS */}
+        {/* RULE 06: SEASON PASS & TOKENOMICS */}
         <div className="panel panel-pad" style={{ borderLeft: "4px solid var(--green)" }}>
-          <span className="rule-badge green-badge">RULE 05 · SEASON PASS & 10/90 TOKENOMICS</span>
+          <span className="rule-badge green-badge">RULE 06 · SEASON PASS & 10/90 TOKENOMICS</span>
           <h2 className="card-title" style={{ color: "var(--green)", margin: "10px 0 8px", fontSize: 22 }}>
             0.01 SOL Monthly Pass · 10% Prize Pool · 90% Buyback & Burn
           </h2>
