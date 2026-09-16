@@ -234,9 +234,6 @@ export class GameScene extends Phaser.Scene {
     this.timeLeftMs = this.level.maxDurationSec * 1000;
     this.reportHud();
     this.bridge.onReady();
-
-    // Start procedural 8-bit retro arcade BGM
-    sound.startBgm();
   }
 
   private fitHeight(sprite: Phaser.GameObjects.Image, targetHeight: number) {
@@ -1186,13 +1183,6 @@ export class GameScene extends Phaser.Scene {
     this.timeLeftMs = Math.max(0, this.timeLeftMs - delta);
     if (this.timeLeftMs <= 0) return this.endRun("failed");
 
-    // Dynamic Hurry-Up Mode: accelerate chiptune tempo in final 10 seconds
-    if (this.timeLeftMs <= 10000) {
-      sound.setHurryUp(true);
-    } else {
-      sound.setHurryUp(false);
-    }
-
     const left = this.cursors.left.isDown || this.keyA.isDown || touchInput.left;
     const right = this.cursors.right.isDown || this.keyD.isDown || touchInput.right;
     const jump = this.cursors.up.isDown || this.keyW.isDown || this.keySpace.isDown || this.keyUp.isDown || touchInput.jump;
@@ -1929,9 +1919,6 @@ export class GameScene extends Phaser.Scene {
       obstacle.hpText?.destroy();
       obstacle.dangerIcon?.destroy();
     }
-
-    // Smoothly fade out procedural BGM on run end
-    sound.stopBgm();
 
     this.state = "over";
     this.player.setAlpha(1);

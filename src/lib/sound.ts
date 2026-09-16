@@ -107,7 +107,7 @@ class SoundManager {
         // Initial gain levels with pop-free initial values
         const initialMaster = this.muted ? 0 : this.volume;
         this.masterGain.gain.setValueAtTime(initialMaster, this.ctx.currentTime);
-        this.bgmGain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+        this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
         this.sfxGain.gain.setValueAtTime(0.65, this.ctx.currentTime);
       }
     }
@@ -183,83 +183,44 @@ class SoundManager {
   }
 
   // -------------------------------------------------------------
-  // PROCEDURAL 16-STEP RETRO-CHIPTUNE BGM SYNTHESIZER
+  // PROCEDURAL BGM SYNTHESIZER (DISABLED: SFX ONLY)
   // -------------------------------------------------------------
 
   public startBgm() {
-    this.init();
-    if (!this.ctx || !this.bgmGain) return;
-    if (this.isBgmPlaying) return;
-
-    if (this.ctx.state === "suspended") {
-      this.ctx.resume().catch(() => {});
-    }
-
-    this.isBgmPlaying = true;
-    this.bpm = this.hurryUp ? 176 : 132;
-    this.currentStep = 0;
-    this.nextStepTime = this.ctx.currentTime + 0.05;
-
-    // Smooth un-mute / fade-in for BGM gain
-    const now = this.ctx.currentTime;
-    this.bgmGain.gain.cancelScheduledValues(now);
-    this.bgmGain.gain.setValueAtTime(0.001, now);
-    this.bgmGain.gain.setTargetAtTime(0.35, now, 0.03);
-
-    if (this.bgmTimer) {
-      clearInterval(this.bgmTimer);
-    }
-    // Chris Wilson Lookahead Scheduler: 25ms tick, 100ms lookahead
-    this.bgmTimer = setInterval(this.scheduler, 25);
+    // Background music disabled per user instruction ("hanya musik saja yang dihapus")
+    this.isBgmPlaying = false;
   }
 
   public stopBgm() {
-    if (!this.isBgmPlaying) return;
     this.isBgmPlaying = false;
-
     if (this.bgmTimer) {
       clearInterval(this.bgmTimer);
       this.bgmTimer = null;
     }
-
     if (this.ctx && this.bgmGain) {
       const now = this.ctx.currentTime;
       this.bgmGain.gain.cancelScheduledValues(now);
-      this.bgmGain.gain.setValueAtTime(this.bgmGain.gain.value, now);
-      this.bgmGain.gain.setTargetAtTime(0, now, 0.03);
+      this.bgmGain.gain.setValueAtTime(0, now);
     }
   }
 
-  // Dynamic Hurry-Up mode: seamlessly accelerates tempo (132 -> 176 BPM)
+  // Dynamic Hurry-Up mode: keep parameters safe for backwards compatibility
   public setHurryUp(accelerate: boolean) {
-    if (this.hurryUp === accelerate) return;
     this.hurryUp = accelerate;
     this.bpm = accelerate ? 176 : 132;
   }
 
   public isBgmActive(): boolean {
-    return this.isBgmPlaying;
+    return false;
   }
 
   public isHurryUp(): boolean {
     return this.hurryUp;
   }
 
-  // Lookahead Web Audio Scheduler (Chris Wilson pattern)
-  // 100ms lookahead horizon prevents timing jitter from JS main thread events
+  // Lookahead Web Audio Scheduler (disabled)
   private scheduler = () => {
-    if (!this.ctx || !this.isBgmPlaying) return;
-
-    // Guard against tab suspension / lag: clamp if clock fell behind
-    if (this.nextStepTime < this.ctx.currentTime) {
-      this.nextStepTime = this.ctx.currentTime;
-    }
-
-    // Schedule any steps that fall within the next 100ms
-    while (this.nextStepTime < this.ctx.currentTime + 0.1) {
-      this.scheduleStep(this.currentStep, this.nextStepTime);
-      this.advanceStep();
-    }
+    return;
   };
 
   private advanceStep() {
