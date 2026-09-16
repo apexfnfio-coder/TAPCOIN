@@ -227,6 +227,7 @@ export class GameScene extends Phaser.Scene {
     this.keyD = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.keyW = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     this.keySpace = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.keyUp = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
     // Trees 1-3 warmup: no deadly chasms or aggressive bears directly blocking the start
     this.spawnObstacle(1400, "crate");
     this.spawnObstacle(2350, "crate");
@@ -1361,9 +1362,9 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const left = this.cursors.left.isDown || this.keyA.isDown || touchInput.left;
-    const right = this.cursors.right.isDown || this.keyD.isDown || touchInput.right;
-    const jump = this.cursors.up.isDown || this.keyW.isDown || this.keySpace.isDown || this.keyUp.isDown || touchInput.jump;
+    const left = !!(this.cursors?.left?.isDown || this.keyA?.isDown || touchInput.left);
+    const right = !!(this.cursors?.right?.isDown || this.keyD?.isDown || touchInput.right);
+    const jump = !!(this.cursors?.up?.isDown || this.keyW?.isDown || this.keySpace?.isDown || this.keyUp?.isDown || touchInput.jump);
     const vx = (right ? 1 : 0) - (left ? 1 : 0);
 
     // 1. Jump Buffering: detect rising edge
