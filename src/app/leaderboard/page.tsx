@@ -147,7 +147,7 @@ export default function LeaderboardPage() {
           <span className="rank-badge r1">#{myRank.rank}</span>
           <div>
             <b>Your position</b>
-            <div className="sub">Best score: {myRank.score.toLocaleString("en-US")} · Highest level: {myRank.level}</div>
+            <div className="sub">Best score: {myRank.score.toLocaleString("en-US")} PTS</div>
           </div>
         </div>
       )}
@@ -176,7 +176,7 @@ export default function LeaderboardPage() {
           <div className="empty-state">
             <img src="/assets/ape/down.png" alt="" style={{ height: 90, opacity: 0.85 }} />
             <div className="big">No verified scores yet</div>
-            <div>Connect a qualifying wallet, clear a level, and be first on this game board.</div>
+            <div>Connect a qualifying wallet, chop trees, and claim #1 on this arcade board.</div>
             <Link href="/play" className="btn btn-gold btn-lg" style={{ marginTop: 18, display: "inline-flex", gap: 8, alignItems: "center" }}>
               <span>🪓</span>
               <span>DROP IN & CLAIM #1</span>
@@ -184,7 +184,7 @@ export default function LeaderboardPage() {
           </div>
         ) : (
           <table className="tbl">
-            <thead><tr><th style={{ width: 60 }}>Rank</th><th>Player</th><th style={{ textAlign: "right" }}>Score</th><th style={{ textAlign: "right" }}>Level</th><th style={{ textAlign: "right" }}>Trees</th><th style={{ textAlign: "right" }}>Runs</th></tr></thead>
+            <thead><tr><th style={{ width: 60 }}>Rank</th><th>Player</th><th style={{ textAlign: "right" }}>Score</th><th style={{ textAlign: "right" }}>Trees Felled</th><th style={{ textAlign: "right" }}>Runs</th></tr></thead>
             <tbody>
               {entries.map((e) => (
                 <tr key={e.userId} style={me?.id === e.userId ? { background: "rgba(242,181,60,0.06)" } : undefined}>
@@ -197,8 +197,7 @@ export default function LeaderboardPage() {
                     </span>
                   </td>
                   <td style={{ textAlign: "right", fontFamily: "var(--font-display)", color: "var(--gold)", fontSize: 16 }}>{e.score.toLocaleString("en-US")}</td>
-                  <td style={{ textAlign: "right" }}>{e.level}</td>
-                  <td style={{ textAlign: "right" }}>{e.trees.toLocaleString("en-US")}</td>
+                  <td style={{ textAlign: "right" }}>{e.trees.toLocaleString("en-US")} 🌲</td>
                   <td style={{ textAlign: "right" }} className="sub">{e.runs}</td>
                 </tr>
               ))}

@@ -418,22 +418,24 @@ export function HomeArcadeClient() {
           </section>
         )}
 
-        {/* 6. Weapon Arsenal Preview */}
-        <section className="home-section" aria-label="Weapon Arsenal">
-          <div className="home-section-header">
-            <span className="eyebrow" style={{ letterSpacing: 2 }}>ARMORY LOADOUT</span>
-            <h2 className="display display-md" style={{ marginTop: 6, marginBottom: 8 }}>
-              FORGE YOUR <span className="gold-text">WEAPON</span>
-            </h2>
-            <p className="sub" style={{ maxWidth: 640, margin: "0 auto" }}>
-              Upgrade from the basic rusty steel hatchet to high-frequency plasma cleavers with enhanced critical strike rates.
-            </p>
-          </div>
+        {/* 6. Weapon Arsenal Preview - Temporarily hidden per request */}
+        {false && (
+          <section className="home-section" aria-label="Weapon Arsenal">
+            <div className="home-section-header">
+              <span className="eyebrow" style={{ letterSpacing: 2 }}>ARMORY LOADOUT</span>
+              <h2 className="display display-md" style={{ marginTop: 6, marginBottom: 8 }}>
+                FORGE YOUR <span className="gold-text">WEAPON</span>
+              </h2>
+              <p className="sub" style={{ maxWidth: 640, margin: "0 auto" }}>
+                Upgrade from the basic rusty steel hatchet to high-frequency plasma cleavers with enhanced critical strike rates.
+              </p>
+            </div>
 
-          <div style={{ maxWidth: 880, margin: "0 auto" }}>
-            <WeaponLoadout />
-          </div>
-        </section>
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <WeaponLoadout />
+            </div>
+          </section>
+        )}
       </div>
 
       {/* 7. Video Trailer Modal */}

@@ -555,10 +555,12 @@ export default function PlayPage() {
             </div>
           </div>
 
-          {/* Card 2: Active Armory Loadout */}
-          <div className="panel panel-pad terminal-card">
-            <WeaponLoadout />
-          </div>
+          {/* Card 2: Active Armory Loadout - Temporarily hidden per request */}
+          {false && (
+            <div className="panel panel-pad terminal-card">
+              <WeaponLoadout />
+            </div>
+          )}
         </div>
       </section>
 
