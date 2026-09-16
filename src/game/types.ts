@@ -35,10 +35,20 @@ export interface HudState {
   frenzyActive: boolean;
 }
 
+export interface LevelClearSummary {
+  level: number;
+  trees: number;
+  targetTrees: number;
+  score: number;
+  lives: number;
+  maxLives: number;
+}
+
 export interface GameBridge {
   onHud: (h: HudState) => void;
   onEnd: (r: RunResult) => void;
   onReady: () => void;
+  onLevelClear?: (s: LevelClearSummary) => void;
 }
 
 export const touchInput = { left: false, right: false, jump: false };

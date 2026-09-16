@@ -68,12 +68,14 @@ export class SeededTapChimpGenerator {
 
   nextCandleDelayMs(level: LevelDefinition): number {
     const lvl = level.level;
-    if (lvl <= 10) {
-      return this.int(2200, 2800 - (lvl - 1) * 60);
+    if (lvl <= 5) {
+      return this.int(4500, 5500 - (lvl - 1) * 250);
+    } else if (lvl <= 20) {
+      return this.int(3200, 4500 - (lvl - 6) * 90);
     } else if (lvl <= 50) {
-      return this.int(1600, 2200 - (lvl - 10) * 15);
+      return this.int(2200, 3200 - (lvl - 21) * 34);
     }
-    return this.int(1000, 1500);
+    return this.int(1400, 2100);
   }
 
   nextCandleOffset(): number {
@@ -87,20 +89,24 @@ export function createTapChimpLevel(level: number, cfg: GameConfig, seed?: strin
   const spacingMin = Math.max(650, Math.floor(cfg.treeSpacingMin - (safeLevel - 1) * 8));
   const spacingMax = Math.max(spacingMin + 120, Math.floor(cfg.treeSpacingMax - (safeLevel - 1) * 12));
 
-  // 3-Tier Dynamic Candle Chances:
-  // Level 1-10 (Mudah): 85% Green -> 70% Green (15% Red -> 30% Red)
-  // Level 10-50 (Sedang): 70% Green -> 50% Green (30% Red -> 50% Red)
-  // Level 50+ (Sulit): 45% Green / 55% Red
+  // 4-Tier Dynamic Candle Chances (Anti-inflation: rare green candle bonuses):
+  // Tier 1 (Mudah, Lvl 1-5): 50% -> 45% Green
+  // Tier 2 (Sedang, Lvl 6-20): 45% -> 40% Green
+  // Tier 3 (Sulit, Lvl 21-50): 40% -> 35% Green
+  // Tier 4 (Sangat Sulit, Lvl 51+): 35% -> 28% Green
   let greenChance: number;
   let redChance: number;
-  if (safeLevel <= 10) {
-    greenChance = 0.85 - (safeLevel - 1) * (0.15 / 9);
+  if (safeLevel <= 5) {
+    greenChance = 0.50 - (safeLevel - 1) * (0.05 / 4);
+    redChance = 1 - greenChance;
+  } else if (safeLevel <= 20) {
+    greenChance = 0.45 - (safeLevel - 6) * (0.05 / 14);
     redChance = 1 - greenChance;
   } else if (safeLevel <= 50) {
-    greenChance = 0.70 - (safeLevel - 10) * (0.20 / 40);
+    greenChance = 0.40 - (safeLevel - 21) * (0.05 / 29);
     redChance = 1 - greenChance;
   } else {
-    greenChance = Math.max(0.42, 0.50 - (safeLevel - 50) * 0.002);
+    greenChance = Math.max(0.28, 0.35 - (safeLevel - 51) * 0.002);
     redChance = 1 - greenChance;
   }
 

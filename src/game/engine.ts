@@ -5,6 +5,7 @@ import { GameBridge, GameOptions } from "./types";
 export interface TapGame {
   destroy: () => void;
   quit: () => void;
+  nextLevel: () => void;
 }
 
 export async function createGame(
@@ -37,5 +38,6 @@ export async function createGame(
   return {
     destroy: () => game.destroy(true),
     quit: () => gameScene.quitRun(),
+    nextLevel: () => gameScene.triggerNextLevel(),
   };
 }

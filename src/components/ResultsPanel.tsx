@@ -70,7 +70,7 @@ export function ResultsPanel({
 
   const copyShareText = () => {
     sound.playClick();
-    const text = `🪓 I chopped ${local.trees} trees and scored ${local.score.toLocaleString("en-US")} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nCan you beat my chart climb? Play now: ${window.location.origin}/play\n#TAPCOIN #SolanaGaming`;
+    const text = `🪓 I chopped ${local.trees} trees and scored ${local.score.toLocaleString("en-US")} PTS in $TAP Arcade Survival!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nCan you beat my chart climb? Play now: ${window.location.origin}/play\n#TAPCOIN #SolanaGaming`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
@@ -79,7 +79,7 @@ export function ResultsPanel({
 
   const openTwitterShare = () => {
     sound.playClick();
-    const tweet = `🪓 Just sliced green candles & scored ${local.score.toLocaleString("en-US")} PTS on Level ${local.level} in $TAP Chop Game!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nDodge red, chop green. Play on Solana:\n${window.location.origin}/play\n#TAPCOIN $TAP`;
+    const tweet = `🪓 Just sliced green candles & felled ${local.trees} trees for ${local.score.toLocaleString("en-US")} PTS in $TAP Arcade Survival!\n\nCA: ${OFFICIAL_TAP_MINT}\n\nDodge red, chop green. Play on Solana:\n${window.location.origin}/play\n#TAPCOIN $TAP`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -138,10 +138,10 @@ export function ResultsPanel({
     // Stat columns
     ctx.fillStyle = "#f5f3e8";
     ctx.font = "bold 28px Arial, sans-serif";
-    ctx.fillText(`LVL ${local.level}`, 40, 260);
+    ctx.fillText("SURVIVAL", 40, 260);
     ctx.fillStyle = "#7d8a8f";
     ctx.font = "12px Arial, sans-serif";
-    ctx.fillText("LEVEL REACHED", 40, 280);
+    ctx.fillText("MODE", 40, 280);
 
     ctx.fillStyle = "#f5f3e8";
     ctx.font = "bold 28px Arial, sans-serif";
@@ -188,7 +188,7 @@ export function ResultsPanel({
           />
 
           <div className="tagline" style={{ marginTop: 8 }}>
-            {local.endedBy === "quit" ? `Run ended on Level ${local.level}` : `You reached Level ${local.level}`}
+            {local.endedBy === "quit" ? `Run ended · ${local.trees} Trees Felled` : `Arcade Survival · ${local.trees} Trees Felled`}
           </div>
 
           <div className="results-score" style={{ fontVariantNumeric: "tabular-nums" }}>
@@ -223,12 +223,12 @@ export function ResultsPanel({
 
           {/* Results stats grid */}
           <div className="results-grid" style={{ marginTop: 18 }}>
-            <Stat label={strings.levelReached} value={local.level} />
-            <Stat label={strings.levelProgress} value={`${local.progress}/${local.targetTrees}`} />
+            <Stat label="Total Chopped" value={`${local.trees} 🌲`} />
+            <Stat label="Final Score" value={`${local.score.toLocaleString("en-US")} PTS`} color="var(--gold)" />
             <Stat label={strings.runTime} value={`${mm}:${ss}`} />
-            <Stat label={strings.treesChopped} value={local.trees} />
             <Stat label={strings.greenCandles} value={`+${local.green}`} color="var(--green)" />
             <Stat label={strings.redHits} value={local.redHits} color="var(--red)" />
+            <Stat label="Survival Status" value={local.endedBy === "quit" ? "Quit" : "Felled Out"} color="var(--muted)" />
           </div>
 
           {/* $TAP rewards breakdown */}
@@ -241,7 +241,7 @@ export function ResultsPanel({
             </div>
             <div className="stat-grid" style={{ marginTop: 12, gridTemplateColumns: "repeat(3, 1fr)" }}>
               <Stat label={strings.pointsPerTree} value={`~${local.trees * 100} pts`} />
-              <Stat label={strings.levelMultiplier} value={`1.${Math.min(9, local.level)}x`} />
+              <Stat label="Arcade Multiplier" value={`1.${Math.min(9, Math.floor(local.trees / 3))}x`} />
               <Stat label={strings.claimCadence} value={strings.claimCadenceValue} />
             </div>
             <p className="sub" style={{ marginTop: 10, color: "var(--muted)", fontSize: "11.5px" }}>
@@ -336,7 +336,7 @@ export function ResultsPanel({
               </div>
               <div className="share-preview-score">{local.score.toLocaleString("en-US")} PTS</div>
               <div className="share-preview-details">
-                <span>LVL {local.level}</span> · <span>{local.trees} Trees</span> · <span style={{ color: "var(--green)" }}>+{local.green} Greens</span>
+                <span>{local.trees} Trees Felled</span> · <span style={{ color: "var(--green)" }}>+{local.green} Greens</span>
               </div>
               <div
                 className="share-preview-ca"

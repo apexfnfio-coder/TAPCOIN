@@ -215,8 +215,6 @@ export function GameCanvas({
     setIsMuted(next);
   };
 
-  const pct = Math.max(0, Math.min(100, (hud.progress / Math.max(1, hud.targetTrees)) * 100));
-
   const setControl = (side: "left" | "right" | "jump", value: boolean) => {
     touchInput[side] = value;
     setActiveControls((current) => ({ ...current, [side]: value }));
@@ -246,13 +244,9 @@ export function GameCanvas({
                 ))}
               </div>
             </div>
-            <div className="hud-box hud-level">
-              <div className="k">Level</div>
-              <div className="v cream">{hud.level}</div>
-            </div>
-            <div className="hud-box hud-goal">
-              <div className="k">Trees</div>
-              <div className="v cream">{hud.progress}/{hud.targetTrees}</div>
+            <div className="hud-box hud-trees">
+              <div className="k">Chopped</div>
+              <div className="v cream">{hud.trees} 🌲</div>
             </div>
             {/* Demo Mode badge inside left cluster */}
             {isDemo && (
@@ -310,11 +304,6 @@ export function GameCanvas({
             <span className="combo-txt">STREAK</span>
           </div>
         )}
-
-        {/* Level progress bar */}
-        <div className="hud-level-progress" aria-label={`Level progress ${hud.progress} of ${hud.targetTrees}`}>
-          <i style={{ width: `${pct}%` }} />
-        </div>
 
         {/* Current tree HP bar */}
         {hud.treeHpPct !== null && (

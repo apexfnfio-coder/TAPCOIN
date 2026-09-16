@@ -58,11 +58,12 @@ export function verifyRun(p: RunPayload, cfg: GameConfig): RunVerdict {
   const cumulativeTarget = cumulativeTargetTreesForLevel(level, cfg);
 
   if (p.score !== expectedScore) flags.push("SCORE_MISMATCH");
-  if (targetTrees !== levelDef.targetTrees) flags.push("TARGET_MISMATCH");
-  if (p.trees < priorMinTrees + progress) flags.push("PROGRESS_EXCEEDS_TREES");
-  if (endedBy === "completed" && p.trees < cumulativeTarget) flags.push("LEVEL_NOT_COMPLETE");
-  if (endedBy !== "completed" && progress > levelDef.targetTrees) flags.push("PROGRESS_EXCEEDS_TARGET");
-  if (p.trees > cumulativeTarget + 2) flags.push("TREE_OVERFLOW");
+  if (endedBy === "completed") {
+    if (targetTrees !== levelDef.targetTrees) flags.push("TARGET_MISMATCH");
+    if (p.trees < priorMinTrees + progress) flags.push("PROGRESS_EXCEEDS_TREES");
+    if (p.trees < cumulativeTarget) flags.push("LEVEL_NOT_COMPLETE");
+    if (p.trees > cumulativeTarget + 2) flags.push("TREE_OVERFLOW");
+  }
   if (p.redHits > levelDef.maxRedHits) flags.push("TOO_MANY_RED_HITS");
 
   const maxMs = cumulativeMaxDurationSec(level, cfg) * 1000;

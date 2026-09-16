@@ -406,6 +406,7 @@ export default function PlayPage() {
               <button
                 type="button"
                 className="btn btn-gold btn-lg glow-cta"
+                data-cta="playNow"
                 onClick={startRealRun}
                 disabled={starting || meLoading || !config || config.maintenance}
               >

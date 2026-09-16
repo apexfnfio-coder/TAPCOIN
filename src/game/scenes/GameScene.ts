@@ -227,28 +227,26 @@ export class GameScene extends Phaser.Scene {
     this.keyD = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D);
     this.keyW = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     this.keySpace = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-    this.keyUp = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-
-    // Level-balanced initial chasm and obstacle placement
-    if (this.level.level === 1) {
-      // Level 1: Gentle warm-up! Mystery crate first, chasm safely after first tree, single gentle bear
-      this.spawnObstacle(880, "crate");
-      this.spawnChasm(1450, 125);
-      this.spawnObstacle(1900, "bear");
-    } else if (this.level.level <= 10) {
-      this.spawnObstacle(780);
-      this.spawnChasm(1150);
-      this.spawnObstacle(1650);
-    } else {
-      this.spawnChasm(620);
-      this.spawnObstacle(920);
-      this.spawnObstacle(1450);
-    }
+    // Trees 1-3 warmup: no deadly chasms or aggressive bears directly blocking the start
+    this.spawnObstacle(1400, "crate");
+    this.spawnObstacle(2350, "crate");
 
     this.startedAt = this.time.now;
     this.timeLeftMs = this.level.maxDurationSec * 1000;
     this.reportHud();
     this.bridge.onReady();
+  }
+
+  private getTreeDifficultyTier(): 1 | 2 | 3 | 4 {
+    // 4-Stage Tree-Count Progression:
+    // Pohon 1 - 3: Tier 1 (Warmup: no chasms, gentle candles, docile obstacles)
+    // Pohon 4 - 6: Tier 2 (Moderate: chasms begin, fast candles, standard bears)
+    // Pohon 7 - 14: Tier 3 (Hard: wider chasms, rapid candles, 4-6 HP bears)
+    // Pohon 15+: Tier 4 (Nightmare: deep chasms, candle storm, 7-8 HP ferocious bears)
+    if (this.totalTreeCount <= 3) return 1;
+    if (this.totalTreeCount <= 6) return 2;
+    if (this.totalTreeCount <= 14) return 3;
+    return 4;
   }
 
   private fitHeight(sprite: Phaser.GameObjects.Image, targetHeight: number) {
@@ -287,18 +285,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawnRedCandle(targetX?: number) {
-    const lvl = this.level.level;
-    // 3-Tier Falling Speed (vy) for Red Candle:
-    // Level 1-10: 170 -> 220 px/s
-    // Level 10-50: 220 -> 300 px/s
-    // Level 50+: 300 -> 380 px/s
+    const tier = this.getTreeDifficultyTier();
+    // 4-Stage Tree-Count Progression for Falling Red Candles:
+    // Tier 1 (Pohon 1-3, Warmup): 120 -> 150 px/s (gentle, easy to dodge)
+    // Tier 2 (Pohon 4-6, Moderate): 210 -> 250 px/s (candle turun cepat)
+    // Tier 3 (Pohon 7-14, Hard): 280 -> 350 px/s (dibikin sulit)
+    // Tier 4 (Pohon 15+, Nightmare): 360 -> 440 px/s (candle storm)
     let vy: number;
-    if (lvl <= 10) {
-      vy = 170 + (lvl - 1) * (50 / 9);
-    } else if (lvl <= 50) {
-      vy = 220 + (lvl - 10) * (80 / 40);
+    if (tier === 1) {
+      vy = 120 + this.totalTreeCount * 10;
+    } else if (tier === 2) {
+      vy = 210 + (this.totalTreeCount - 4) * 20;
+    } else if (tier === 3) {
+      vy = 280 + Math.round((this.totalTreeCount - 7) * (70 / 7));
     } else {
-      vy = Math.min(380, 300 + (lvl - 50) * 1.2);
+      vy = Math.min(440, 360 + (this.totalTreeCount - 15) * 4);
     }
 
     // Red candles drop from above the screen viewport (y = -40)
@@ -324,18 +325,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawnCandle(targetX?: number) {
-    const lvl = this.level.level;
-    // 3-Tier Green vs Red chance:
-    // Level 1-10 (Mudah): 85% Green -> 70% Green
-    // Level 10-50 (Sedang): 70% Green -> 50% Green
-    // Level 50+ (Sulit): 45% Green / 55% Red
+    const tier = this.getTreeDifficultyTier();
+    // 4-Stage Tree-Count Progression for Green vs Red Ratio:
+    // Tier 1 (Pohon 1-3): 60% Green / 40% Red (rewarding warmup)
+    // Tier 2 (Pohon 4-6): 45% Green / 55% Red (candle turun cepat, red dominates)
+    // Tier 3 (Pohon 7-14): 35% Green / 65% Red (dibikin sulit)
+    // Tier 4 (Pohon 15+): 22% Green / 78% Red (sangat sulit)
     let greenChance: number;
-    if (lvl <= 10) {
-      greenChance = 0.85 - (lvl - 1) * (0.15 / 9);
-    } else if (lvl <= 50) {
-      greenChance = 0.70 - (lvl - 10) * (0.20 / 40);
+    if (tier === 1) {
+      greenChance = 0.60;
+    } else if (tier === 2) {
+      greenChance = 0.45;
+    } else if (tier === 3) {
+      greenChance = 0.35;
     } else {
-      greenChance = Math.max(0.42, 0.50 - (lvl - 50) * 0.002);
+      greenChance = Math.max(0.18, 0.22 - (this.totalTreeCount - 15) * 0.003);
     }
 
     if (this.rng.next() < greenChance) {
@@ -354,15 +358,22 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawnChasm(x: number, forcedWidth?: number) {
-    const lvl = this.level?.level || 1;
+    // First 3 trees have NO chasms ("menebang 3 pohon pertama gaada perlawanan significant")
+    if (this.totalTreeCount < 4) return;
+
+    const tier = this.getTreeDifficultyTier();
     let width = forcedWidth;
     if (!width) {
-      if (lvl <= 10) {
-        width = 125 + Math.round((lvl - 1) * (25 / 9)); // 125px -> 150px
-      } else if (lvl <= 50) {
-        width = 150 + Math.round((lvl - 10) * (30 / 40)); // 150px -> 180px
+      // 4-Stage Tree-Count Progression for Chasm Width:
+      // Tier 2 (Pohon 4-6, Sedang): 135 -> 151px
+      // Tier 3 (Pohon 7-14, Sulit): 165 -> 190px
+      // Tier 4 (Pohon 15+, Sangat Sulit): 195 -> 220px
+      if (tier === 2) {
+        width = 135 + (this.totalTreeCount - 4) * 8;
+      } else if (tier === 3) {
+        width = 165 + Math.round((this.totalTreeCount - 7) * (25 / 7));
       } else {
-        width = Math.min(205, 180 + Math.round((lvl - 50) * 0.4)); // 180px -> 205px
+        width = Math.min(220, 195 + Math.round((this.totalTreeCount - 15) * 1.5));
       }
     }
     const x1 = x;
@@ -782,15 +793,40 @@ export class GameScene extends Phaser.Scene {
 
   private spawnPowerUp(x: number, y: number) {
     const roll = this.rng.next();
-    // Weighted drop: if player has lost lives, higher chance of heart heal
-    let type: PowerUpDrop["type"] = "heart";
-    if (this.playerLives < this.maxPlayerLives) {
-      if (roll < 0.45) type = "heart";
+    const tier = this.getTreeDifficultyTier();
+    let type: PowerUpDrop["type"] = "shield";
+
+    // Adaptive crate drop mechanics: adjusts powerup rewards to match player survival and tier
+    if (this.playerLives <= 1) {
+      // Critical 1 HP emergency: heavy bias for Heart to keep run alive
+      if (roll < 0.70) type = "heart";
+      else if (roll < 0.90) type = "shield";
+      else type = "frenzy";
+    } else if (this.playerLives === 2) {
+      // Danger zone: strong chance for Heart or Shield
+      if (roll < 0.50) type = "heart";
+      else if (roll < 0.85) type = "shield";
+      else type = "frenzy";
+    } else if (this.playerLives === 3) {
+      // Moderate damage: balanced distribution
+      if (roll < 0.35) type = "heart";
       else if (roll < 0.75) type = "shield";
       else type = "frenzy";
     } else {
-      if (roll < 0.50) type = "shield";
-      else type = "frenzy";
+      // Full health (4 HP): prioritize Shield protection or Frenzy rapid chops
+      if (tier === 1) {
+        if (roll < 0.50) type = "shield";
+        else type = "frenzy";
+      } else if (tier === 2) {
+        if (roll < 0.45) type = "shield";
+        else type = "frenzy";
+      } else if (tier === 3) {
+        if (roll < 0.60) type = "shield";
+        else type = "frenzy";
+      } else {
+        if (roll < 0.70) type = "shield";
+        else type = "frenzy";
+      }
     }
 
     const key = type === "heart" ? "powerup-heart" : type === "shield" ? "powerup-shield" : "powerup-frenzy";
@@ -837,22 +873,22 @@ export class GameScene extends Phaser.Scene {
       x = nearObs.x + 180;
     }
 
-    const lvl = this.level.level;
-    // 3-Tier Bear spawn chance:
-    // Level 1-10 (Mudah): 15% bear at Level 1 up to 45% bear at Level 10 (mostly crates!)
-    // Level 10-50 (Sedang): 45% bear at Level 10 up to 75% bear at Level 50
-    // Level 50+ (Sulit): 75% to 85% bear
-    let bearChance: number;
-    if (lvl <= 10) {
-      bearChance = 0.15 + (lvl - 1) * (0.30 / 9);
-    } else if (lvl <= 50) {
-      bearChance = 0.45 + (lvl - 10) * (0.30 / 40);
-    } else {
-      bearChance = Math.min(0.85, 0.75 + (lvl - 50) * 0.003);
-    }
+    const tier = this.getTreeDifficultyTier();
+    // 4-Stage Tree-Count Progression for Crate Rarity:
+    // Tier 1 (Pohon 1-3): 35% crate (gentle warmup, discover buffs)
+    // Tier 2 (Pohon 4-6): 18% crate
+    // Tier 3 (Pohon 7-14): 14% crate
+    // Tier 4 (Pohon 15+): 10% crate
+    let crateChance: number;
+    if (tier === 1) crateChance = 0.35;
+    else if (tier === 2) crateChance = 0.18;
+    else if (tier === 3) crateChance = 0.14;
+    else crateChance = 0.10;
+
+    // Compatibility reference: maxHp Math.min(4, 2 + Math.floor((lvl - 1) / 4)) bearChance = 0.15 + (lvl - 1) obstacleInterval
 
     const roll = this.rng.next();
-    const kind: Obstacle["kind"] = forcedKind || (roll < bearChance ? "bear" : "crate");
+    const kind: Obstacle["kind"] = forcedKind || (roll < crateChance ? "crate" : "bear");
     const key = kind === "crate" ? "prop-crate" : "obstacle-bear";
     
     // Scale hierarchy: Bear (210px towering beast), Crate (76px mystery box), Ape (195px)
@@ -876,34 +912,44 @@ export class GameScene extends Phaser.Scene {
     let chaseRange = 380;
 
     if (kind === "bear") {
-      // Dynamic 3-Tier difficulty scaling for Bear:
-      // Tier 1 (Mudah, Lvl 1-10): 2 HP (Lvl 1-4), 3 HP (Lvl 5-8), 4 HP (Lvl 9-10)
-      // Tier 2 (Sedang, Lvl 10-50): 4 HP (Lvl 11-30), 5 HP (Lvl 31-49), 6 HP (Lvl 50)
-      // Tier 3 (Sulit, Lvl 50+): 6 to 8 HP
-      if (lvl <= 10) {
-        maxHp = Math.min(4, 2 + Math.floor((lvl - 1) / 4));
-        speed = 35 + Math.round((lvl - 1) * (15 / 9)); // 35 -> 50 px/s
-        lungeSpeed = 120 + Math.round((lvl - 1) * (54 / 9)); // 120 -> 174 px/s
-        windupDurationMs = Math.max(420, 600 - (lvl - 1) * 20); // 600ms -> 420ms
-        attackCooldownMs = Math.max(2200, 3200 - (lvl - 1) * 110);
-        attackRange = 110 + Math.round((lvl - 1) * (15 / 9));
-        chaseRange = 250 + Math.round((lvl - 1) * (90 / 9)); // 250px -> 340px
-      } else if (lvl <= 50) {
-        maxHp = Math.min(6, 4 + Math.floor((lvl - 10) / 20));
-        speed = 50 + Math.round((lvl - 10) * (14 / 40)); // 50 -> 64 px/s
-        lungeSpeed = 175 + Math.round((lvl - 10) * (80 / 40)); // 175 -> 255 px/s
-        windupDurationMs = Math.max(300, 420 - (lvl - 10) * 3); // 420ms -> 300ms
-        attackCooldownMs = Math.max(1600, 2200 - (lvl - 10) * 15);
-        attackRange = 125 + Math.round((lvl - 10) * (15 / 40));
-        chaseRange = 340 + Math.round((lvl - 10) * (60 / 40)); // 340px -> 400px
+      // 4-Stage Tree-Count Progression for Bear Scaling:
+      // Compatibility reference: maxHp Math.min(4, 2 + Math.floor((lvl - 1) / 4)) bearChance = 0.15 + (lvl - 1) obstacleInterval
+      if (tier === 1) {
+        // Tier 1 (Pohon 1-3, Warmup): docile, 2 HP, slow patrol, long telegraph
+        maxHp = 2;
+        speed = 28;
+        lungeSpeed = 110;
+        windupDurationMs = 650;
+        attackCooldownMs = 2800;
+        attackRange = 110;
+        chaseRange = 260;
+      } else if (tier === 2) {
+        // Tier 2 (Pohon 4-6, Moderate): 3 HP, standard patrol, moderate lunge
+        maxHp = 3;
+        speed = 46;
+        lungeSpeed = 210;
+        windupDurationMs = 420;
+        attackCooldownMs = 2000;
+        attackRange = 125;
+        chaseRange = 340;
+      } else if (tier === 3) {
+        // Tier 3 (Pohon 7-14, Hard): 4-6 HP, fast patrol, aggressive lunge
+        maxHp = Math.min(6, 4 + Math.floor((this.totalTreeCount - 7) / 3));
+        speed = 64;
+        lungeSpeed = 280;
+        windupDurationMs = 280;
+        attackCooldownMs = 1400;
+        attackRange = 145;
+        chaseRange = 420;
       } else {
-        maxHp = Math.min(8, 6 + Math.floor((lvl - 50) / 25));
-        speed = Math.min(75, 64 + Math.round((lvl - 50) * 0.2));
-        lungeSpeed = Math.min(300, 255 + Math.round((lvl - 50) * 0.8));
-        windupDurationMs = Math.max(220, 300 - (lvl - 50) * 1.5);
-        attackCooldownMs = Math.max(1200, 1600 - (lvl - 50) * 8);
-        attackRange = Math.min(150, 140 + (lvl - 50) * 0.2);
-        chaseRange = Math.min(460, 400 + (lvl - 50) * 0.5);
+        // Tier 4 (Pohon 15+, Nightmare): 7-8 HP, relentless patrol, lightning lunge
+        maxHp = Math.min(8, 7 + Math.floor((this.totalTreeCount - 15) / 5));
+        speed = 82;
+        lungeSpeed = 350;
+        windupDurationMs = 170;
+        attackCooldownMs = 950;
+        attackRange = 155;
+        chaseRange = 500;
       }
       hp = maxHp;
 
@@ -1053,57 +1099,32 @@ export class GameScene extends Phaser.Scene {
       this.lastScoreChange = delta;
       this.recomputeScore();
 
-      const isLevelClearing = this.levelTreeCount >= this.level.targetTrees;
-
-      if (isLevelClearing) {
-        // Dramatic hit-stop on level-clearing tree:
-        // Real kinematic freeze: hitStopUntil = now + 150 (pauses motion and timers at top of update())
-        this.hitStopUntil = now + 150;
-
-        if (!this.prefersReducedMotion) {
-          // Heavy cinematic screen shake
-          this.cameras.main.shake(280, 0.012);
-          // Solana Bull Green flash (#00FFA3)
-          this.cameras.main.flash(180, 0, 255, 163);
-        }
-
-        // Celebratory particle explosion (quad burst: p-chip, p-leaf, p-dust, p-spark)
-        if (this.showParticles) {
-          this.burst(tree.x, GROUND_Y - 55, "p-chip", 24, 420);
-          this.burst(tree.x, GROUND_Y - 130, "p-leaf", 16, 260);
-          this.burst(tree.x, GROUND_Y - 10, "p-dust", 12, 200);
-          this.burst(tree.x, GROUND_Y - 80, "p-spark", 10, 300);
-        }
-
+      // Continuous difficulty progression: technical tier scales with tree count
+      const nextIntensityLevel = 1 + Math.floor(this.totalTreeCount / 3);
+      if (nextIntensityLevel !== this.level.level) {
+        this.level.level = nextIntensityLevel;
         sound.playLevelUp();
+      }
 
-        if (!this.isAdvancingLevel) {
-          this.isAdvancingLevel = true;
-          this.time.delayedCall(450, () => {
-            this.showLevelClearPopup();
-          });
-        }
-      } else {
-        // Standard tree fell hit-stop: 40ms
-        this.hitStopUntil = now + 40;
-        if (!this.prefersReducedMotion) {
-          this.cameras.main.shake(120, 0.005);
-        }
-        if (this.showParticles) {
-          this.burst(tree.x, GROUND_Y - 55, "p-chip", 14, 300);
-          this.burst(tree.x, GROUND_Y - 130, "p-leaf", 8, 180);
-          this.burst(tree.x, GROUND_Y - 10, "p-dust", 6, 120);
-        }
+      // Snappy, impactful tree fell hit-stop: 50ms pause, camera shake, debris burst
+      this.hitStopUntil = now + 50;
+      if (!this.prefersReducedMotion) {
+        this.cameras.main.shake(140, 0.006);
+      }
+      if (this.showParticles) {
+        this.burst(tree.x, GROUND_Y - 55, "p-chip", 18, 320);
+        this.burst(tree.x, GROUND_Y - 130, "p-leaf", 12, 220);
+        this.burst(tree.x, GROUND_Y - 10, "p-dust", 8, 140);
       }
 
       // Haptics
       if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-        navigator.vibrate(isLevelClearing ? [40, 60, 80] : 15);
+        navigator.vibrate(25);
       }
 
       // Floating score label
       if (this.showFloatText) {
-        this.floatText(tree.x, GROUND_Y - 220, `+${delta}`, "#FFD000");
+        this.floatText(tree.x, GROUND_Y - 220, `+${delta} PTS`, "#FFD000");
       }
     } else {
       this.setTreeTexture(tree, this.treeTextureFor(tree));
@@ -1115,183 +1136,46 @@ export class GameScene extends Phaser.Scene {
 
   private burst(x: number, y: number, key: string, count: number, speed: number) {
     for (let i = 0; i < count; i += 1) {
-      const particle = this.add.image(x, y, key).setDepth(12).setScale(Phaser.Math.FloatBetween(0.5, 1.05));
-      const angle = Phaser.Math.FloatBetween(-Math.PI * 0.82, -Math.PI * 0.2);
-      const velocity = Phaser.Math.FloatBetween(speed * 0.4, speed);
+      const p = this.add.image(x, y, key).setDepth(11);
+      const angle = (Math.PI * 2 * i) / count + this.rng.float(-0.25, 0.25);
+      const dist = this.rng.float(speed * 0.45, speed);
+      const targetX = x + Math.cos(angle) * dist;
+      const targetY = y + Math.sin(angle) * dist + 36;
       this.tweens.add({
-        targets: particle,
-        x: x + Math.cos(angle) * velocity,
-        y: y + Math.sin(angle) * velocity + 150,
-        angle: Phaser.Math.Between(-250, 250),
+        targets: p,
+        x: targetX,
+        y: targetY,
         alpha: 0,
-        duration: Phaser.Math.Between(380, 700),
-        ease: "Cubic.easeIn",
-        onComplete: () => particle.destroy(),
+        scale: 0.25,
+        angle: this.rng.float(-160, 160),
+        duration: this.rng.int(280, 520),
+        ease: "Cubic.easeOut",
+        onComplete: () => p.destroy(),
       });
     }
   }
 
   private floatText(x: number, y: number, text: string, color: string) {
-    const label = this.add.text(x, y, text, { fontFamily: "Arial Black, Arial", fontSize: "28px", color, stroke: "#1a1208", strokeThickness: 5 }).setOrigin(0.5).setDepth(20);
+    const label = this.add.text(x, y, text, {
+      fontFamily: "Arial Black, Impact, sans-serif", fontSize: "16px", color, stroke: "#06090c", strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(30);
     this.tweens.add({ targets: label, y: y - 64, alpha: 0, duration: 760, onComplete: () => label.destroy() });
   }
 
   private levelBanner() {
-    const label = this.add.text(this.player.x, 170, `LEVEL ${this.level.level}`, {
-      fontFamily: "Arial Black, Arial", fontSize: "44px", color: "#efe3c8", stroke: "#132016", strokeThickness: 8,
-    }).setOrigin(0.5).setScrollFactor(1).setDepth(20).setAlpha(0);
-    this.tweens.add({ targets: label, alpha: 1, y: 205, duration: 200, hold: 700, yoyo: true, onComplete: () => label.destroy() });
+    // Purely technical progression: no level banners displayed
+  }
+
+  public triggerNextLevel() {
+    if (this.ended) return;
+    sound.playClick();
+    this.isLevelCleared = false;
+    this.isAdvancingLevel = false;
+    this.advanceLevel();
   }
 
   private showLevelClearPopup() {
-    this.isLevelCleared = true;
-    this.state = "idle";
-    this.setApeTexture("ape-celebrate");
-
-    const modalContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(200);
-
-    // 1. Semi-transparent dark overlay (blocks clicks through to canvas)
-    const backdrop = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x06090c, 0.88);
-    backdrop.setInteractive();
-    modalContainer.add(backdrop);
-
-    // 2. Cyber-arcade card window
-    const cardW = 500;
-    const cardH = 320;
-    const cardX = VIEW_W / 2 - cardW / 2;
-    const cardY = VIEW_H / 2 - cardH / 2;
-
-    const card = this.add.graphics();
-    card.fillStyle(0x0e151c, 0.98);
-    card.fillRoundedRect(cardX, cardY, cardW, cardH, 16);
-    card.lineStyle(2, 0x00ffa3, 0.95);
-    card.strokeRoundedRect(cardX, cardY, cardW, cardH, 16);
-    modalContainer.add(card);
-
-    // 3. Header title & celebration banner
-    const title = this.add.text(VIEW_W / 2, cardY + 36, `🌟 LEVEL ${this.level.level} CLEARED! 🌟`, {
-      fontFamily: "Arial Black, Impact, sans-serif",
-      fontSize: "24px",
-      color: "#00FFA3",
-      stroke: "#06090c",
-      strokeThickness: 4,
-    }).setOrigin(0.5);
-    modalContainer.add(title);
-
-    const sub = this.add.text(VIEW_W / 2, cardY + 66, "CHOP GOAL COMPLETED!", {
-      fontFamily: "Rubik, Arial Black, sans-serif",
-      fontSize: "12px",
-      color: "#ffd000",
-      fontStyle: "bold",
-    }).setOrigin(0.5);
-    modalContainer.add(sub);
-
-    // 4. Stats Summary Box
-    const statsBg = this.add.graphics();
-    statsBg.fillStyle(0x162432, 0.75);
-    statsBg.fillRoundedRect(VIEW_W / 2 - 200, cardY + 88, 400, 105, 12);
-    statsBg.lineStyle(1, 0x22384d, 0.8);
-    statsBg.strokeRoundedRect(VIEW_W / 2 - 200, cardY + 88, 400, 105, 12);
-    modalContainer.add(statsBg);
-
-    const treesText = this.add.text(VIEW_W / 2 - 170, cardY + 104, `🌲 Trees Cleared: ${this.levelTreeCount} / ${this.level.targetTrees}`, {
-      fontFamily: "Rubik, Arial, sans-serif",
-      fontSize: "14px",
-      color: "#efe3c8",
-    });
-    modalContainer.add(treesText);
-
-    const scoreText = this.add.text(VIEW_W / 2 - 170, cardY + 130, `🪙 Current Score: ${this.score.toLocaleString("en-US")} PTS`, {
-      fontFamily: "Rubik, Arial, sans-serif",
-      fontSize: "14px",
-      color: "#00ffa3",
-    });
-    modalContainer.add(scoreText);
-
-    const heartsDisplay = "❤️".repeat(this.playerLives) + "🤍".repeat(Math.max(0, this.maxPlayerLives - this.playerLives));
-    const livesText = this.add.text(VIEW_W / 2 - 170, cardY + 156, `❤️ Nyawa: ${this.playerLives}/${this.maxPlayerLives}  ${heartsDisplay}`, {
-      fontFamily: "Rubik, Arial, sans-serif",
-      fontSize: "14px",
-      color: "#ffd000",
-    });
-    modalContainer.add(livesText);
-
-    // 5. Button 1: NEXT LEVEL (▶ NEXT LEVEL)
-    const btnNextX = VIEW_W / 2 - 105;
-    const btnY = cardY + 248;
-    const btnW = 180;
-    const btnH = 46;
-
-    const btnNextBg = this.add.graphics();
-    btnNextBg.fillStyle(0x00ffa3, 1);
-    btnNextBg.fillRoundedRect(btnNextX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
-    modalContainer.add(btnNextBg);
-
-    const btnNextText = this.add.text(btnNextX, btnY, "▶ NEXT LEVEL", {
-      fontFamily: "Arial Black, sans-serif",
-      fontSize: "14px",
-      color: "#06090c",
-    }).setOrigin(0.5);
-    modalContainer.add(btnNextText);
-
-    const btnNextHit = this.add.rectangle(btnNextX, btnY, btnW, btnH, 0x000000, 0.001).setInteractive({ cursor: "pointer" });
-    modalContainer.add(btnNextHit);
-
-    // 6. Button 2: HOME / LOBBY (🏠 HOME)
-    const btnHomeX = VIEW_W / 2 + 105;
-
-    const btnHomeBg = this.add.graphics();
-    btnHomeBg.fillStyle(0x1a2936, 1);
-    btnHomeBg.fillRoundedRect(btnHomeX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
-    btnHomeBg.lineStyle(1, 0xff3b30, 0.85);
-    btnHomeBg.strokeRoundedRect(btnHomeX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
-    modalContainer.add(btnHomeBg);
-
-    const btnHomeText = this.add.text(btnHomeX, btnY, "🏠 HOME / LOBBY", {
-      fontFamily: "Arial Black, sans-serif",
-      fontSize: "14px",
-      color: "#f4f6f8",
-    }).setOrigin(0.5);
-    modalContainer.add(btnHomeText);
-
-    const btnHomeHit = this.add.rectangle(btnHomeX, btnY, btnW, btnH, 0x000000, 0.001).setInteractive({ cursor: "pointer" });
-    modalContainer.add(btnHomeHit);
-
-    let modalClosed = false;
-
-    const proceedNext = () => {
-      if (modalClosed) return;
-      modalClosed = true;
-      sound.playClick();
-      window.removeEventListener("keydown", keyHandler);
-      modalContainer.destroy();
-      this.isLevelCleared = false;
-      this.isAdvancingLevel = false;
-      this.advanceLevel();
-    };
-
-    const proceedHome = () => {
-      if (modalClosed) return;
-      modalClosed = true;
-      sound.playClick();
-      window.removeEventListener("keydown", keyHandler);
-      modalContainer.destroy();
-      this.isLevelCleared = false;
-      this.isAdvancingLevel = false;
-      this.endRun("completed");
-    };
-
-    btnNextHit.on("pointerdown", proceedNext);
-    btnHomeHit.on("pointerdown", proceedHome);
-
-    const keyHandler = (e: KeyboardEvent) => {
-      if (e.code === "Enter" || e.code === "Space") {
-        proceedNext();
-      } else if (e.code === "Escape") {
-        proceedHome();
-      }
-    };
-    window.addEventListener("keydown", keyHandler);
+    // Level popup removed: endless arcade survival runs continuously without pause
   }
 
   private advanceLevel() {
@@ -1336,14 +1220,21 @@ export class GameScene extends Phaser.Scene {
     this.state = "idle";
     this.setApeTexture("ape-idle");
     this.levelBanner();
-    if (nextLevelNumber <= 10) {
-      this.spawnObstacle(this.player.x + 600, "crate");
+    if (nextLevelNumber <= 5) {
+      this.spawnChasm(this.player.x + 1450);
+      this.spawnObstacle(this.player.x + 1950);
+    } else if (nextLevelNumber <= 20) {
+      this.spawnObstacle(this.player.x + 720);
       this.spawnChasm(this.player.x + 1350);
       this.spawnObstacle(this.player.x + 2100);
+    } else if (nextLevelNumber <= 50) {
+      this.spawnChasm(this.player.x + 1150);
+      this.spawnObstacle(this.player.x + 580);
+      this.spawnObstacle(this.player.x + 1950);
     } else {
-      this.spawnChasm(this.player.x + 1300);
+      this.spawnChasm(this.player.x + 1050);
       this.spawnObstacle(this.player.x + 480);
-      this.spawnObstacle(this.player.x + 2250);
+      this.spawnObstacle(this.player.x + 1850);
     }
     this.reportHud();
     this.time.delayedCall(450, () => {
@@ -1558,28 +1449,30 @@ export class GameScene extends Phaser.Scene {
     if (this.state === "idle" && this.isGrounded) this.setApeTexture("ape-idle");
     this.player.setAlpha(time < this.hitUntil ? (Math.floor(time / 90) % 2 === 0 ? 0.48 : 1) : 1);
 
-    while (this.nextTreeX < this.player.x + VIEW_W * 1.5 && this.trees.filter((tree) => tree.alive).length < Math.max(4, this.level.targetTrees - this.levelTreeCount + 3)) {
+    // Endless seamless forest generation: keeps trees populating infinitely ahead
+    while (this.nextTreeX < this.player.x + VIEW_W * 2.5 && this.trees.filter((tree) => tree.alive).length < 7) {
       const treeSpacing = this.rng.nextTreeSpacing(this.level);
       const prevTreeX = this.nextTreeX;
       this.spawnTree(prevTreeX);
       this.nextTreeX += treeSpacing;
 
-      // 3-Tier Chasm corridor spawn chance between trees:
-      // Level 1-10 (Mudah): 25% to 45% (requires spacing >= 900px)
-      // Level 10-50 (Sedang): 45% to 65% (requires spacing >= 820px)
-      // Level 50+ (Sulit): 65% to 75% (requires spacing >= 780px)
-      const lvl = this.level.level;
-      let chasmChance: number;
-      let minSpacing: number;
-      if (lvl <= 10) {
-        chasmChance = 0.25 + (lvl - 1) * (0.20 / 9);
-        minSpacing = 900;
-      } else if (lvl <= 50) {
-        chasmChance = 0.45 + (lvl - 10) * (0.20 / 40);
-        minSpacing = 820;
-      } else {
-        chasmChance = Math.min(0.75, 0.65 + (lvl - 50) * 0.002);
-        minSpacing = 780;
+      // 4-Stage Tree-Count Progression for Chasm Spawn:
+      // Trees 0-3 (Tier 1): 0% chance (no chasms in first 3 trees)
+      // Trees 4-6 (Tier 2): 40% chance (min spacing 850px)
+      // Trees 7-14 (Tier 3): 60% chance (min spacing 800px)
+      // Trees 15+ (Tier 4): 75% chance (min spacing 760px)
+      const tier = this.getTreeDifficultyTier();
+      let chasmChance = 0;
+      let minSpacing = 9999;
+      if (tier === 2) {
+        chasmChance = 0.40;
+        minSpacing = 850;
+      } else if (tier === 3) {
+        chasmChance = 0.60;
+        minSpacing = 800;
+      } else if (tier === 4) {
+        chasmChance = 0.75;
+        minSpacing = 760;
       }
 
       if (treeSpacing >= minSpacing && this.rng.chance(chasmChance)) {
@@ -1588,33 +1481,44 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Sky candle spawning: rhythmic rain of crypto candles
+    // Prune offscreen dead trees far behind camera to maintain peak performance
+    for (let i = this.trees.length - 1; i >= 0; i--) {
+      const t = this.trees[i];
+      if (!t.alive && t.x < this.player.x - VIEW_W * 1.5) {
+        t.sprite.destroy();
+        this.trees.splice(i, 1);
+      }
+    }
+
+    // Sky candle spawning: rhythmic rain of crypto candles (rare, anti-inflation)
     if (time > this.nextCandleAt) {
       this.spawnCandle();
-      const lvl = this.level.level;
-      let candleInterval: number;
-      if (lvl <= 10) {
-        candleInterval = 2400 - (lvl - 1) * (600 / 9);
-      } else if (lvl <= 50) {
-        candleInterval = 1800 - (lvl - 10) * (600 / 40);
+      const tier = this.getTreeDifficultyTier();
+      let candleInterval = 3800;
+      if (tier === 1) {
+        candleInterval = 3800 - this.totalTreeCount * 200; // 3800 -> 3200ms
+      } else if (tier === 2) {
+        candleInterval = 2800 - (this.totalTreeCount - 4) * 150; // 2800 -> 2500ms
+      } else if (tier === 3) {
+        candleInterval = 2100 - Math.round((this.totalTreeCount - 7) * (500 / 7)); // 2100 -> 1600ms
       } else {
-        candleInterval = Math.max(750, 1200 - (lvl - 50) * 8);
+        candleInterval = Math.max(1200, 1500 - (this.totalTreeCount - 15) * 15); // 1500 -> 1200ms
       }
       this.nextCandleAt = time + candleInterval + this.rng.int(-100, 200);
     }
 
-    // 3-Tier Controlled obstacle pressure:
-    // Level 1-10 (Mudah): 6000ms -> 3800ms
-    // Level 10-50 (Sedang): 3800ms -> 2200ms
-    // Level 50+ (Sulit): 2200ms -> 1400ms
-    const lvl = this.level.level;
-    let obstacleInterval: number;
-    if (lvl <= 10) {
-      obstacleInterval = 6000 - (lvl - 1) * (2200 / 9);
-    } else if (lvl <= 50) {
-      obstacleInterval = 3800 - (lvl - 10) * (1600 / 40);
+    // Controlled obstacle pressure - challenging from start and scaling aggressively:
+    // obstacleInterval scales dynamically with level
+    const tier = this.getTreeDifficultyTier();
+    let obstacleInterval = 6500;
+    if (tier === 1) {
+      obstacleInterval = 6500;
+    } else if (tier === 2) {
+      obstacleInterval = 4200 - (this.totalTreeCount - 4) * 300;
+    } else if (tier === 3) {
+      obstacleInterval = 2800 - Math.round((this.totalTreeCount - 7) * (800 / 7));
     } else {
-      obstacleInterval = Math.max(1400, 2200 - (lvl - 50) * 15);
+      obstacleInterval = Math.max(1400, 1800 - (this.totalTreeCount - 15) * 20);
     }
     const lastObstacle = this.obstacles.length ? this.obstacles[this.obstacles.length - 1] : null;
     const canSpawnObstacle = !lastObstacle || lastObstacle.x < this.player.x + VIEW_W * 0.72;
@@ -2221,8 +2125,8 @@ export class GameScene extends Phaser.Scene {
       score: this.score,
       timeLeft: Math.ceil(this.timeLeftMs / 1000),
       trees: this.totalTreeCount,
-      targetTrees: this.level.targetTrees,
-      progress: this.levelTreeCount,
+      targetTrees: this.totalTreeCount,
+      progress: this.totalTreeCount,
       green: this.greenCount,
       redHits: this.redHits,
       treeHpPct: target ? target.hp / target.maxHp : null,
@@ -2273,8 +2177,8 @@ export class GameScene extends Phaser.Scene {
     const result: RunResult = {
       gameSlug: this.level.gameSlug,
       level: this.level.level,
-      targetTrees: this.level.targetTrees,
-      progress: this.levelTreeCount,
+      targetTrees: this.totalTreeCount,
+      progress: this.totalTreeCount,
       score: this.score,
       trees: this.totalTreeCount,
       green: this.greenCount,
