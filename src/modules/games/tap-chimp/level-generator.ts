@@ -67,12 +67,17 @@ export class SeededTapChimpGenerator {
   }
 
   nextCandleDelayMs(level: LevelDefinition): number {
-    const pressure = Math.min(1500, Math.floor((level.level - 1) * 50));
-    return this.int(3500, 6000 - pressure);
+    const lvl = level.level;
+    if (lvl <= 10) {
+      return this.int(2200, 2800 - (lvl - 1) * 60);
+    } else if (lvl <= 50) {
+      return this.int(1600, 2200 - (lvl - 10) * 15);
+    }
+    return this.int(1000, 1500);
   }
 
   nextCandleOffset(): number {
-    return this.int(500, 1100);
+    return this.int(-80, 480);
   }
 }
 
@@ -81,8 +86,23 @@ export function createTapChimpLevel(level: number, cfg: GameConfig, seed?: strin
   const difficulty = levelDifficulty(safeLevel, cfg);
   const spacingMin = Math.max(650, Math.floor(cfg.treeSpacingMin - (safeLevel - 1) * 8));
   const spacingMax = Math.max(spacingMin + 120, Math.floor(cfg.treeSpacingMax - (safeLevel - 1) * 12));
-  const redChance = Math.min(0.56, cfg.candleChanceRed + (safeLevel - 1) * 0.012);
-  const greenChance = Math.max(0.34, cfg.candleChanceGreen - (safeLevel - 1) * 0.006);
+
+  // 3-Tier Dynamic Candle Chances:
+  // Level 1-10 (Mudah): 85% Green -> 70% Green (15% Red -> 30% Red)
+  // Level 10-50 (Sedang): 70% Green -> 50% Green (30% Red -> 50% Red)
+  // Level 50+ (Sulit): 45% Green / 55% Red
+  let greenChance: number;
+  let redChance: number;
+  if (safeLevel <= 10) {
+    greenChance = 0.85 - (safeLevel - 1) * (0.15 / 9);
+    redChance = 1 - greenChance;
+  } else if (safeLevel <= 50) {
+    greenChance = 0.70 - (safeLevel - 10) * (0.20 / 40);
+    redChance = 1 - greenChance;
+  } else {
+    greenChance = Math.max(0.42, 0.50 - (safeLevel - 50) * 0.002);
+    redChance = 1 - greenChance;
+  }
 
   return {
     gameSlug: TAP_CHIMP_SLUG,

@@ -215,10 +215,6 @@ export function GameCanvas({
     setIsMuted(next);
   };
 
-  const secs = hud.timeLeft;
-  const mm = String(Math.floor(secs / 60)).padStart(2, "0");
-  const ss = String(secs % 60).padStart(2, "0");
-  const low = secs <= 10;
   const pct = Math.max(0, Math.min(100, (hud.progress / Math.max(1, hud.targetTrees)) * 100));
 
   const setControl = (side: "left" | "right" | "jump", value: boolean) => {
@@ -291,12 +287,6 @@ export function GameCanvas({
           </div>
 
           <div className="hud-top-cluster hud-top-right">
-            <div className="hud-box hud-time">
-              <div className="k">Time</div>
-              <div className={`v cream ${low ? "danger-text pulse-time" : ""}`}>
-                {mm}:{ss}
-              </div>
-            </div>
             <button
               type="button"
               className="hud-sound-toggle"

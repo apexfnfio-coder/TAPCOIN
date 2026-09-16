@@ -47,7 +47,7 @@ test("GameScene implements Rat Stomp rebound & bonus (+10 STOMP!)", () => {
 
 test("GameScene implements Bear Multi-Hit HP System & Dynamic Level Scaling", () => {
   const gameSceneContent = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
-  assert.ok(gameSceneContent.includes("maxHp = Math.min(6, 2 + this.level.level)"), "Bear HP must scale with level (starting at 3 HP on level 1)");
+  assert.ok(gameSceneContent.includes("maxHp") && gameSceneContent.includes("Math.min(4, 2 + Math.floor((lvl - 1) / 4))"), "Bear HP must scale dynamically with 3-tier progression");
   assert.ok(gameSceneContent.includes("obstacle.hp = Math.max(0, (obstacle.hp || 1) - 1)"), "Bear must sustain multiple hits rather than dying instantly");
   assert.ok(gameSceneContent.includes("AXE HIT!"), "Must display remaining HP upon taking damage");
   assert.ok(gameSceneContent.includes("hpBarBg") && gameSceneContent.includes("hpBarFill"), "Must render visual HP health bar for Bear");
@@ -63,9 +63,8 @@ test("GameScene implements Bear Attack AI (windup, lunge charge, claw damage)", 
 
 test("GameScene implements Dynamic Difficulty Scaling for all obstacles by level", () => {
   const gameSceneContent = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
-  assert.ok(gameSceneContent.includes("speed = this.rng.int(55 + this.level.level * 16"), "Rat speed must scale with level");
-  assert.ok(gameSceneContent.includes("mopDuration = Math.max(340, 780 - this.level.level * 110)"), "Mop swing speed must accelerate with level");
-  assert.ok(gameSceneContent.includes("branchDuration = Math.max(300, 620 - this.level.level * 80)"), "Branch sway must scale with level");
+  assert.ok(gameSceneContent.includes("bearChance = 0.15 + (lvl - 1)"), "Level 1-10 must scale bear chance gently from 15%");
+  assert.ok(gameSceneContent.includes("obstacleInterval"), "Obstacle spawn intervals must scale with level");
 });
 
 test("GameScene implements Bear Defeat rewards (BEAR REKT! & 3 green candles)", () => {

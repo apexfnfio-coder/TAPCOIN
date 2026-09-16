@@ -51,16 +51,10 @@ export function maxRedHitsForLevel(level: number): number {
 }
 
 export function maxDurationForLevelSec(
-  level: number,
-  cfg: Pick<GameConfig, "maxLevelDurationSec" | "maxDurationSec" | "levelGoalBase" | "levelGoalGrowth" | "treeHp" | "chopIntervalMs">
+  _level: number,
+  _cfg: Pick<GameConfig, "maxLevelDurationSec" | "maxDurationSec" | "levelGoalBase" | "levelGoalGrowth" | "treeHp" | "chopIntervalMs">
 ): number {
-  const safeLevel = normalizeLevel(level);
-  const configured = Math.max(30, Math.floor(cfg.maxLevelDurationSec || cfg.maxDurationSec || 150));
-  const targetTrees = targetTreesForLevel(safeLevel, cfg);
-  const hp = treeHpForLevel(safeLevel, { treeHp: cfg.treeHp, difficultyGrowth: 0.09 });
-  const chopMs = chopIntervalForLevel(safeLevel, { chopIntervalMs: cfg.chopIntervalMs });
-  const minimumFairSec = Math.ceil((targetTrees * hp * chopMs) / 1000 + targetTrees * 2.5 + 18);
-  return Math.max(configured, minimumFairSec);
+  return 999999;
 }
 
 export function cumulativeTargetTreesForLevel(level: number, cfg: Pick<GameConfig, "levelGoalBase" | "levelGoalGrowth">): number {

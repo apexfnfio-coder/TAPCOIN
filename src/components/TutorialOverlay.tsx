@@ -30,7 +30,7 @@ export function TutorialOverlay({ onComplete }: TutorialOverlayProps) {
         <div className="tutorial-candle-stage">
           <div className="tutorial-glow tutorial-glow-red" />
           <img src="/assets/candle-red.png" alt="Red Candle" className="tutorial-candle-img pulse-float" />
-          <div className="tutorial-badge red-badge">▼ −25 PTS & −3s</div>
+          <div className="tutorial-badge red-badge">▼ −25 PTS & −1 ❤️</div>
         </div>
       ),
     },

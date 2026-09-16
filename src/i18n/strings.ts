@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Centralized string catalog for $TAP game UI.
  * Standardized copy across lobby, HUD, results, and help dialogs.
  * Prepared for future localization (e.g., id/en).
@@ -86,7 +86,7 @@ export const strings = {
     },
     runEnd: {
       title: "When Does a Run End?",
-      desc: "Your run gets liquidated when the clock strikes zero or you hit Cash Out. Every split-second hop matters.",
+      desc: "Your run ends when your lives run out (0 ❤️) or you hit Cash Out. Protect your lives at all costs!",
     },
     wallet: {
       title: "Solana Wallet Authentication",
@@ -98,10 +98,10 @@ export const strings = {
   tutorial: {
     step1Title: "Slice GOD CANDLES",
     step1Desc:
-      "GREEN candles spark God Candle Surges (+ points). Slice them while felling timber to ignite high streaks and massive combo multipliers.",
+      "GREEN candles spark God Candle Surges (+ points). Collect them along the road to ignite streaks and massive combo multipliers.",
     step2Title: "Dodge BEAR MARKET DUMPS",
     step2Desc:
-      "RED candles dump your score (− penalty) and drain precious run time. Dodge them at all costs!",
+      "RED candles rain from the sky, docking your score (−25 PTS) and taking away 1 Life (−1 ❤️). Dodge them or protect yourself with a Shield!",
     step3Title: "The Chart Pumps Forever",
     step3Desc:
       "Survive as long as you can. The chart never stops. Level up infinitely and compete for global leaderboard rewards.",

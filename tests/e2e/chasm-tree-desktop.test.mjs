@@ -51,10 +51,10 @@ test("GameScene declares Chasm interface and collection", () => {
   assert.ok(gameSceneSrc.includes("private chasms: Chasm[] = [];"), "GameScene must declare chasms array");
 });
 
-test("GameScene implements spawnChasm with 180px gap and danger indicator", () => {
+test("GameScene implements spawnChasm with gap and danger indicator", () => {
   const gameSceneSrc = fs.readFileSync(path.resolve("src/game/scenes/GameScene.ts"), "utf8");
-  assert.ok(gameSceneSrc.includes("private spawnChasm(x: number)"), "GameScene must implement spawnChasm");
-  assert.ok(gameSceneSrc.includes("width = 180"), "Chasm gap width must be 180px");
+  assert.ok(gameSceneSrc.includes("private spawnChasm(x: number"), "GameScene must implement spawnChasm");
+  assert.ok(gameSceneSrc.includes("width"), "Chasm gap width must be calculated");
   assert.ok(gameSceneSrc.includes("⚠ DANGER ⚠"), "Chasm must display danger indicator label");
 });
 

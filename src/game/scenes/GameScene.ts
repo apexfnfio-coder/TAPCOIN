@@ -24,8 +24,11 @@ interface Tree {
 interface Candle {
   sprite: Phaser.GameObjects.Image;
   kind: "green" | "red";
-  baseY: number;
-  phase: number;
+  x: number;
+  y: number;
+  vy: number;
+  baseY?: number;
+  phase?: number;
   taken: boolean;
   /** Colorblind-safe glyph text object (▲/✓ or 🔷 for green, ▼/✗ or 🟠 for red) */
   glyph: Phaser.GameObjects.Text | null;
@@ -130,6 +133,7 @@ export class GameScene extends Phaser.Scene {
   private comboCount = 0;
   private comboResetTimer: Phaser.Time.TimerEvent | null = null;
   private isAdvancingLevel = false;
+  private isLevelCleared = false;
   private showHitStop = true;
   private showParticles = true;
   private showFloatText = true;
@@ -225,10 +229,21 @@ export class GameScene extends Phaser.Scene {
     this.keySpace = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.keyUp = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 
-    // Pre-spawn immediate chasm and obstacles in clearings along the road
-    this.spawnChasm(620);
-    this.spawnObstacle(920);
-    this.spawnObstacle(1450);
+    // Level-balanced initial chasm and obstacle placement
+    if (this.level.level === 1) {
+      // Level 1: Gentle warm-up! Mystery crate first, chasm safely after first tree, single gentle bear
+      this.spawnObstacle(880, "crate");
+      this.spawnChasm(1450, 125);
+      this.spawnObstacle(1900, "bear");
+    } else if (this.level.level <= 10) {
+      this.spawnObstacle(780);
+      this.spawnChasm(1150);
+      this.spawnObstacle(1650);
+    } else {
+      this.spawnChasm(620);
+      this.spawnObstacle(920);
+      this.spawnObstacle(1450);
+    }
 
     this.startedAt = this.time.now;
     this.timeLeftMs = this.level.maxDurationSec * 1000;
@@ -247,25 +262,17 @@ export class GameScene extends Phaser.Scene {
     this.trees.push({ sprite, x, hp: this.level.treeHp, maxHp: this.level.treeHp, alive: true });
   }
 
-  private spawnCandle(x: number) {
-    const kind = this.rng.nextCandleKind(this.level);
-    // Red candles spawn closer to ground level so jumping over them is clean and rewarding
-    const rawHeight = kind === "red" ? this.rng.int(40, 75) : this.rng.int(60, 125);
-    const y = GROUND_Y - rawHeight;
-    const sprite = this.add.image(x, y, kind === "green" ? "candle-green" : "candle-red").setDepth(8).setScale(0.45);
-    
-    // Colorblind mode tint
+  private spawnGreenCandle(targetX?: number) {
+    const x = typeof targetX === "number" ? targetX : this.player.x + this.rng.int(420, 850);
+    const y = GROUND_Y - this.rng.int(55, 85);
+    const sprite = this.add.image(x, y, "candle-green").setDepth(8).setScale(0.45);
+
     if (this.opts.colorblindMode) {
-      sprite.setTint(kind === "green" ? 0x38bdf8 : 0xf97316);
+      sprite.setTint(0x38bdf8);
     }
 
-    // Phase 1.3: Accessible glyphs inside candle body
-    const glyphText = kind === "green" ? "▲" : "▼";
-    const glyphColor = this.opts.colorblindMode
-      ? (kind === "green" ? "#38bdf8" : "#f97316")
-      : (kind === "green" ? "#22c55e" : "#ef4444");
-
-    const glyph = this.add.text(x, y + 2, glyphText, {
+    const glyphColor = this.opts.colorblindMode ? "#38bdf8" : "#22c55e";
+    const glyph = this.add.text(x, y + 2, "▲", {
       fontFamily: "Arial Black, Arial",
       fontSize: "15px",
       color: glyphColor,
@@ -273,10 +280,69 @@ export class GameScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(9);
 
-    // Synchronize candle sprite and glyph bounce
+    // Green candles float gently on the ground
     this.tweens.add({ targets: [sprite, glyph], y: y - 6, duration: 650, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
-    
-    this.candles.push({ sprite, kind, baseY: y, phase: this.rng.nextCandlePhase(), taken: false, glyph });
+
+    this.candles.push({ sprite, kind: "green", x, y, vy: 0, taken: false, glyph });
+  }
+
+  private spawnRedCandle(targetX?: number) {
+    const lvl = this.level.level;
+    // 3-Tier Falling Speed (vy) for Red Candle:
+    // Level 1-10: 170 -> 220 px/s
+    // Level 10-50: 220 -> 300 px/s
+    // Level 50+: 300 -> 380 px/s
+    let vy: number;
+    if (lvl <= 10) {
+      vy = 170 + (lvl - 1) * (50 / 9);
+    } else if (lvl <= 50) {
+      vy = 220 + (lvl - 10) * (80 / 40);
+    } else {
+      vy = Math.min(380, 300 + (lvl - 50) * 1.2);
+    }
+
+    // Red candles drop from above the screen viewport (y = -40)
+    const y = -40;
+    const x = typeof targetX === "number" ? targetX : this.player.x + this.rng.int(-80, 420);
+    const sprite = this.add.image(x, y, "candle-red").setDepth(8).setScale(0.45);
+
+    if (this.opts.colorblindMode) {
+      sprite.setTint(0xf97316);
+    }
+
+    const glyphColor = this.opts.colorblindMode ? "#f97316" : "#ef4444";
+    const glyph = this.add.text(x, y + 2, "▼", {
+      fontFamily: "Arial Black, Arial",
+      fontSize: "15px",
+      color: glyphColor,
+      stroke: "#050907",
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(9);
+
+    // vy > 0 means it falls downward continuously through the ground
+    this.candles.push({ sprite, kind: "red", x, y, vy, taken: false, glyph });
+  }
+
+  private spawnCandle(targetX?: number) {
+    const lvl = this.level.level;
+    // 3-Tier Green vs Red chance:
+    // Level 1-10 (Mudah): 85% Green -> 70% Green
+    // Level 10-50 (Sedang): 70% Green -> 50% Green
+    // Level 50+ (Sulit): 45% Green / 55% Red
+    let greenChance: number;
+    if (lvl <= 10) {
+      greenChance = 0.85 - (lvl - 1) * (0.15 / 9);
+    } else if (lvl <= 50) {
+      greenChance = 0.70 - (lvl - 10) * (0.20 / 40);
+    } else {
+      greenChance = Math.max(0.42, 0.50 - (lvl - 50) * 0.002);
+    }
+
+    if (this.rng.next() < greenChance) {
+      this.spawnGreenCandle(targetX);
+    } else {
+      this.spawnRedCandle(targetX);
+    }
   }
 
   /** Colorblind-safe glyph: ▲ for green points, ▼ for red penalty */
@@ -287,8 +353,18 @@ export class GameScene extends Phaser.Scene {
     return kind === "green" ? "▲" : "▼";
   }
 
-  private spawnChasm(x: number) {
-    const width = 180;
+  private spawnChasm(x: number, forcedWidth?: number) {
+    const lvl = this.level?.level || 1;
+    let width = forcedWidth;
+    if (!width) {
+      if (lvl <= 10) {
+        width = 125 + Math.round((lvl - 1) * (25 / 9)); // 125px -> 150px
+      } else if (lvl <= 50) {
+        width = 150 + Math.round((lvl - 10) * (30 / 40)); // 150px -> 180px
+      } else {
+        width = Math.min(205, 180 + Math.round((lvl - 50) * 0.4)); // 180px -> 205px
+      }
+    }
     const x1 = x;
     const x2 = x + width;
 
@@ -709,17 +785,15 @@ export class GameScene extends Phaser.Scene {
     // Weighted drop: if player has lost lives, higher chance of heart heal
     let type: PowerUpDrop["type"] = "heart";
     if (this.playerLives < this.maxPlayerLives) {
-      if (roll < 0.40) type = "heart";
-      else if (roll < 0.65) type = "shield";
-      else if (roll < 0.85) type = "time";
+      if (roll < 0.45) type = "heart";
+      else if (roll < 0.75) type = "shield";
       else type = "frenzy";
     } else {
-      if (roll < 0.35) type = "shield";
-      else if (roll < 0.70) type = "time";
+      if (roll < 0.50) type = "shield";
       else type = "frenzy";
     }
 
-    const key = type === "heart" ? "powerup-heart" : type === "shield" ? "powerup-shield" : type === "time" ? "powerup-time" : "powerup-frenzy";
+    const key = type === "heart" ? "powerup-heart" : type === "shield" ? "powerup-shield" : "powerup-frenzy";
     const sprite = this.add.image(x, y, key).setDepth(8).setOrigin(0.5, 0.5);
     this.fitHeight(sprite, 44);
 
@@ -737,7 +811,7 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private spawnObstacle(targetX: number) {
+  private spawnObstacle(targetX: number, forcedKind?: Obstacle["kind"]) {
     let x = targetX;
     const SAFE_TREE_CLEARANCE = 220;
 
@@ -763,9 +837,22 @@ export class GameScene extends Phaser.Scene {
       x = nearObs.x + 180;
     }
 
+    const lvl = this.level.level;
+    // 3-Tier Bear spawn chance:
+    // Level 1-10 (Mudah): 15% bear at Level 1 up to 45% bear at Level 10 (mostly crates!)
+    // Level 10-50 (Sedang): 45% bear at Level 10 up to 75% bear at Level 50
+    // Level 50+ (Sulit): 75% to 85% bear
+    let bearChance: number;
+    if (lvl <= 10) {
+      bearChance = 0.15 + (lvl - 1) * (0.30 / 9);
+    } else if (lvl <= 50) {
+      bearChance = 0.45 + (lvl - 10) * (0.30 / 40);
+    } else {
+      bearChance = Math.min(0.85, 0.75 + (lvl - 50) * 0.003);
+    }
+
     const roll = this.rng.next();
-    // Focused gameplay: 70% Bear (Chasing, Roaring, Clawing, Multi-Hit), 30% Mystery Crate (Break for Skills!)
-    const kind: Obstacle["kind"] = roll < 0.70 ? "bear" : "crate";
+    const kind: Obstacle["kind"] = forcedKind || (roll < bearChance ? "bear" : "crate");
     const key = kind === "crate" ? "prop-crate" : "obstacle-bear";
     
     // Scale hierarchy: Bear (210px towering beast), Crate (76px mystery box), Ape (195px)
@@ -789,16 +876,36 @@ export class GameScene extends Phaser.Scene {
     let chaseRange = 380;
 
     if (kind === "bear") {
-      // Dynamic difficulty scaling for Bear by level:
-      // Bear cannot be one-shot ("tidak boleh sekali hit"): Level 1 takes 3 hits, Level 2 takes 4, Level 3 takes 5...
-      maxHp = Math.min(6, 2 + this.level.level);
+      // Dynamic 3-Tier difficulty scaling for Bear:
+      // Tier 1 (Mudah, Lvl 1-10): 2 HP (Lvl 1-4), 3 HP (Lvl 5-8), 4 HP (Lvl 9-10)
+      // Tier 2 (Sedang, Lvl 10-50): 4 HP (Lvl 11-30), 5 HP (Lvl 31-49), 6 HP (Lvl 50)
+      // Tier 3 (Sulit, Lvl 50+): 6 to 8 HP
+      if (lvl <= 10) {
+        maxHp = Math.min(4, 2 + Math.floor((lvl - 1) / 4));
+        speed = 35 + Math.round((lvl - 1) * (15 / 9)); // 35 -> 50 px/s
+        lungeSpeed = 120 + Math.round((lvl - 1) * (54 / 9)); // 120 -> 174 px/s
+        windupDurationMs = Math.max(420, 600 - (lvl - 1) * 20); // 600ms -> 420ms
+        attackCooldownMs = Math.max(2200, 3200 - (lvl - 1) * 110);
+        attackRange = 110 + Math.round((lvl - 1) * (15 / 9));
+        chaseRange = 250 + Math.round((lvl - 1) * (90 / 9)); // 250px -> 340px
+      } else if (lvl <= 50) {
+        maxHp = Math.min(6, 4 + Math.floor((lvl - 10) / 20));
+        speed = 50 + Math.round((lvl - 10) * (14 / 40)); // 50 -> 64 px/s
+        lungeSpeed = 175 + Math.round((lvl - 10) * (80 / 40)); // 175 -> 255 px/s
+        windupDurationMs = Math.max(300, 420 - (lvl - 10) * 3); // 420ms -> 300ms
+        attackCooldownMs = Math.max(1600, 2200 - (lvl - 10) * 15);
+        attackRange = 125 + Math.round((lvl - 10) * (15 / 40));
+        chaseRange = 340 + Math.round((lvl - 10) * (60 / 40)); // 340px -> 400px
+      } else {
+        maxHp = Math.min(8, 6 + Math.floor((lvl - 50) / 25));
+        speed = Math.min(75, 64 + Math.round((lvl - 50) * 0.2));
+        lungeSpeed = Math.min(300, 255 + Math.round((lvl - 50) * 0.8));
+        windupDurationMs = Math.max(220, 300 - (lvl - 50) * 1.5);
+        attackCooldownMs = Math.max(1200, 1600 - (lvl - 50) * 8);
+        attackRange = Math.min(150, 140 + (lvl - 50) * 0.2);
+        chaseRange = Math.min(460, 400 + (lvl - 50) * 0.5);
+      }
       hp = maxHp;
-      speed = 46 + this.level.level * 6; // Patrol wander speed
-      lungeSpeed = 180 + this.level.level * 25; // Aggressive attack rush speed
-      windupDurationMs = Math.max(240, 520 - this.level.level * 60); // Faster reaction at higher levels
-      attackCooldownMs = Math.max(1200, 2800 - this.level.level * 350); // Tighter attack cycles
-      attackRange = Math.min(140, 115 + this.level.level * 5);
-      chaseRange = Math.min(450, 360 + this.level.level * 20);
 
       // Cyber HP bar background
       hpBarBg = this.add.graphics().setDepth(14);
@@ -973,7 +1080,7 @@ export class GameScene extends Phaser.Scene {
         if (!this.isAdvancingLevel) {
           this.isAdvancingLevel = true;
           this.time.delayedCall(450, () => {
-            this.advanceLevel();
+            this.showLevelClearPopup();
           });
         }
       } else {
@@ -1036,6 +1143,157 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: label, alpha: 1, y: 205, duration: 200, hold: 700, yoyo: true, onComplete: () => label.destroy() });
   }
 
+  private showLevelClearPopup() {
+    this.isLevelCleared = true;
+    this.state = "idle";
+    this.setApeTexture("ape-celebrate");
+
+    const modalContainer = this.add.container(0, 0).setScrollFactor(0).setDepth(200);
+
+    // 1. Semi-transparent dark overlay (blocks clicks through to canvas)
+    const backdrop = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x06090c, 0.88);
+    backdrop.setInteractive();
+    modalContainer.add(backdrop);
+
+    // 2. Cyber-arcade card window
+    const cardW = 500;
+    const cardH = 320;
+    const cardX = VIEW_W / 2 - cardW / 2;
+    const cardY = VIEW_H / 2 - cardH / 2;
+
+    const card = this.add.graphics();
+    card.fillStyle(0x0e151c, 0.98);
+    card.fillRoundedRect(cardX, cardY, cardW, cardH, 16);
+    card.lineStyle(2, 0x00ffa3, 0.95);
+    card.strokeRoundedRect(cardX, cardY, cardW, cardH, 16);
+    modalContainer.add(card);
+
+    // 3. Header title & celebration banner
+    const title = this.add.text(VIEW_W / 2, cardY + 36, `🌟 LEVEL ${this.level.level} CLEARED! 🌟`, {
+      fontFamily: "Arial Black, Impact, sans-serif",
+      fontSize: "24px",
+      color: "#00FFA3",
+      stroke: "#06090c",
+      strokeThickness: 4,
+    }).setOrigin(0.5);
+    modalContainer.add(title);
+
+    const sub = this.add.text(VIEW_W / 2, cardY + 66, "CHOP GOAL COMPLETED!", {
+      fontFamily: "Rubik, Arial Black, sans-serif",
+      fontSize: "12px",
+      color: "#ffd000",
+      fontStyle: "bold",
+    }).setOrigin(0.5);
+    modalContainer.add(sub);
+
+    // 4. Stats Summary Box
+    const statsBg = this.add.graphics();
+    statsBg.fillStyle(0x162432, 0.75);
+    statsBg.fillRoundedRect(VIEW_W / 2 - 200, cardY + 88, 400, 105, 12);
+    statsBg.lineStyle(1, 0x22384d, 0.8);
+    statsBg.strokeRoundedRect(VIEW_W / 2 - 200, cardY + 88, 400, 105, 12);
+    modalContainer.add(statsBg);
+
+    const treesText = this.add.text(VIEW_W / 2 - 170, cardY + 104, `🌲 Trees Cleared: ${this.levelTreeCount} / ${this.level.targetTrees}`, {
+      fontFamily: "Rubik, Arial, sans-serif",
+      fontSize: "14px",
+      color: "#efe3c8",
+    });
+    modalContainer.add(treesText);
+
+    const scoreText = this.add.text(VIEW_W / 2 - 170, cardY + 130, `🪙 Current Score: ${this.score.toLocaleString("en-US")} PTS`, {
+      fontFamily: "Rubik, Arial, sans-serif",
+      fontSize: "14px",
+      color: "#00ffa3",
+    });
+    modalContainer.add(scoreText);
+
+    const heartsDisplay = "❤️".repeat(this.playerLives) + "🤍".repeat(Math.max(0, this.maxPlayerLives - this.playerLives));
+    const livesText = this.add.text(VIEW_W / 2 - 170, cardY + 156, `❤️ Nyawa: ${this.playerLives}/${this.maxPlayerLives}  ${heartsDisplay}`, {
+      fontFamily: "Rubik, Arial, sans-serif",
+      fontSize: "14px",
+      color: "#ffd000",
+    });
+    modalContainer.add(livesText);
+
+    // 5. Button 1: NEXT LEVEL (▶ NEXT LEVEL)
+    const btnNextX = VIEW_W / 2 - 105;
+    const btnY = cardY + 248;
+    const btnW = 180;
+    const btnH = 46;
+
+    const btnNextBg = this.add.graphics();
+    btnNextBg.fillStyle(0x00ffa3, 1);
+    btnNextBg.fillRoundedRect(btnNextX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
+    modalContainer.add(btnNextBg);
+
+    const btnNextText = this.add.text(btnNextX, btnY, "▶ NEXT LEVEL", {
+      fontFamily: "Arial Black, sans-serif",
+      fontSize: "14px",
+      color: "#06090c",
+    }).setOrigin(0.5);
+    modalContainer.add(btnNextText);
+
+    const btnNextHit = this.add.rectangle(btnNextX, btnY, btnW, btnH, 0x000000, 0.001).setInteractive({ cursor: "pointer" });
+    modalContainer.add(btnNextHit);
+
+    // 6. Button 2: HOME / LOBBY (🏠 HOME)
+    const btnHomeX = VIEW_W / 2 + 105;
+
+    const btnHomeBg = this.add.graphics();
+    btnHomeBg.fillStyle(0x1a2936, 1);
+    btnHomeBg.fillRoundedRect(btnHomeX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
+    btnHomeBg.lineStyle(1, 0xff3b30, 0.85);
+    btnHomeBg.strokeRoundedRect(btnHomeX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
+    modalContainer.add(btnHomeBg);
+
+    const btnHomeText = this.add.text(btnHomeX, btnY, "🏠 HOME / LOBBY", {
+      fontFamily: "Arial Black, sans-serif",
+      fontSize: "14px",
+      color: "#f4f6f8",
+    }).setOrigin(0.5);
+    modalContainer.add(btnHomeText);
+
+    const btnHomeHit = this.add.rectangle(btnHomeX, btnY, btnW, btnH, 0x000000, 0.001).setInteractive({ cursor: "pointer" });
+    modalContainer.add(btnHomeHit);
+
+    let modalClosed = false;
+
+    const proceedNext = () => {
+      if (modalClosed) return;
+      modalClosed = true;
+      sound.playClick();
+      window.removeEventListener("keydown", keyHandler);
+      modalContainer.destroy();
+      this.isLevelCleared = false;
+      this.isAdvancingLevel = false;
+      this.advanceLevel();
+    };
+
+    const proceedHome = () => {
+      if (modalClosed) return;
+      modalClosed = true;
+      sound.playClick();
+      window.removeEventListener("keydown", keyHandler);
+      modalContainer.destroy();
+      this.isLevelCleared = false;
+      this.isAdvancingLevel = false;
+      this.endRun("completed");
+    };
+
+    btnNextHit.on("pointerdown", proceedNext);
+    btnHomeHit.on("pointerdown", proceedHome);
+
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.code === "Enter" || e.code === "Space") {
+        proceedNext();
+      } else if (e.code === "Escape") {
+        proceedHome();
+      }
+    };
+    window.addEventListener("keydown", keyHandler);
+  }
+
   private advanceLevel() {
     if (this.ended) return;
     if (this.chasmRespawnModal) {
@@ -1078,9 +1336,15 @@ export class GameScene extends Phaser.Scene {
     this.state = "idle";
     this.setApeTexture("ape-idle");
     this.levelBanner();
-    this.spawnChasm(this.player.x + 1300);
-    this.spawnObstacle(this.player.x + 480);
-    this.spawnObstacle(this.player.x + 2250);
+    if (nextLevelNumber <= 10) {
+      this.spawnObstacle(this.player.x + 600, "crate");
+      this.spawnChasm(this.player.x + 1350);
+      this.spawnObstacle(this.player.x + 2100);
+    } else {
+      this.spawnChasm(this.player.x + 1300);
+      this.spawnObstacle(this.player.x + 480);
+      this.spawnObstacle(this.player.x + 2250);
+    }
     this.reportHud();
     this.time.delayedCall(450, () => {
       this.isAdvancingLevel = false;
@@ -1125,38 +1389,58 @@ export class GameScene extends Phaser.Scene {
       
     } else {
       if (this.time.now < this.hitUntil) { candle.taken = false; return; }
-      this.redHits += 1;
       const delta = this.opts.redHitScorePenalty;
       this.lastScoreChange = -delta;
-      this.hitUntil = this.time.now + 1200;
-      this.timeLeftMs = Math.max(0, this.timeLeftMs - this.opts.redHitPenaltySec * 1000);
+      this.redHits += 1;
       this.recomputeScore();
-      this.state = "hit";
-      this.setApeTexture("ape-hit");
-      
-      // Audio cue
-      sound.playRed();
-      
-      // Phase 3: Screen shake on red hit
-      if (!this.prefersReducedMotion) {
-        this.cameras.main.shake(150, 0.006);
-        this.cameras.main.flash(130, 220, 70, 40);
+      this.hitUntil = this.time.now + 1200;
+
+      // Check Shield Protection
+      if (this.shieldUntil > this.time.now) {
+        this.shieldUntil = 0;
+        if (this.showFloatText) {
+          this.floatText(this.player.x, this.player.y - 170, `🛡️ SHIELD BLOCKED RED CANDLE! -${delta} PTS`, "#00FFA3");
+        }
+        sound.playGreen(1);
+        if (this.showParticles) {
+          this.burst(candle.sprite.x, candle.sprite.y, "p-spark", 8, 140);
+        }
+      } else {
+        // Red candle takes 1 Life and reduces score
+        this.playerLives = Math.max(0, this.playerLives - 1);
+        this.reportHud();
+
+        sound.playRed();
+
+        if (!this.prefersReducedMotion) {
+          this.cameras.main.shake(160, 0.008);
+          this.cameras.main.flash(140, 220, 70, 40);
+        }
+
+        if (this.showFloatText) {
+          const floatColor = this.opts.colorblindMode ? "#f97316" : "#ef4444";
+          this.floatText(this.player.x, this.player.y - 170, `-1 ❤️  -${delta} PTS [${this.playerLives}/${this.maxPlayerLives}]`, floatColor);
+        }
+
+        this.state = "hit";
+        this.setApeTexture("ape-hit");
+
+        if (this.playerLives <= 0) {
+          this.reportHud();
+          this.time.delayedCall(350, () => this.endRun("failed"));
+          return;
+        }
       }
-      
-      // Phase 3: Floating -25 label with proper red color
-      if (this.showFloatText) {
-        const floatColor = this.opts.colorblindMode ? "#f97316" : "#ef4444";
-        this.floatText(this.player.x, this.player.y - 170, `-${delta}`, floatColor);
-      }
-      
-      // Phase 3: Haptics ([30, 50, 30] on red)
+
+      // Haptics
       if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
         navigator.vibrate([30, 50, 30]);
       }
-      
+
       // Reset combo on red hit
       this.comboCount = 0;
-      
+      this.reportHud();
+
       this.time.delayedCall(520, () => { if (this.state === "hit") this.state = "idle"; });
     }
     this.tweens.killTweensOf(candle.sprite);
@@ -1169,19 +1453,22 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (this.ended) return;
 
+    // While level clear popup is showing, freeze all simulation
+    if (this.isLevelCleared) {
+      for (const layer of this.layers) layer.tile.tilePositionX = this.cameras.main.scrollX * layer.factor;
+      return;
+    }
+
     // While falling into chasm or displaying respawn modal, freeze player physics & movement
     if (this.isFallingInChasm || this.chasmRespawnModal) {
       for (const layer of this.layers) layer.tile.tilePositionX = this.cameras.main.scrollX * layer.factor;
       return;
     }
 
-    // Real arcade hit-stop: freeze movement & timers during hit-stop frames
+    // Real arcade hit-stop: freeze movement during hit-stop frames
     if (time < this.hitStopUntil) {
       return;
     }
-
-    this.timeLeftMs = Math.max(0, this.timeLeftMs - delta);
-    if (this.timeLeftMs <= 0) return this.endRun("failed");
 
     const left = this.cursors.left.isDown || this.keyA.isDown || touchInput.left;
     const right = this.cursors.right.isDown || this.keyD.isDown || touchInput.right;
@@ -1277,39 +1564,96 @@ export class GameScene extends Phaser.Scene {
       this.spawnTree(prevTreeX);
       this.nextTreeX += treeSpacing;
 
-      // Spawn a platformer chasm in the corridor between trees
-      if (treeSpacing >= 800 && this.rng.chance(0.65)) {
+      // 3-Tier Chasm corridor spawn chance between trees:
+      // Level 1-10 (Mudah): 25% to 45% (requires spacing >= 900px)
+      // Level 10-50 (Sedang): 45% to 65% (requires spacing >= 820px)
+      // Level 50+ (Sulit): 65% to 75% (requires spacing >= 780px)
+      const lvl = this.level.level;
+      let chasmChance: number;
+      let minSpacing: number;
+      if (lvl <= 10) {
+        chasmChance = 0.25 + (lvl - 1) * (0.20 / 9);
+        minSpacing = 900;
+      } else if (lvl <= 50) {
+        chasmChance = 0.45 + (lvl - 10) * (0.20 / 40);
+        minSpacing = 820;
+      } else {
+        chasmChance = Math.min(0.75, 0.65 + (lvl - 50) * 0.002);
+        minSpacing = 780;
+      }
+
+      if (treeSpacing >= minSpacing && this.rng.chance(chasmChance)) {
         const chasmX = prevTreeX + Math.floor(treeSpacing * 0.48);
         this.spawnChasm(chasmX);
       }
     }
 
+    // Sky candle spawning: rhythmic rain of crypto candles
     if (time > this.nextCandleAt) {
-      this.spawnCandle(this.player.x + this.rng.nextCandleOffset());
-      this.nextCandleAt = time + this.rng.nextCandleDelayMs(this.level);
+      this.spawnCandle();
+      const lvl = this.level.level;
+      let candleInterval: number;
+      if (lvl <= 10) {
+        candleInterval = 2400 - (lvl - 1) * (600 / 9);
+      } else if (lvl <= 50) {
+        candleInterval = 1800 - (lvl - 10) * (600 / 40);
+      } else {
+        candleInterval = Math.max(750, 1200 - (lvl - 50) * 8);
+      }
+      this.nextCandleAt = time + candleInterval + this.rng.int(-100, 200);
     }
 
-    // Controlled obstacle pressure begins gently and scales with level.
-    const obstacleInterval = Math.max(1200, 2600 - this.level.level * 55);
+    // 3-Tier Controlled obstacle pressure:
+    // Level 1-10 (Mudah): 6000ms -> 3800ms
+    // Level 10-50 (Sedang): 3800ms -> 2200ms
+    // Level 50+ (Sulit): 2200ms -> 1400ms
+    const lvl = this.level.level;
+    let obstacleInterval: number;
+    if (lvl <= 10) {
+      obstacleInterval = 6000 - (lvl - 1) * (2200 / 9);
+    } else if (lvl <= 50) {
+      obstacleInterval = 3800 - (lvl - 10) * (1600 / 40);
+    } else {
+      obstacleInterval = Math.max(1400, 2200 - (lvl - 50) * 15);
+    }
     const lastObstacle = this.obstacles.length ? this.obstacles[this.obstacles.length - 1] : null;
     const canSpawnObstacle = !lastObstacle || lastObstacle.x < this.player.x + VIEW_W * 0.72;
     if (canSpawnObstacle && this.rng.chance(delta / obstacleInterval)) {
       this.spawnObstacle(this.player.x + this.rng.int(580, 960));
     }
 
-    for (const candle of this.candles) {
+    // Falling candles: fall downward through the sky, through the ground layer ("bablas"), and despawn offscreen
+    for (let i = this.candles.length - 1; i >= 0; i--) {
+      const candle = this.candles[i];
       if (candle.taken) continue;
-      const dx = candle.sprite.x - this.player.x;
-      const dy = candle.sprite.y - (this.player.y - 70);
 
-      // Leaping over red candles: if player is airborne and feet are above the candle, clear cleanly!
+      if (candle.vy > 0) {
+        candle.y += candle.vy * (delta / 1000);
+        candle.sprite.setPosition(candle.x, candle.y);
+        if (candle.glyph) candle.glyph.setPosition(candle.x, candle.y + 2);
+      }
+
+      // "tidak berhenti ditanah ya tapi bablas": continues through ground and despawns below screen
+      if (candle.y > VIEW_H + 60) {
+        candle.glyph?.destroy();
+        candle.sprite.destroy();
+        this.candles.splice(i, 1);
+        continue;
+      }
+
+      const dx = Math.abs(candle.x - this.player.x);
+      const dy = Math.abs(candle.y - (this.player.y - 70));
+
+      // Aerial leaping / dodging over red candles
       if (candle.kind === "red") {
-        if (!this.isGrounded && this.player.y < candle.sprite.y + 15) {
+        if (!this.isGrounded && this.player.y < candle.y + 15) {
           continue;
         }
       }
 
-      if (Math.abs(dx) < 48 && Math.abs(dy) < 72) this.collectCandle(candle);
+      if (dx < 50 && dy < 68) {
+        this.collectCandle(candle);
+      }
     }
 
     for (const obstacle of this.obstacles) {
@@ -1679,6 +2023,9 @@ export class GameScene extends Phaser.Scene {
               const candle: Candle = {
                 sprite: candleSprite,
                 kind: "green",
+                x: cx,
+                y: cy,
+                vy: 0,
                 baseY: cy,
                 phase: i * 0.7,
                 taken: false,
