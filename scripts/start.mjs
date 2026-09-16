@@ -32,6 +32,20 @@ if (!isPostgres && !fs.existsSync(dbPath) && !fs.existsSync(legacyDbPath)) {
   }
 }
 
+// Ensure SQLite runs in WAL mode for concurrent reader/writer support
+if (!isPostgres && (fs.existsSync(dbPath) || fs.existsSync(legacyDbPath))) {
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const p = new PrismaClient();
+    await p.$queryRawUnsafe("PRAGMA journal_mode = WAL;");
+    await p.$queryRawUnsafe("PRAGMA busy_timeout = 5000;");
+    await p.$disconnect();
+    console.log("→ [start] SQLite WAL mode and busy timeout configured.");
+  } catch {
+    // Non-fatal fallback
+  }
+}
+
 // Seed initial starter runs if needed (only in development with SEED_DEMO)
 if (process.env.SEED_DEMO === "true" && process.env.NODE_ENV !== "production") {
   try {

@@ -68,37 +68,40 @@ export async function POST(req: Request) {
     }
   }
 
-  const run = await db.run.create({
-    data: {
-      userId: user.id,
-      competitionId,
-      gameSlug: verdict.gameSlug,
-      level: verdict.level,
-      targetTrees: verdict.targetTrees,
-      progress: verdict.progress,
-      endedBy: verdict.endedBy,
-      score: verdict.valid ? body.score : verdict.expectedScore,
-      trees: body.trees,
-      green: body.green,
-      redHits: body.redHits,
-      durationMs: Math.min(body.durationMs, cumulativeMaxDurationSec(verdict.level, cfg.game) * 1000),
-      valid: verdict.valid,
-      flags: [...new Set(verdict.flags)].join(","),
-      clientVersion: (body.clientVersion || "").slice(0, 32),
-    },
-  });
+  const runData = {
+    userId: user.id,
+    competitionId,
+    gameSlug: verdict.gameSlug,
+    level: verdict.level,
+    targetTrees: verdict.targetTrees,
+    progress: verdict.progress,
+    endedBy: verdict.endedBy,
+    score: verdict.valid ? body.score : verdict.expectedScore,
+    trees: body.trees,
+    green: body.green,
+    redHits: body.redHits,
+    durationMs: Math.min(body.durationMs, cumulativeMaxDurationSec(verdict.level, cfg.game) * 1000),
+    valid: verdict.valid,
+    flags: [...new Set(verdict.flags)].join(","),
+    clientVersion: (body.clientVersion || "").slice(0, 32),
+  };
 
+  let run;
   if (verdict.valid) {
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        totalRuns: { increment: 1 },
-        totalTrees: { increment: body.trees },
-        totalGreen: { increment: body.green },
-        totalRedHits: { increment: body.redHits },
-        totalPlayMs: { increment: run.durationMs },
-        bestScore: body.score > user.bestScore ? body.score : user.bestScore,
-      },
+    run = await db.$transaction(async (tx) => {
+      const created = await tx.run.create({ data: runData });
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          totalRuns: { increment: 1 },
+          totalTrees: { increment: body.trees },
+          totalGreen: { increment: body.green },
+          totalRedHits: { increment: body.redHits },
+          totalPlayMs: { increment: created.durationMs },
+          bestScore: body.score > user.bestScore ? body.score : user.bestScore,
+        },
+      });
+      return created;
     });
 
     if (competitionId) {
@@ -116,6 +119,7 @@ export async function POST(req: Request) {
     }
     publish("leaderboard", { type: "run", period: "all", gameSlug: verdict.gameSlug });
   } else {
+    run = await db.run.create({ data: runData });
     await audit("RUN_FLAGGED", { actorId: user.id, target: run.id, meta: { flags: verdict.flags, eligibility }, ip });
   }
 

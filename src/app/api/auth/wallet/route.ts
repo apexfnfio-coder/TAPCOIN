@@ -69,7 +69,11 @@ export async function POST(req: Request) {
           data: { walletAddress: wallet, isGuest: false },
         });
       } else {
-        const name = `Ape-${wallet.slice(0, 6)}`;
+        let name = `Ape-${wallet.slice(0, 4)}..${wallet.slice(-4)}`;
+        const existingName = await db.user.findUnique({ where: { username: name } });
+        if (existingName) {
+          name = `Ape-${wallet.slice(0, 4)}-${crypto.randomBytes(2).toString("hex")}`;
+        }
         user = await db.user.create({ data: { username: name, walletAddress: wallet, isGuest: false } });
       }
     }
