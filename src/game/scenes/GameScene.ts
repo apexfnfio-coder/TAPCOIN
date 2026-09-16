@@ -1138,8 +1138,8 @@ export class GameScene extends Phaser.Scene {
   private burst(x: number, y: number, key: string, count: number, speed: number) {
     for (let i = 0; i < count; i += 1) {
       const p = this.add.image(x, y, key).setDepth(11);
-      const angle = (Math.PI * 2 * i) / count + this.rng.float(-0.25, 0.25);
-      const dist = this.rng.float(speed * 0.45, speed);
+      const angle = (Math.PI * 2 * i) / count + Phaser.Math.FloatBetween(-0.25, 0.25);
+      const dist = Phaser.Math.FloatBetween(speed * 0.45, speed);
       const targetX = x + Math.cos(angle) * dist;
       const targetY = y + Math.sin(angle) * dist + 36;
       this.tweens.add({
@@ -1148,8 +1148,8 @@ export class GameScene extends Phaser.Scene {
         y: targetY,
         alpha: 0,
         scale: 0.25,
-        angle: this.rng.float(-160, 160),
-        duration: this.rng.int(280, 520),
+        angle: Phaser.Math.FloatBetween(-160, 160),
+        duration: Phaser.Math.Between(280, 520),
         ease: "Cubic.easeOut",
         onComplete: () => p.destroy(),
       });

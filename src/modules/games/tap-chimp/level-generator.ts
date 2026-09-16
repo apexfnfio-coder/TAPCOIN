@@ -44,6 +44,10 @@ export class SeededTapChimpGenerator {
     return Math.floor(this.next() * (high - low + 1)) + low;
   }
 
+  float(min: number, max: number): number {
+    return this.next() * (max - min) + min;
+  }
+
   chance(probability: number): boolean {
     return this.next() < Math.max(0, Math.min(1, probability));
   }
