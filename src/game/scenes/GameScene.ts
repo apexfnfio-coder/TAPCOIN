@@ -232,6 +232,12 @@ export class GameScene extends Phaser.Scene {
     this.spawnObstacle(1400, "crate");
     this.spawnObstacle(2350, "crate");
 
+    // Unlock Web Audio context on first user interaction (touch/click/key)
+    this.input.once("pointerdown", () => sound.init());
+    if (this.input.keyboard) {
+      this.input.keyboard.once("keydown", () => sound.init());
+    }
+
     this.startedAt = this.time.now;
     this.timeLeftMs = this.level.maxDurationSec * 1000;
     this.reportHud();
@@ -525,6 +531,7 @@ export class GameScene extends Phaser.Scene {
     this.invulnerableUntil = time + 3000;
 
     sound.playHit();
+    sound.playChasmFall();
     this.cameras.main.shake(200, 0.01);
     this.redHits += 1;
     this.recomputeScore();
@@ -1615,6 +1622,7 @@ export class GameScene extends Phaser.Scene {
             if (obstacle.dangerIcon) {
               obstacle.dangerIcon.setVisible(true).setText("⚠ ATTACK!").setColor("#ff3b30");
             }
+            sound.playBearRoar();
             if (this.showFloatText) {
               this.floatText(obstacle.x, obstacle.y - 180, "BEAR ROAR! 🐻⚡", "#ff5533");
             }
@@ -1625,6 +1633,7 @@ export class GameScene extends Phaser.Scene {
           if (time >= (obstacle.stateUntil || 0)) {
             obstacle.state = "lunge";
             obstacle.stateUntil = time + 340; // High speed attack charge
+            sound.playBearAttack();
             if (obstacle.dangerIcon) {
               obstacle.dangerIcon.setText("💥 CLAW!").setColor("#ff0000");
             }
@@ -1687,7 +1696,7 @@ export class GameScene extends Phaser.Scene {
       if (obstacle.kind === "rat" && !this.isGrounded && this.playerVy > 0 && Math.abs(dx) < 55 && this.player.y <= obstacle.sprite.y + 12) {
         obstacle.hit = true;
         this.playerVy = -420; // Platformer rebound bounce
-        sound.playJump();
+        sound.playStomp();
         sound.playGreen(this.comboCount + 1);
 
         // Stomp particle burst
@@ -1768,7 +1777,11 @@ export class GameScene extends Phaser.Scene {
         this.setApeTexture("ape-hit");
         
         // Sound cue on hazard hit
-        sound.playRed();
+        if (obstacle.kind === "bear") {
+          sound.playBearAttack();
+        } else {
+          sound.playRed();
+        }
         
         // Reset combo streak
         this.comboCount = 0;
@@ -1825,6 +1838,7 @@ export class GameScene extends Phaser.Scene {
           }
 
           if (targetObs.hp > 0) {
+            sound.playCrateHit();
             this.tweens.add({
               targets: targetObs.sprite,
               scaleX: targetObs.sprite.scaleX * 1.15,
@@ -1837,6 +1851,7 @@ export class GameScene extends Phaser.Scene {
           } else {
             // CRATE BROKEN!
             targetObs.hit = true;
+            sound.playCrateBreak();
             sound.playGreen(this.comboCount + 2);
             if (this.showParticles) {
               this.burst(targetObs.x, targetObs.sprite.y - 35, "p-chip", 16, 180);
@@ -1857,6 +1872,7 @@ export class GameScene extends Phaser.Scene {
             this.spawnPowerUp(targetObs.x, targetObs.sprite.y - 30);
           }
         } else if (targetObs.kind === "bear") {
+          sound.playBearHit();
           if (this.showParticles) {
             this.burst(targetObs.x, targetObs.sprite.y - 45, "p-spark", 8, 160);
             this.burst(targetObs.x, targetObs.sprite.y - 25, "p-chip", 6, 110);
@@ -1894,7 +1910,7 @@ export class GameScene extends Phaser.Scene {
           } else {
             // BEAR REKT! (Bear is defeated after multiple hits)
             targetObs.hit = true;
-            sound.playGreen(this.comboCount + 2);
+            sound.playBearDefeat();
             this.cameras.main.shake(180, 0.007);
 
             targetObs.hpBarBg?.destroy();
@@ -1978,7 +1994,7 @@ export class GameScene extends Phaser.Scene {
       const dy = drop.y - (this.player.y - 50);
       if (Math.abs(dx) < 52 && Math.abs(dy) < 68) {
         drop.taken = true;
-        sound.playGreen(this.comboCount + 3);
+        sound.playPowerUp(drop.type);
         if (this.showParticles) {
           this.burst(drop.x, drop.y, "p-spark", 10, 150);
         }

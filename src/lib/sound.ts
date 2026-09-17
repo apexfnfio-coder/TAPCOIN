@@ -606,6 +606,352 @@ class SoundManager {
       osc.stop(now + 0.05);
     } catch {}
   }
+
+  // Bear roar: deep guttural predator roar with low-frequency rumble & growl modulation
+  public playBearRoar() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const filter = this.ctx.createBiquadFilter();
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(320, now);
+      filter.frequency.exponentialRampToValueAtTime(140, now + 0.35);
+      filter.Q.setValueAtTime(4.5, now);
+
+      osc1.type = "sawtooth";
+      osc1.frequency.setValueAtTime(110, now);
+      osc1.frequency.linearRampToValueAtTime(65, now + 0.18);
+      osc1.frequency.linearRampToValueAtTime(42, now + 0.38);
+
+      osc2.type = "triangle";
+      osc2.frequency.setValueAtTime(85, now);
+      osc2.frequency.linearRampToValueAtTime(38, now + 0.38);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.38, now + 0.04);
+      gain.gain.setValueAtTime(0.32, now + 0.22);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.42);
+      osc2.stop(now + 0.42);
+    } catch {}
+  }
+
+  // Bear attack / claw slash: vicious swipe with tearing noise
+  public playBearAttack() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(48, now + 0.14);
+
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.17);
+
+      // Noise slash swipe
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(1600, now);
+        filter.frequency.exponentialRampToValueAtTime(600, now + 0.12);
+
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(0.2, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+
+        source.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.14);
+      }
+    } catch {}
+  }
+
+  // Bear hit: heavy axe impact thud against bear
+  public playBearHit() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "square";
+      osc.frequency.setValueAtTime(130, now);
+      osc.frequency.exponentialRampToValueAtTime(32, now + 0.12);
+
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.14);
+    } catch {}
+  }
+
+  // Bear defeat / BEAR REKT: massive arcade crash + victory chord
+  public playBearDefeat() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      // 1. Deep impact crash
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+
+      gain.gain.setValueAtTime(0.45, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.4);
+
+      // 2. Victorious ascending celebration sparkle
+      const notes = [330, 440, 554, 659, 880];
+      notes.forEach((freq, idx) => {
+        if (!this.ctx || !this.sfxGain) return;
+        const noteTime = now + 0.08 + idx * 0.055;
+        const nOsc = this.ctx.createOscillator();
+        const nGain = this.ctx.createGain();
+
+        nOsc.type = "triangle";
+        nOsc.frequency.setValueAtTime(freq, noteTime);
+
+        nGain.gain.setValueAtTime(0.2, noteTime);
+        nGain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.16);
+
+        nOsc.connect(nGain);
+        nGain.connect(this.sfxGain);
+        nOsc.start(noteTime);
+        nOsc.stop(noteTime + 0.18);
+      });
+    } catch {}
+  }
+
+  // Crate hit: wooden knock
+  public playCrateHit() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.07);
+
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch {}
+  }
+
+  // Crate break: loud splintering wood fracture
+  public playCrateBreak() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(950, now);
+        filter.Q.setValueAtTime(1.8, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.2);
+      }
+
+      // Wooden snap pop
+      const osc = this.ctx.createOscillator();
+      const oGain = this.ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.09);
+
+      oGain.gain.setValueAtTime(0.3, now);
+      oGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+      osc.connect(oGain);
+      oGain.connect(this.sfxGain);
+      osc.start(now);
+      osc.stop(now + 0.11);
+    } catch {}
+  }
+
+  // Rat Stomp: cartoon bouncy rebound squash
+  public playStomp() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.exponentialRampToValueAtTime(680, now + 0.14);
+
+      gain.gain.setValueAtTime(0.32, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.17);
+    } catch {}
+  }
+
+  // Powerup collect: heart (radiant heal), shield (forcefield), frenzy (laser charge)
+  public playPowerUp(type: "heart" | "shield" | "frenzy" | "time") {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      if (type === "heart") {
+        // Celestial healing chime (C-E-G-C major arpeggio)
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((freq, idx) => {
+          if (!this.ctx || !this.sfxGain) return;
+          const t = now + idx * 0.05;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.24, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+          osc.connect(gain);
+          gain.connect(this.sfxGain);
+          osc.start(t);
+          osc.stop(t + 0.2);
+        });
+      } else if (type === "shield") {
+        // Sci-fi forcefield shield resonance
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(740, now + 0.18);
+
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.26);
+
+        osc.connect(gain);
+        gain.connect(this.sfxGain);
+        osc.start(now);
+        osc.stop(now + 0.28);
+      } else {
+        // Frenzy: arcade laser power surge
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.linearRampToValueAtTime(1100, now + 0.2);
+
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+
+        osc.connect(gain);
+        gain.connect(this.sfxGain);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      }
+    } catch {}
+  }
+
+  // Chasm tumble fall sound: downward pitch whistle into pit
+  public playChasmFall() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(55, now + 0.28);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.32);
+    } catch {}
+  }
 }
 
 export const sound = new SoundManager();
