@@ -1097,18 +1097,48 @@ img { max-width: 100%; }
    ============================================================ */
 
 /* rotate-to-play gate: portrait phones only (tablets stay playable) */
-.rotate-prompt { display: none; }
-@media (orientation: portrait) and (max-width: 700px) and (pointer: coarse) {
-  .rotate-prompt {
-    position: fixed; inset: 0; z-index: 400;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 10px; padding: 28px; text-align: center;
-    background: radial-gradient(120% 90% at 50% 0%, #13261b 0%, var(--bg-0) 72%);
-  }
+/* rotate-to-play gate: portrait phones only */
+.rotate-prompt {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  background: radial-gradient(120% 90% at 50% 0%, #13261b 0%, var(--bg-0) 72%);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+}
+.rp-close-btn {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: var(--cream);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+  z-index: 10;
+}
+.rp-close-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.18);
 }
 .rp-device {
   width: 46px; height: 80px; border: 3px solid var(--gold); border-radius: 11px;
-  position: relative; margin-bottom: 14px;
+  position: relative; margin-bottom: 8px;
   box-shadow: 0 0 24px rgba(242, 181, 60, 0.25);
   animation: rpRotate 2.4s ease-in-out infinite;
 }
@@ -1124,8 +1154,33 @@ img { max-width: 100%; }
   0%, 30% { transform: rotate(0deg); }
   70%, 100% { transform: rotate(-90deg); }
 }
-.rp-title { font-family: var(--font-display); font-size: 27px; letter-spacing: 1px; color: var(--cream); text-shadow: 0 3px 0 rgba(0,0,0,0.55); }
-.rp-sub { color: var(--muted); font-size: 14px; max-width: 300px; margin: 0; line-height: 1.55; }
+.rp-title { font-family: var(--font-display); font-size: 24px; letter-spacing: 0.8px; color: var(--cream); text-shadow: 0 3px 0 rgba(0,0,0,0.55); }
+.rp-sub { color: var(--muted); font-size: 14px; max-width: 320px; margin: 0; line-height: 1.55; }
+.rp-dismiss-btn {
+  margin-top: 14px;
+  padding: 13px 26px;
+  min-height: 48px;
+  font-family: var(--font-display);
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: 1.5px solid #34d399;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4), 0 2px 0 #047857;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.rp-dismiss-btn:hover {
+  filter: brightness(1.08);
+}
+.rp-dismiss-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4), 0 1px 0 #047857;
+}
 
 /* landscape phones: stage fills the short viewport instead of being letterboxed tiny */
 @media (orientation: landscape) and (max-height: 560px) {
@@ -1389,29 +1444,19 @@ button { min-height: 40px; }
   .admin-side a { font-size: 11px; }
 }
 
-@media (orientation: portrait) and (max-width: 700px) and (pointer: coarse) {
-  .page-main { padding-bottom: 0; }
-  [data-game-active="true"] .nav,
-  [data-game-active="true"] .mobile-nav { display: none !important; }
-  [data-game-active="true"] .game-shell { width: 100vw; height: 100dvh; aspect-ratio: auto; border: 0; border-radius: 0; }
-  [data-game-active="true"] .game-host { display: block !important; width: 100%; height: 100%; }
-}
-
 /* Lock viewport and hide footer during active runs */
 body[data-game-active="true"] {
   overflow: hidden !important;
   height: 100dvh !important;
 }
-body[data-game-active="true"] .footer {
-  display: none !important;
-}
+body[data-game-active="true"] .footer,
 body[data-game-active="true"] .play-hint {
   display: none !important;
 }
 
-/* Mobile landscape fullscreen during active game runs:
-   Triggers whenever game is active on mobile landscape (height <= 600px OR coarse pointer in landscape) */
-@media (orientation: landscape) and (max-height: 600px), (pointer: coarse) and (orientation: landscape) {
+/* Mobile full-viewport arcade mode during active runs (Portrait & Landscape):
+   Prevents address-bar jumping, viewport clipping, and off-screen touch controls */
+@media (pointer: coarse), (max-width: 768px) {
   body[data-game-active="true"] {
     overflow: hidden !important;
     height: 100dvh !important;
@@ -1473,7 +1518,7 @@ body[data-game-active="true"] .play-hint {
     border: 0 !important;
     border-radius: 0 !important;
     z-index: 9999 !important;
-    background: #000 !important;
+    background: #06090c !important;
     box-shadow: none !important;
   }
   body[data-game-active="true"] .game-host {
@@ -1545,7 +1590,7 @@ body[data-game-active="true"] .play-hint {
     padding: 2px 8px !important;
   }
   body[data-game-active="true"] .touch-controls {
-    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    bottom: max(14px, env(safe-area-inset-bottom)) !important;
     left: max(12px, env(safe-area-inset-left)) !important;
     right: max(12px, env(safe-area-inset-right)) !important;
     padding: 0 !important;
@@ -1555,19 +1600,19 @@ body[data-game-active="true"] .play-hint {
   }
   body[data-game-active="true"] .touch-btn {
     min-width: 0 !important;
-    background: rgba(6, 12, 10, 0.45) !important;
-    backdrop-filter: blur(6px) !important;
-    border: 1.5px solid rgba(255, 210, 94, 0.25) !important;
+    background: rgba(6, 12, 10, 0.5) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1.5px solid rgba(255, 210, 94, 0.3) !important;
     box-shadow: 0 4px 14px rgba(0,0,0,0.4) !important;
   }
   body[data-game-active="true"] .touch-btn-nav {
-    width: 56px !important;
-    height: 52px !important;
+    width: 58px !important;
+    height: 54px !important;
     border-radius: 12px !important;
   }
   body[data-game-active="true"] .touch-btn-jump {
-    width: 68px !important;
-    height: 62px !important;
+    width: 72px !important;
+    height: 64px !important;
     border-radius: 14px !important;
     background: linear-gradient(135deg, rgba(34, 197, 94, 0.35) 0%, rgba(6, 12, 10, 0.55) 100%) !important;
     border-color: rgba(34, 197, 94, 0.6) !important;

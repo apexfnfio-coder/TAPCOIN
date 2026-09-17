@@ -6,6 +6,7 @@ export interface TapGame {
   destroy: () => void;
   quit: () => void;
   nextLevel: () => void;
+  refreshScale: () => void;
 }
 
 export async function createGame(
@@ -39,5 +40,10 @@ export async function createGame(
     destroy: () => game.destroy(true),
     quit: () => gameScene.quitRun(),
     nextLevel: () => gameScene.triggerNextLevel(),
+    refreshScale: () => {
+      try {
+        game.scale.refresh();
+      } catch {}
+    },
   };
 }

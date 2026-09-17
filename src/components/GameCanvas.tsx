@@ -49,11 +49,50 @@ export function GameCanvas({
   const [activeControls, setActiveControls] = useState({ left: false, right: false, jump: false });
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [dismissedRotatePrompt, setDismissedRotatePrompt] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("tap_dismiss_rotate_prompt") === "1";
+    }
+    return false;
+  });
+  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
 
   // Animated score lerp (rAF lerp, 300-500ms easing)
   const [displayScore, setDisplayScore] = useState(0);
   const currentScoreRef = useRef(0);
   const animFrameRef = useRef<number | null>(null);
+
+  // Detect mobile orientation changes and trigger Phaser scale refresh
+  useEffect(() => {
+    const checkOrientation = () => {
+      if (typeof window === "undefined") return;
+      const isPortrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
+      setIsPortraitMobile(isPortrait);
+    };
+
+    const handleResize = () => {
+      checkOrientation();
+      if (gameRef.current?.refreshScale) {
+        gameRef.current.refreshScale();
+      }
+      // Re-trigger scale refresh after mobile browser UI (URL bar/navigation) settles
+      setTimeout(() => {
+        gameRef.current?.refreshScale?.();
+      }, 120);
+      setTimeout(() => {
+        gameRef.current?.refreshScale?.();
+      }, 320);
+    };
+
+    checkOrientation();
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, []);
 
   // Initialize sound mute state
   useEffect(() => {
@@ -226,12 +265,41 @@ export function GameCanvas({
     <div className="game-shell">
       <div ref={hostRef} className="game-host" />
 
-      {/* Mobile orientation prompt */}
-      <div className="rotate-prompt" role="status">
-        <div className="rp-device" />
-        <div className="rp-title">Rotate your phone</div>
-        <p className="rp-sub">$TAP Chop is built for landscape play. Turn your phone sideways for the best chop arcade experience.</p>
-      </div>
+      {/* Mobile orientation prompt with dismissible option */}
+      {isPortraitMobile && !dismissedRotatePrompt && (
+        <div className="rotate-prompt" role="status">
+          <button
+            type="button"
+            className="rp-close-btn"
+            onClick={() => {
+              sound.playClick();
+              try { sessionStorage.setItem("tap_dismiss_rotate_prompt", "1"); } catch {}
+              setDismissedRotatePrompt(true);
+              setTimeout(() => gameRef.current?.refreshScale?.(), 50);
+            }}
+            aria-label="Tutup dan tetap main"
+          >
+            ✕
+          </button>
+          <div className="rp-device" />
+          <div className="rp-title">Rotate Phone for Best View</div>
+          <p className="rp-sub">
+            $TAP Chop runs best in landscape. You can rotate your phone sideways, or continue playing in portrait mode below.
+          </p>
+          <button
+            type="button"
+            className="rp-dismiss-btn"
+            onClick={() => {
+              sound.playClick();
+              try { sessionStorage.setItem("tap_dismiss_rotate_prompt", "1"); } catch {}
+              setDismissedRotatePrompt(true);
+              setTimeout(() => gameRef.current?.refreshScale?.(), 50);
+            }}
+          >
+            Play in Portrait Mode (Tetap Main) 🎮
+          </button>
+        </div>
+      )}
 
       <div className="game-hud">
         <div className="hud-top">
