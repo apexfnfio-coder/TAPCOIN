@@ -156,6 +156,7 @@ export function GameCanvas({
     })();
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      sound.init();
       if (event.key === "ArrowLeft" || event.key === "a" || event.key === "A") {
         event.preventDefault();
         touchInput.left = true;
@@ -216,6 +217,7 @@ export function GameCanvas({
   };
 
   const setControl = (side: "left" | "right" | "jump", value: boolean) => {
+    sound.init();
     touchInput[side] = value;
     setActiveControls((current) => ({ ...current, [side]: value }));
   };

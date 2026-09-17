@@ -59,6 +59,7 @@ interface Obstacle {
   hpBarFill?: Phaser.GameObjects.Graphics;
   hpText?: Phaser.GameObjects.Text;
   dangerIcon?: Phaser.GameObjects.Text;
+  lastRoarTime?: number;
 }
 
 interface PowerUpDrop {
@@ -1594,6 +1595,10 @@ export class GameScene extends Phaser.Scene {
             if (obstacle.dangerIcon) {
               obstacle.dangerIcon.setVisible(true).setText("👀 CHASE!").setColor("#ffd000");
             }
+            if (time > (obstacle.lastRoarTime || 0) + 2500) {
+              obstacle.lastRoarTime = time;
+              sound.playBearRoar();
+            }
           }
         } else if (obstacle.state === "chase") {
           // Bear actively chases player!
@@ -1616,6 +1621,7 @@ export class GameScene extends Phaser.Scene {
           else if (distToPlayer < (obstacle.attackRange || 135) && time > (obstacle.stateUntil || 0)) {
             obstacle.state = "windup";
             obstacle.stateUntil = time + (obstacle.windupDurationMs || 400);
+            obstacle.lastRoarTime = time;
             obstacle.sprite.setTexture("obstacle-bear-attack");
             this.fitHeight(obstacle.sprite, 235);
             obstacle.sprite.setTint(0xff5533);

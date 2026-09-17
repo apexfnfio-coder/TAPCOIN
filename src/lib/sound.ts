@@ -108,7 +108,7 @@ class SoundManager {
         const initialMaster = this.muted ? 0 : this.volume;
         this.masterGain.gain.setValueAtTime(initialMaster, this.ctx.currentTime);
         this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
-        this.sfxGain.gain.setValueAtTime(0.65, this.ctx.currentTime);
+        this.sfxGain.gain.setValueAtTime(0.95, this.ctx.currentTime);
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
@@ -409,7 +409,7 @@ class SoundManager {
   // ARCADE SOUND EFFECTS (SFX) ROUTED VIA SFXGAIN
   // -------------------------------------------------------------
 
-  // Tree chop sound: punchy wooden thud
+  // Tree chop sound: crisp metal axe blade bite + punchy solid wooden log thwack
   public playChop() {
     if (this.muted) return;
     this.init();
@@ -417,21 +417,63 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
+
+      // 1. Solid wooden log body resonance (warm, punchy wood pitch bend 380 Hz -> 150 Hz)
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(140, now);
-      osc.frequency.exponentialRampToValueAtTime(38, now + 0.08);
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(150, now + 0.09);
 
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+      gain.gain.setValueAtTime(0.55, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
 
       osc.start(now);
-      osc.stop(now + 0.09);
+      osc.stop(now + 0.11);
+
+      // 2. Axe blade bark bite: sharp filtered white noise crack
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(1500, now);
+        filter.Q.setValueAtTime(2.2, now);
+
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(0.4, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+        source.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.05);
+      }
+
+      // 3. Timber wood splinter snap (square impulse 540 Hz -> 220 Hz)
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+
+      osc2.type = "square";
+      osc2.frequency.setValueAtTime(540, now);
+      osc2.frequency.exponentialRampToValueAtTime(220, now + 0.045);
+
+      gain2.gain.setValueAtTime(0.28, now);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+
+      osc2.connect(gain2);
+      gain2.connect(this.sfxGain);
+
+      osc2.start(now);
+      osc2.stop(now + 0.055);
     } catch {}
   }
 
@@ -607,7 +649,7 @@ class SoundManager {
     } catch {}
   }
 
-  // Bear roar: deep guttural predator roar with low-frequency rumble & growl modulation
+  // Bear roar: ferocious guttural beast roar with pitch modulation & raspy throat resonance
   public playBearRoar() {
     if (this.muted) return;
     this.init();
@@ -615,43 +657,80 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
+      // 1. Guttural throat body (dual detuned sawtooth with pitch flutter)
       const osc1 = this.ctx.createOscillator();
       const osc2 = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       const filter = this.ctx.createBiquadFilter();
 
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(320, now);
-      filter.frequency.exponentialRampToValueAtTime(140, now + 0.35);
-      filter.Q.setValueAtTime(4.5, now);
+      // Bandpass formant filter giving that hollow predator throat sound
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(680, now);
+      filter.frequency.exponentialRampToValueAtTime(320, now + 0.45);
+      filter.Q.setValueAtTime(2.2, now);
 
       osc1.type = "sawtooth";
-      osc1.frequency.setValueAtTime(110, now);
-      osc1.frequency.linearRampToValueAtTime(65, now + 0.18);
-      osc1.frequency.linearRampToValueAtTime(42, now + 0.38);
+      osc1.frequency.setValueAtTime(240, now);
+      osc1.frequency.linearRampToValueAtTime(180, now + 0.15);
+      osc1.frequency.linearRampToValueAtTime(115, now + 0.5);
 
-      osc2.type = "triangle";
-      osc2.frequency.setValueAtTime(85, now);
-      osc2.frequency.linearRampToValueAtTime(38, now + 0.38);
+      osc2.type = "sawtooth";
+      osc2.frequency.setValueAtTime(252, now); // Slight detune for thick beast growl
+      osc2.frequency.linearRampToValueAtTime(188, now + 0.15);
+      osc2.frequency.linearRampToValueAtTime(118, now + 0.5);
 
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(0.38, now + 0.04);
-      gain.gain.setValueAtTime(0.32, now + 0.22);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      // Pitch vibrato / growl flutter LFO (28 Hz)
+      const lfo = this.ctx.createOscillator();
+      const lfoGain = this.ctx.createGain();
+      lfo.frequency.setValueAtTime(28, now);
+      lfoGain.gain.setValueAtTime(38, now);
+      lfo.connect(osc1.frequency);
+      lfo.connect(osc2.frequency);
+
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.65, now + 0.06);
+      gain.gain.setValueAtTime(0.55, now + 0.28);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.52);
 
       osc1.connect(filter);
       osc2.connect(filter);
       filter.connect(gain);
       gain.connect(this.sfxGain);
 
+      lfo.start(now);
       osc1.start(now);
       osc2.start(now);
-      osc1.stop(now + 0.42);
-      osc2.stop(now + 0.42);
+      lfo.stop(now + 0.55);
+      osc1.stop(now + 0.55);
+      osc2.stop(now + 0.55);
+
+      // 2. Raspy snarl / breath roar layer (filtered noise)
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+        const nFilter = this.ctx.createBiquadFilter();
+        nFilter.type = "bandpass";
+        nFilter.frequency.setValueAtTime(1400, now);
+        nFilter.frequency.exponentialRampToValueAtTime(550, now + 0.45);
+        nFilter.Q.setValueAtTime(1.8, now);
+
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(0.01, now);
+        nGain.gain.linearRampToValueAtTime(0.4, now + 0.08);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+
+        source.connect(nFilter);
+        nFilter.connect(nGain);
+        nGain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.5);
+      }
     } catch {}
   }
 
-  // Bear attack / claw slash: vicious swipe with tearing noise
+  // Bear attack / claw slash: vicious razor swipe with tearing noise and fierce snarl
   public playBearAttack() {
     if (this.muted) return;
     this.init();
@@ -659,47 +738,49 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
+      // 1. Fierce snarling swipe tone (downward plunge with growl flutter)
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(260, now);
-      osc.frequency.exponentialRampToValueAtTime(48, now + 0.14);
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(130, now + 0.22);
 
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+      gain.gain.setValueAtTime(0.55, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
 
       osc.start(now);
-      osc.stop(now + 0.17);
+      osc.stop(now + 0.25);
 
-      // Noise slash swipe
+      // 2. High razor slash swipe (white noise whoosh)
       const noise = this.getOrCreateNoiseBuffer();
       if (noise) {
         const source = this.ctx.createBufferSource();
         source.buffer = noise;
         const filter = this.ctx.createBiquadFilter();
         filter.type = "bandpass";
-        filter.frequency.setValueAtTime(1600, now);
-        filter.frequency.exponentialRampToValueAtTime(600, now + 0.12);
+        filter.frequency.setValueAtTime(2600, now);
+        filter.frequency.exponentialRampToValueAtTime(850, now + 0.18);
+        filter.Q.setValueAtTime(1.6, now);
 
         const nGain = this.ctx.createGain();
-        nGain.gain.setValueAtTime(0.2, now);
-        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+        nGain.gain.setValueAtTime(0.45, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
 
         source.connect(filter);
         filter.connect(nGain);
         nGain.connect(this.sfxGain);
 
         source.start(now);
-        source.stop(now + 0.14);
+        source.stop(now + 0.22);
       }
     } catch {}
   }
 
-  // Bear hit: heavy axe impact thud against bear
+  // Bear hit: heavy axe impact thud against bear with pain grunt
   public playBearHit() {
     if (this.muted) return;
     this.init();
@@ -707,21 +788,35 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
+      // 1. Heavy axe impact
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = "square";
-      osc.frequency.setValueAtTime(130, now);
-      osc.frequency.exponentialRampToValueAtTime(32, now + 0.12);
+      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.exponentialRampToValueAtTime(65, now + 0.14);
 
-      gain.gain.setValueAtTime(0.4, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+      gain.gain.setValueAtTime(0.55, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
 
       osc.start(now);
-      osc.stop(now + 0.14);
+      osc.stop(now + 0.16);
+
+      // 2. Bear pain grunt (short low growl)
+      const grunt = this.ctx.createOscillator();
+      const gGain = this.ctx.createGain();
+      grunt.type = "sawtooth";
+      grunt.frequency.setValueAtTime(180, now + 0.02);
+      grunt.frequency.exponentialRampToValueAtTime(95, now + 0.18);
+      gGain.gain.setValueAtTime(0.4, now + 0.02);
+      gGain.gain.exponentialRampToValueAtTime(0.01, now + 0.19);
+      grunt.connect(gGain);
+      gGain.connect(this.sfxGain);
+      grunt.start(now + 0.02);
+      grunt.stop(now + 0.2);
     } catch {}
   }
 
@@ -955,3 +1050,14 @@ class SoundManager {
 }
 
 export const sound = new SoundManager();
+
+// Automatically unlock and resume Web Audio on any early user gesture
+if (typeof window !== "undefined") {
+  const unlockAudio = () => {
+    sound.init();
+  };
+  ["pointerdown", "touchstart", "touchend", "mousedown", "keydown", "click"].forEach((evt) => {
+    window.addEventListener(evt, unlockAudio, { passive: true });
+  });
+}
+
