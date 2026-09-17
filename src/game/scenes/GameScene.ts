@@ -122,6 +122,8 @@ export class GameScene extends Phaser.Scene {
   private nextCandleAt = 0;
   private lastChopAt = 0;
   private chopFrame: 1 | 2 = 1;
+  private lastFootstepTime = 0;
+  private footstepIndex = 0;
   private hitUntil = 0;
   private startedAt = 0;
   private timeLeftMs = 0;
@@ -1419,11 +1421,18 @@ export class GameScene extends Phaser.Scene {
       this.playerVy += this.GRAVITY * (delta / 1000);
       this.player.y += this.playerVy * (delta / 1000);
       if (this.player.y >= GROUND_Y) {
+        const wasFallingFast = this.playerVy > 120;
         this.player.y = GROUND_Y;
         this.playerVy = 0;
         this.isGrounded = true;
         this.isJumping = false;
         this.lastGroundedTime = time;
+        if (wasFallingFast) {
+          sound.playLand();
+          if (this.showParticles) {
+            this.burst(this.player.x, GROUND_Y - 4, "p-dust", 4, 75);
+          }
+        }
       }
     }
 
@@ -1437,6 +1446,12 @@ export class GameScene extends Phaser.Scene {
         if (this.isGrounded) {
           this.state = "walk";
           this.setApeTexture(Math.floor(time / 150) % 2 === 0 ? "ape-walk1" : "ape-walk2");
+          // Play rhythmic organic footsteps while running
+          if (time - this.lastFootstepTime >= 240) {
+            this.lastFootstepTime = time;
+            this.footstepIndex = (this.footstepIndex + 1) % 2;
+            sound.playFootstep(this.footstepIndex);
+          }
         } else {
           this.setApeTexture("ape-walk2");
         }

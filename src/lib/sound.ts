@@ -409,7 +409,7 @@ class SoundManager {
   // ARCADE SOUND EFFECTS (SFX) ROUTED VIA SFXGAIN
   // -------------------------------------------------------------
 
-  // Tree chop sound: crisp metal axe blade bite + punchy solid wooden log thwack
+  // Authentic timber tree chop: steel axe blade bite + deep hollow wood cavity thock + splinter crackle
   public playChop() {
     if (this.muted) return;
     this.init();
@@ -417,25 +417,27 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
+      // Natural organic variation (+/- 6%) prevents robotic repetitive machine-gun effect
+      const pitchVar = 0.94 + Math.random() * 0.12;
 
-      // 1. Solid wooden log body resonance (warm, punchy wood pitch bend 380 Hz -> 150 Hz)
+      // 1. Heavy wooden tree trunk cavity thock (deep resonant wood impact 280 Hz -> 85 Hz)
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(380, now);
-      osc.frequency.exponentialRampToValueAtTime(150, now + 0.09);
+      osc.frequency.setValueAtTime(280 * pitchVar, now);
+      osc.frequency.exponentialRampToValueAtTime(85 * pitchVar, now + 0.11);
 
-      gain.gain.setValueAtTime(0.55, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      gain.gain.setValueAtTime(0.65, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
 
       osc.start(now);
-      osc.stop(now + 0.11);
+      osc.stop(now + 0.13);
 
-      // 2. Axe blade bark bite: sharp filtered white noise crack
+      // 2. Steel blade bite on bark: sharp metallic-organic contact transient (2200 Hz)
       const noise = this.getOrCreateNoiseBuffer();
       if (noise) {
         const source = this.ctx.createBufferSource();
@@ -443,37 +445,54 @@ class SoundManager {
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = "bandpass";
-        filter.frequency.setValueAtTime(1500, now);
+        filter.frequency.setValueAtTime(2200 * pitchVar, now);
         filter.Q.setValueAtTime(2.2, now);
 
         const nGain = this.ctx.createGain();
-        nGain.gain.setValueAtTime(0.4, now);
-        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+        nGain.gain.setValueAtTime(0.48, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
 
         source.connect(filter);
         filter.connect(nGain);
         nGain.connect(this.sfxGain);
 
         source.start(now);
-        source.stop(now + 0.05);
+        source.stop(now + 0.045);
       }
 
-      // 3. Timber wood splinter snap (square impulse 540 Hz -> 220 Hz)
+      // 3. Dense wood grain splinter fracture (crunchy wood fiber tear)
       const osc2 = this.ctx.createOscillator();
       const gain2 = this.ctx.createGain();
 
       osc2.type = "square";
-      osc2.frequency.setValueAtTime(540, now);
-      osc2.frequency.exponentialRampToValueAtTime(220, now + 0.045);
+      osc2.frequency.setValueAtTime(480 * pitchVar, now);
+      osc2.frequency.exponentialRampToValueAtTime(160 * pitchVar, now + 0.06);
 
-      gain2.gain.setValueAtTime(0.28, now);
-      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      gain2.gain.setValueAtTime(0.35, now);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.065);
 
       osc2.connect(gain2);
       gain2.connect(this.sfxGain);
 
       osc2.start(now);
-      osc2.stop(now + 0.055);
+      osc2.stop(now + 0.07);
+
+      // 4. Subtle hollow wooden body overtone (gives that authentic living tree trunk acoustic)
+      const osc3 = this.ctx.createOscillator();
+      const gain3 = this.ctx.createGain();
+
+      osc3.type = "sine";
+      osc3.frequency.setValueAtTime(440 * pitchVar, now);
+      osc3.frequency.exponentialRampToValueAtTime(140 * pitchVar, now + 0.08);
+
+      gain3.gain.setValueAtTime(0.28, now);
+      gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.085);
+
+      osc3.connect(gain3);
+      gain3.connect(this.sfxGain);
+
+      osc3.start(now);
+      osc3.stop(now + 0.09);
     } catch {}
   }
 
@@ -568,7 +587,7 @@ class SoundManager {
     this.playRed();
   }
 
-  // Jump leap sound: retro arcade spring whoosh
+  // Crisp athletic platformer leap whoosh + spring impulse
   public playJump() {
     if (this.muted) return;
     this.init();
@@ -576,21 +595,144 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
+
+      // 1. Athletic spring impulse: rising frequency with sweet harmonic warmth (210 Hz -> 560 Hz)
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = "sine";
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(460, now + 0.16);
+      osc.frequency.setValueAtTime(210, now);
+      osc.frequency.exponentialRampToValueAtTime(560, now + 0.14);
 
-      gain.gain.setValueAtTime(0.24, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+      gain.gain.setValueAtTime(0.32, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
 
       osc.connect(gain);
       gain.connect(this.sfxGain);
 
       osc.start(now);
-      osc.stop(now + 0.18);
+      osc.stop(now + 0.17);
+
+      // 2. Air leap whoosh (upward sweeping filtered noise)
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(800, now);
+        filter.frequency.exponentialRampToValueAtTime(2200, now + 0.12);
+        filter.Q.setValueAtTime(1.5, now);
+
+        const nGain = this.ctx.createGain();
+        nGain.gain.setValueAtTime(0.24, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+
+        source.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.14);
+      }
+    } catch {}
+  }
+
+  // Soft grounded landing thud on dirt/grass after a leap
+  public playLand() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+
+      // 1. Dirt impact puff (lowpass filtered noise)
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(420, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.26, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.075);
+      }
+
+      // 2. Grounded body thump
+      const osc = this.ctx.createOscillator();
+      const oscGain = this.ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(48, now + 0.06);
+
+      oscGain.gain.setValueAtTime(0.24, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.065);
+
+      osc.connect(oscGain);
+      oscGain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.07);
+    } catch {}
+  }
+
+  // Organic footstep on forest dirt & grass
+  public playFootstep(alt: number = 0) {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx || !this.sfxGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const pitchMult = alt % 2 === 0 ? 1.0 : 1.15;
+
+      // 1. Soft dirt/grass scuff crunch (bandpass noise)
+      const noise = this.getOrCreateNoiseBuffer();
+      if (noise) {
+        const source = this.ctx.createBufferSource();
+        source.buffer = noise;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(520 * pitchMult, now);
+        filter.Q.setValueAtTime(1.8, now);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+
+        source.start(now);
+        source.stop(now + 0.06);
+      }
+
+      // 2. Soft grounded footfall thump
+      const osc = this.ctx.createOscillator();
+      const oscGain = this.ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(110 * pitchMult, now);
+      osc.frequency.exponentialRampToValueAtTime(45 * pitchMult, now + 0.04);
+
+      oscGain.gain.setValueAtTime(0.15, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.045);
+
+      osc.connect(oscGain);
+      oscGain.connect(this.sfxGain);
+
+      osc.start(now);
+      osc.stop(now + 0.05);
     } catch {}
   }
 
@@ -730,7 +872,7 @@ class SoundManager {
     } catch {}
   }
 
-  // Bear attack / claw slash: vicious razor swipe with tearing noise and fierce snarl
+  // Authentic lethal bear claw slash: aerodynamic limb whoosh + multi-talon razor friction tear + predatory strike snarl
   public playBearAttack() {
     if (this.muted) return;
     this.init();
@@ -738,45 +880,79 @@ class SoundManager {
 
     try {
       const now = this.ctx.currentTime;
-      // 1. Fierce snarling swipe tone (downward plunge with growl flutter)
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
 
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(420, now);
-      osc.frequency.exponentialRampToValueAtTime(130, now + 0.22);
-
-      gain.gain.setValueAtTime(0.55, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
-
-      osc.connect(gain);
-      gain.connect(this.sfxGain);
-
-      osc.start(now);
-      osc.stop(now + 0.25);
-
-      // 2. High razor slash swipe (white noise whoosh)
+      // 1. Violent air whoosh of heavy paw striking (fast sweeping displaced air)
       const noise = this.getOrCreateNoiseBuffer();
       if (noise) {
         const source = this.ctx.createBufferSource();
         source.buffer = noise;
         const filter = this.ctx.createBiquadFilter();
         filter.type = "bandpass";
-        filter.frequency.setValueAtTime(2600, now);
-        filter.frequency.exponentialRampToValueAtTime(850, now + 0.18);
-        filter.Q.setValueAtTime(1.6, now);
+        filter.frequency.setValueAtTime(450, now);
+        filter.frequency.exponentialRampToValueAtTime(1600, now + 0.08);
+        filter.frequency.exponentialRampToValueAtTime(350, now + 0.2);
+        filter.Q.setValueAtTime(1.4, now);
 
         const nGain = this.ctx.createGain();
-        nGain.gain.setValueAtTime(0.45, now);
-        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        nGain.gain.setValueAtTime(0.01, now);
+        nGain.gain.linearRampToValueAtTime(0.55, now + 0.06);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
 
         source.connect(filter);
         filter.connect(nGain);
         nGain.connect(this.sfxGain);
 
         source.start(now);
-        source.stop(now + 0.22);
+        source.stop(now + 0.24);
+
+        // 2. Razor-sharp claw friction tear (high frequency multi-talon slice)
+        const source2 = this.ctx.createBufferSource();
+        source2.buffer = noise;
+        const filter2 = this.ctx.createBiquadFilter();
+        filter2.type = "highpass";
+        filter2.frequency.setValueAtTime(2800, now + 0.03);
+        filter2.frequency.exponentialRampToValueAtTime(1100, now + 0.18);
+
+        const nGain2 = this.ctx.createGain();
+        nGain2.gain.setValueAtTime(0.01, now + 0.03);
+        nGain2.gain.linearRampToValueAtTime(0.48, now + 0.07);
+        nGain2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+        source2.connect(filter2);
+        filter2.connect(nGain2);
+        nGain2.connect(this.sfxGain);
+
+        source2.start(now + 0.03);
+        source2.stop(now + 0.22);
       }
+
+      // 3. Fierce predatory respiratory strike snarl (sawtooth plunge with growl flutter)
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(360, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.22);
+
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.linearRampToValueAtTime(0.52, now + 0.04);
+      gain.gain.setValueAtTime(0.42, now + 0.14);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+
+      // Add vocal growl flutter LFO
+      const lfo = this.ctx.createOscillator();
+      const lfoGain = this.ctx.createGain();
+      lfo.frequency.setValueAtTime(30, now);
+      lfoGain.gain.setValueAtTime(45, now);
+      lfo.connect(osc.frequency);
+
+      osc.connect(gain);
+      gain.connect(this.sfxGain);
+
+      lfo.start(now);
+      osc.start(now);
+      lfo.stop(now + 0.26);
+      osc.stop(now + 0.26);
     } catch {}
   }
 
