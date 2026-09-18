@@ -550,60 +550,86 @@ async function main() {
   await capture("act3_bear_rekt.png", "Bear defeat celebration with BEAR REKT! in #FFD000 and 3 green pump candles drop");
 
   // ==========================================
-  // ACT 4: LEVEL 1 CLEARED & LEVEL 2 ADVANCE
+  // ACT 3 EXTENSION: GOD CANDLE 5x STREAK
   // ==========================================
-  console.log("\n--- CAPTURING ACT 4: LEVEL 1 CLEAR ---");
+  console.log("\n--- CAPTURING ACT 3: CANDLE STREAK ---");
   await send("Runtime.evaluate", {
     expression: `
       (() => {
         const s = window.__gameScene;
         if (s) {
-          const tx = s.player.x + 90;
-          const ty = 470;
-          
-          // Flash camera in Solana Bull Green (#00FFA3)
-          s.cameras.main.flash(220, 0, 255, 163);
-          s.cameras.main.shake(280, 0.012);
-
-          // Celebratory quad particle burst
-          s.burst(tx, ty - 55, "p-chip", 28, 440);
-          s.burst(tx, ty - 130, "p-leaf", 20, 280);
-          s.burst(tx, ty - 10, "p-dust", 16, 220);
-          s.burst(tx, ty - 80, "p-spark", 14, 320);
-
-          s.floatText(tx, ty - 220, "+100 LEVEL 1 CLEAR!", "#00FFA3");
-          s.levelTreeCount = 4;
+          s.comboCount = 5;
+          s.score = 650;
+          s.greenCount = 15;
+          const cx = s.player.x + 40;
+          const cy = 470 - 65;
+          s.burst(cx, cy, "p-spark", 22, 340);
+          s.floatText(cx, cy - 40, "+50 GOD CANDLE 5x! 🔥", "#00FFA3");
           s.reportHud();
         }
       })()
     `,
   });
-  await sleep(160);
-  await capture("act4_level1_clear.png", "Level 1 cleared with 150ms hit-stop, Solana Bull Green #00FFA3 flash, and quad particle burst");
+  await sleep(180);
+  await capture("act3_candle_streak.png", "Ape slicing green candles with 5x STREAK combo and God Candle sparkle burst");
 
-  console.log("\n--- CAPTURING ACT 4: LEVEL 2 BANNER ---");
+  // ==========================================
+  // ACT 4: HAZARDOUS CHASMS & MYSTERY CRATES
+  // ==========================================
+  console.log("\n--- CAPTURING ACT 4: CHASM LEAP ---");
   await send("Runtime.evaluate", {
     expression: `
       (() => {
         const s = window.__gameScene;
         if (s) {
-          // Increment level and display giant LEVEL 2 banner
-          s.level = Object.assign({}, s.level, { level: 2 });
-          const label = s.add.text(s.player.x, 205, "LEVEL 2", {
-            fontFamily: "Arial Black, Arial",
-            fontSize: "46px",
-            color: "#efe3c8",
-            stroke: "#132016",
-            strokeThickness: 8,
-          }).setOrigin(0.5).setDepth(25);
+          const cx = s.player.x + 130;
+          s.spawnChasm(cx);
+          // Position Ape in airborne athletic jump arc over chasm
+          s.player.setX(cx);
+          s.player.setY(470 - 135);
+          s.setApeTexture("ape-walk2");
+          s.burst(cx - 75, 470, "p-dust", 16, 190);
+          s.floatText(cx, 470 - 195, "CHASM LEAP! 🦅", "#FFD000");
+          s.cameras.main.shake(80, 0.003);
+          s.reportHud();
+        }
+      })()
+    `,
+  });
+  await sleep(180);
+  await capture("act4_chasm_leap.png", "Ape leaping across deep chasm gap with CHASM LEAP! in #FFD000 and danger indicator");
 
+  console.log("\n--- CAPTURING ACT 4: MYSTERY CRATE UNLOCK ---");
+  await send("Runtime.evaluate", {
+    expression: `
+      (() => {
+        const s = window.__gameScene;
+        if (s) {
+          const px = s.player.x;
+          s.player.setY(470);
+          s.state = "chop";
+          s.setApeTexture("ape-chop2");
+
+          // Break mystery crate with particles
+          const crateX = px + 95;
+          const crateY = 470 - 25;
+          s.burst(crateX, crateY, "p-chip", 26, 400);
+          s.burst(crateX, crateY, "p-spark", 20, 320);
+
+          // Spawn powerup items exploding out
+          s.spawnPowerUp(crateX - 35, crateY - 45);
+          s.spawnPowerUp(crateX + 35, crateY - 45);
+
+          // Activate Shield forcefield on player
+          s.shieldUntil = Date.now() + 10000;
+          s.floatText(crateX, crateY - 95, "MYSTERY CRATE UNLOCKED! 📦✨", "#00FFA3");
           s.reportHud();
         }
       })()
     `,
   });
   await sleep(200);
-  await capture("act4_level2_banner.png", "Transition into Level 2 with giant LEVEL 2 banner across center screen");
+  await capture("act4_crate_unlock.png", "Mystery crate shattered with powerup burst, Shield forcefield, and Heart drop");
 
   // ==========================================
   // ACT 5: ATH SCORE FLEX & LEADERBOARD
@@ -628,12 +654,14 @@ async function main() {
   await capture("act5_leaderboard_podium.png", "Global leaderboard top 3 podium & #1 ApexAdmin card with 42,069 PTS");
 
   // ==========================================
-  // ACT 6: SEASON 1 GRAND PRIZE CARD
+  // ACT 6: TOKEN CONTRACT & CALL TO ACTION CARD
   // ==========================================
-  console.log("\n--- CAPTURING ACT 6: GRAND PRIZE CARD ---");
-  await navigate("http://localhost:3000/competitions", 2500);
+  console.log("\n--- CAPTURING ACT 6: TOKEN CONTRACT CARD ---");
+  await navigate("http://localhost:3000/buy", 2500);
 
-  await capture("act6_grand_prize.png", "Season 1 Grand Prize card with 10% Dev Wallet Prize rule and official token mint CA");
+  await capture("act6_token_ca_card.png", "Official $TAP token buy page with contract address pill and Jupiter trade button");
+  // Also keep act6_grand_prize.png for backward compatibility
+  fs.copyFileSync(path.join(scenesDir, "act6_token_ca_card.png"), path.join(scenesDir, "act6_grand_prize.png"));
 
   // Clean up
   ws.close();

@@ -77,15 +77,16 @@ if (!fs.existsSync(audioTrackPath)) {
 }
 
 // Scene definitions across the 6 acts (Total: exactly 2400 frames = 40.00s @ 60 FPS)
+// Scene definitions across the 6 acts (Total: exactly 2400 frames = 40.00s @ 60 FPS)
 const SCENE_DEFINITIONS = [
-  // --- ACT 1: First Arrival (0:00 - 0:05, 5.0s, 300 frames) ---
+  // --- ACT 1: First Arrival (0:00 - 0:03, 3.0s, 180 frames) ---
   {
     id: 'seg01_act1_terminal',
     act: 'Act 1: First Arrival',
     image: 'act1_terminal.png',
-    frames: 300, // 5.00s
+    frames: 180, // 3.00s
     desc: 'Lobby Battle Station terminal fly-in with live ticker & trollbox',
-    zoompan: "zoompan=z='min(1.0+0.12*(on/300),1.12)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=300:s=1920x1080:fps=60",
+    zoompan: "zoompan=z='min(1.0+0.10*(on/180),1.10)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=180:s=1920x1080:fps=60",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
@@ -97,7 +98,7 @@ const SCENE_DEFINITIONS = [
     ]
   },
 
-  // --- ACT 2: Instant Wallet Connect (0:05 - 0:09, 4.0s, 240 frames total) ---
+  // --- ACT 2: Instant Wallet Connect (0:03 - 0:07, 4.0s, 240 frames total) ---
   {
     id: 'seg02_act2_wallet_modal',
     act: 'Act 2: Instant Wallet Connect (Modal)',
@@ -117,41 +118,58 @@ const SCENE_DEFINITIONS = [
     act: 'Act 2: Instant Wallet Connect (Connected)',
     image: 'act2_wallet_connected.png',
     frames: 120, // 2.00s
-    desc: 'Authenticated session with green verified pill and Drop In CTA',
-    zoompan: "zoompan=z='max(1.06-0.06*(on/120),1.00)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=120:s=1920x1080:fps=60,fade=t=in:st=0:d=0.30",
+    desc: 'Authenticated session with green verified pill and Free Practice CTA',
+    zoompan: "zoompan=z='max(1.06-0.06*(on/120),1.00)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=120:s=1920x1080:fps=60,fade=t=in:st=0:d=0.25",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
       drawText(FONT_SEGOEUI_BOLD, 'WALLET CONNECTED: 2Mz6...ndCE // AUTHENTICATED', '0x00FFA3', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'ZERO SEED PHRASE FRICTION // READY TO DROP IN & CHOP', '0xFFD000', 20, '(w-text_w)/2', 76)
+      drawText(FONT_CONSOLA_BOLD, 'ZERO SEED PHRASE FRICTION // READY TO DROP IN FREE PRACTICE', '0xFFD000', 20, '(w-text_w)/2', 76)
     ]
   },
 
-  // --- ACT 3: High-Octane Gameplay (0:09 - 0:22, 13.0s, 780 frames total) ---
+  // --- ACT 3: Core Run Mechanics (0:07 - 0:14, 7.0s, 420 frames total) ---
   {
     id: 'seg04_act3_gameplay_chop',
-    act: 'Act 3: Gameplay Run (Timber Chop)',
+    act: 'Act 3: Endless Arcade Run (Timber Chop)',
     image: 'act3_gameplay_chop.png',
     frames: 150, // 2.50s
-    desc: 'Timber chopping action with dynamic punch zoom',
-    zoompan: "zoompan=z='1.0+0.18*sin((on/150)*PI)':x='iw*0.44-(iw/zoom/2)':y='ih*0.50-(ih/zoom/2)':d=150:s=1920x1080:fps=60",
+    desc: 'Timber chopping action with dynamic punch zoom and wood chips',
+    zoompan: "zoompan=z='1.0+0.16*sin((on/150)*PI)':x='iw*0.44-(iw/zoom/2)':y='ih*0.50-(ih/zoom/2)':d=150:s=1920x1080:fps=60",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
-      drawText(FONT_SEGOEUI_BOLD, 'ACT III: HIGH-OCTANE ARCADE RUN // DROP IN', '0x00FFA3', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'CHOP TIMBER · RIDE THE PUMP · DONT GET REKT', '0xFFD000', 20, '(w-text_w)/2', 76),
+      drawText(FONT_SEGOEUI_BOLD, 'ACT III: ENDLESS TIMBER SURVIVAL // DROP IN', '0x00FFA3', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'CHOP TIMBER · SURVIVE INCREASING TENSION · DONT GET REKT', '0xFFD000', 20, '(w-text_w)/2', 76),
       "drawbox=x=100:y=880:w=580:h=70:color=black@0.85:t=fill",
       "drawbox=x=100:y=880:w=580:h=70:color=0x00FFA3:t=3",
       drawText(FONT_SEGOEUI_BOLD, '+10 CHOP! // TIMBER FELL', '0x00FFA3', 28, 130, 898)
     ]
   },
   {
-    id: 'seg05_act3_rat_stomp',
-    act: 'Act 3: Gameplay Run (Rat Stomp)',
-    image: 'act3_rat_stomp.png',
+    id: 'seg05_act3_candle_streak',
+    act: 'Act 3: Endless Arcade Run (Candle Streak)',
+    image: 'act3_candle_streak.png',
     frames: 150, // 2.50s
-    desc: 'Jump over chasm & Rat Stomp with jump buffering & coyote time',
-    zoompan: "zoompan=z='1.08+0.14*sin((on/150)*PI)':x='iw*0.48-(iw/zoom/2)':y='ih*0.55-(ih/zoom/2)':d=150:s=1920x1080:fps=60",
+    desc: 'Slicing green candles with 5x STREAK combo and God Candle sparkle burst',
+    zoompan: "zoompan=z='min(1.02+0.12*(on/150),1.14)':x='iw*0.46-(iw/zoom/2)':y='ih*0.48-(ih/zoom/2)':d=150:s=1920x1080:fps=60",
+    overlays: [
+      "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
+      "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
+      drawText(FONT_SEGOEUI_BOLD, 'RIDE THE GREEN PUMP // GOD CANDLE SURGE', '0x00FFA3', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'SLICE GREEN CANDLES +10 PTS · DODGE DUMP PENALTIES', '0xFFD000', 20, '(w-text_w)/2', 76),
+      "drawbox=x=100:y=880:w=620:h=70:color=black@0.85:t=fill",
+      "drawbox=x=100:y=880:w=620:h=70:color=0x00FFA3:t=3",
+      drawText(FONT_SEGOEUI_BOLD, '5x STREAK ACTIVE! 🔥 // PENTATONIC COMBO', '0x00FFA3', 28, 130, 898)
+    ]
+  },
+  {
+    id: 'seg06_act3_rat_stomp',
+    act: 'Act 3: Endless Arcade Run (Rat Stomp)',
+    image: 'act3_rat_stomp.png',
+    frames: 120, // 2.00s
+    desc: 'Jump over obstacle & Rat Stomp with jump buffering & coyote time',
+    zoompan: "zoompan=z='1.06+0.10*sin((on/120)*PI)':x='iw*0.48-(iw/zoom/2)':y='ih*0.55-(ih/zoom/2)':d=120:s=1920x1080:fps=60",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0xFFD000:t=fill",
@@ -162,9 +180,47 @@ const SCENE_DEFINITIONS = [
       drawText(FONT_SEGOEUI_BOLD, '+10 STOMP! 🐀💥 // COMBO MULTIPLIER x2', '0x00FFA3', 28, 130, 898)
     ]
   },
+
+  // --- ACT 4: Hazards & Mystery Crates (0:14 - 0:20, 6.0s, 360 frames total) ---
   {
-    id: 'seg06_act3_bear_combat',
-    act: 'Act 3: Gameplay Run (Bear Combat)',
+    id: 'seg07_act4_chasm_leap',
+    act: 'Act 4: Platforming Hazards (Chasm Leap)',
+    image: 'act4_chasm_leap.png',
+    frames: 180, // 3.00s
+    desc: 'Ape leaping across deep chasm gap with danger indicator',
+    zoompan: "zoompan=z='1.06+0.08*sin((on/180)*PI)':x='iw*0.50-(iw/zoom/2)':y='ih*0.52-(ih/zoom/2)':d=180:s=1920x1080:fps=60",
+    overlays: [
+      "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
+      "drawbox=x=0:y=100:w=1920:h=4:color=0xFFD000:t=fill",
+      drawText(FONT_SEGOEUI_BOLD, 'ACT IV: LETHAL JURANG & CHASMS // PRECISION TIMING', '0xFFD000', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'PRACTICE GAP DISTANCE · TIMED HOP · AVOID FATAL PITFALLS', '0x00FFA3', 20, '(w-text_w)/2', 76),
+      "drawbox=x=100:y=880:w=620:h=70:color=black@0.85:t=fill",
+      "drawbox=x=100:y=880:w=620:h=70:color=0xFFD000:t=3",
+      drawText(FONT_SEGOEUI_BOLD, '⚠ CHASM HAZARD // ATHLETIC LEAP CLEARED', '0xFFD000', 28, 130, 898)
+    ]
+  },
+  {
+    id: 'seg08_act4_crate_unlock',
+    act: 'Act 4: Mystery Crates & Buffs (Shield & Heart)',
+    image: 'act4_crate_unlock.png',
+    frames: 180, // 3.00s
+    desc: 'Mystery crate shattered with powerup burst, Shield forcefield, and Heart drop',
+    zoompan: "zoompan=z='min(1.04+0.12*(on/180),1.16)':x='iw*0.52-(iw/zoom/2)':y='ih*0.50-(ih/zoom/2)':d=180:s=1920x1080:fps=60",
+    overlays: [
+      "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
+      "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
+      drawText(FONT_SEGOEUI_BOLD, 'MYSTERY CRATE UNLOCKED! 📦✨ // SURVIVAL BUFFS', '0x00FFA3', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'SHIELD INVULNERABILITY AURA · HEART +1 EXTRA LIFE', '0xFFD000', 20, '(w-text_w)/2', 76),
+      "drawbox=x=100:y=880:w=680:h=70:color=black@0.85:t=fill",
+      "drawbox=x=100:y=880:w=680:h=70:color=0x00FFA3:t=3",
+      drawText(FONT_SEGOEUI_BOLD, 'SHIELD ACTIVE 🛡️ · +1 EXTRA LIFE ❤️ // SURVIVE', '0x00FFA3', 28, 130, 898)
+    ]
+  },
+
+  // --- ACT 5: Boss Combat & Acceleration (0:20 - 0:28, 8.0s, 480 frames total) ---
+  {
+    id: 'seg09_act5_bear_combat',
+    act: 'Act 5: Boss Combat (Cyber Bear Encounter)',
     image: 'act3_bear_combat.png',
     frames: 150, // 2.50s
     desc: 'Patrolling cyber Bear combat encounter with 3 HP cyber bar',
@@ -172,16 +228,16 @@ const SCENE_DEFINITIONS = [
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0xFF3B30:t=fill",
-      drawText(FONT_SEGOEUI_BOLD, 'BOSS ENCOUNTER: PATROLLING CYBER BEAR // 3 HP', '0xFF3B30', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'MULTI-HIT COMBAT · CHARGE ROAR · DODGE OR COUNTER-HIT', '0xFFD000', 20, '(w-text_w)/2', 76),
+      drawText(FONT_SEGOEUI_BOLD, 'ACT V: BOSS ENCOUNTER // PATROLLING CYBER BEAR', '0xFF3B30', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'MULTI-HIT COMBAT · 3 HP CYBER HEALTH BAR · ATTACK CHARGE', '0xFFD000', 20, '(w-text_w)/2', 76),
       "drawbox=x=100:y=880:w=620:h=70:color=black@0.85:t=fill",
       "drawbox=x=100:y=880:w=620:h=70:color=0xFF3B30:t=3",
       drawText(FONT_SEGOEUI_BOLD, 'WARNING: BEAR ATTACK CHARGE // 3 HP', '0xFF3B30', 28, 130, 898)
     ]
   },
   {
-    id: 'seg07_act3_bear_counterhit',
-    act: 'Act 3: Gameplay Run (Counter-Hit Clash)',
+    id: 'seg10_act5_bear_counterhit',
+    act: 'Act 5: Boss Combat (Counter-Hit Parry)',
     image: 'act3_bear_counterhit.png',
     frames: 150, // 2.50s
     desc: 'Axe parry counter-hit clash with spark bloom and camera recoil shake',
@@ -189,16 +245,16 @@ const SCENE_DEFINITIONS = [
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0xFFD000:t=fill",
-      drawText(FONT_SEGOEUI_BOLD, 'COUNTER HIT! ⚡ // PERFECT TIMING PARRY', '0xFFD000', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'ELECTRIC SPARK BLOOM · CRITICAL DAMAGE · BEAR STAGGERED', '0x00FFA3', 20, '(w-text_w)/2', 76),
+      drawText(FONT_SEGOEUI_BOLD, 'COUNTER HIT! ⚡ // PERFECT TIMING AXE PARRY', '0xFFD000', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'ELECTRIC SPARK BLOOM · CRITICAL STAGGER · BEAR STUNNED', '0x00FFA3', 20, '(w-text_w)/2', 76),
       "drawbox=x=100:y=880:w=660:h=70:color=black@0.85:t=fill",
       "drawbox=x=100:y=880:w=660:h=70:color=0xFFD000:t=3",
       drawText(FONT_SEGOEUI_BOLD, 'COUNTER HIT! ⚡ // CRITICAL MULTIPLIER x3', '0xFFD000', 28, 130, 898)
     ]
   },
   {
-    id: 'seg08_act3_bear_rekt',
-    act: 'Act 3: Gameplay Run (Bear Rekt & Hurry-Up Mode)',
+    id: 'seg11_act5_bear_rekt',
+    act: 'Act 5: Boss Combat (Bear Rekt & Pump Surge)',
     image: 'act3_bear_rekt.png',
     frames: 180, // 3.00s
     desc: 'Bear defeated with 3 green pump candles & 176 BPM Hurry-Up acceleration',
@@ -207,93 +263,55 @@ const SCENE_DEFINITIONS = [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
       drawText(FONT_SEGOEUI_BOLD, 'BEAR REKT! 🐻💥 +30 PTS // 3 PUMP CANDLES UNLEASHED', '0x00FFA3', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'BEAR MARKET DUMP SQUASHED · GOD CANDLE SURGE ACTIVE', '0xFFD000', 20, '(w-text_w)/2', 76),
+      drawText(FONT_CONSOLA_BOLD, 'BEAR MARKET DUMP SQUASHED · SURVIVE TO ADVANCE', '0xFFD000', 20, '(w-text_w)/2', 76),
       "drawbox=x=360:y=960:w=1200:h=68:color=black@0.88:t=fill",
       "drawbox=x=360:y=960:w=1200:h=68:color=0xFF3B30:t=3",
-      drawText(FONT_SEGOEUI_BOLD, 'HURRY-UP MODE ACTIVE // 176 BPM // LAST 10 SECONDS TENSION', '0xFF3B30', 28, '(w-text_w)/2', 978)
+      drawText(FONT_SEGOEUI_BOLD, 'HURRY-UP MODE ACTIVE // 176 BPM // INTENSE HIGH TENSION', '0xFF3B30', 28, '(w-text_w)/2', 978)
     ]
   },
 
-  // --- ACT 4: Level 1 Cleared & Advance to Level 2 (0:22 - 0:28, 6.0s, 360 frames total) ---
+  // --- ACT 6: Grand Finale — ATH Flex, Leaderboard & Official Token CA (0:28 - 0:40, 12.0s, 720 frames total) ---
   {
-    id: 'seg09_act4_level1_clear',
-    act: 'Act 4: Level 1 Clear (Hit-Stop & Flash)',
-    image: 'act4_level1_clear.png',
-    frames: 150, // 2.50s
-    desc: '150ms hit-stop freeze silence followed by Bull Green flash and particle celebration',
-    zoompan: "zoompan=z='if(lt(on,10),1.25,max(1.25-0.25*((on-10)/140),1.00))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=150:s=1920x1080:fps=60",
-    overlays: [
-      "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
-      "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
-      drawText(FONT_SEGOEUI_BOLD, 'ACT IV: LEVEL 1 CLEARED // 150MS HIT-STOP IMPACT', '0x00FFA3', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'FINAL TIMBER FELLED · SOLANA BULL GREEN SCREEN FLASH · PARTICLES BURST', '0xFFD000', 20, '(w-text_w)/2', 76),
-      "drawbox=x=100:y=880:w=640:h=70:color=black@0.85:t=fill",
-      "drawbox=x=100:y=880:w=640:h=70:color=0x00FFA3:t=3",
-      drawText(FONT_SEGOEUI_BOLD, 'LEVEL 1 CLEARED! // PUMP CONFIRMED', '0x00FFA3', 28, 130, 898)
-    ]
-  },
-  {
-    id: 'seg10_act4_level2_banner',
-    act: 'Act 4: Level 2 Banner Transition',
-    image: 'act4_level2_banner.png',
-    frames: 210, // 3.50s
-    desc: 'Center Level 2 banner transition with velocity boost',
-    zoompan: "zoompan=z='min(1.00+0.14*(on/210),1.14)':x='iw/2-(iw/zoom/2)':y='ih*0.48-(ih/zoom/2)':d=210:s=1920x1080:fps=60",
-    overlays: [
-      "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
-      "drawbox=x=0:y=100:w=1920:h=4:color=0xFFD000:t=fill",
-      drawText(FONT_SEGOEUI_BOLD, 'LEVEL 2 UNLOCKED // VELOCITY x1.25 SPEED BOOST', '0xFFD000', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'ADVANCING TO LEVEL 2 · HIGHER TIMBER VELOCITY · EXPONENTIAL MULTIPLIER', '0x00FFA3', 20, '(w-text_w)/2', 76),
-      "drawbox=x=360:y=960:w=1200:h=68:color=black@0.88:t=fill",
-      "drawbox=x=360:y=960:w=1200:h=68:color=0x00FFA3:t=3",
-      drawText(FONT_SEGOEUI_BOLD, 'LEVEL 1 CLEARED // ADVANCING TO LEVEL 2 // VELOCITY x1.25', '0x00FFA3', 28, '(w-text_w)/2', 978)
-    ]
-  },
-
-  // --- ACT 5: ATH Score Flex & Leaderboard (0:28 - 0:34, 6.0s, 360 frames total) ---
-  {
-    id: 'seg11_act5_ath_results',
-    act: 'Act 5: ATH Score Flex (Results)',
+    id: 'seg12_act6_ath_results',
+    act: 'Act 6: All-Time High & Global Podium (Results ATH)',
     image: 'act5_ath_results.png',
-    frames: 180, // 3.00s
+    frames: 240, // 4.00s
     desc: 'Celebrating Ape mascot with 42,069 score and NEW ALL-TIME HIGH badge',
-    zoompan: "zoompan=z='1.02+0.06*sin((on/180)*PI)':x='iw*0.45-(iw/zoom/2)':y='ih*0.48-(ih/zoom/2)':d=180:s=1920x1080:fps=60",
+    zoompan: "zoompan=z='1.02+0.06*sin((on/240)*PI)':x='iw*0.45-(iw/zoom/2)':y='ih*0.48-(ih/zoom/2)':d=240:s=1920x1080:fps=60",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0x00FFA3:t=fill",
-      drawText(FONT_SEGOEUI_BOLD, 'ACT V: NEW ALL-TIME HIGH (ATH) RECORDED!', '0x00FFA3', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'GLOBAL SERVER-VALIDATED RUN · PROVABLY VERIFIED ON SOLANA', '0xFFD000', 20, '(w-text_w)/2', 76),
+      drawText(FONT_SEGOEUI_BOLD, 'ACT VI: NEW ALL-TIME HIGH (ATH) RECORDED!', '0x00FFA3', 34, '(w-text_w)/2', 34),
+      drawText(FONT_CONSOLA_BOLD, 'GLOBAL SERVER-VALIDATED RUN · 18 TREES FELLED · PROVABLY VERIFIED', '0xFFD000', 20, '(w-text_w)/2', 76),
       "drawbox=x=100:y=880:w=640:h=70:color=black@0.85:t=fill",
       "drawbox=x=100:y=880:w=640:h=70:color=0xFFD000:t=3",
-      drawText(FONT_SEGOEUI_BOLD, 'ATH SCORE: 42,069 PTS // LEVEL 2 VERIFIED', '0xFFD000', 28, 130, 898)
+      drawText(FONT_SEGOEUI_BOLD, 'ATH SCORE: 42,069 PTS // PROVABLY VERIFIED', '0xFFD000', 28, 130, 898)
     ]
   },
   {
-    id: 'seg12_act5_leaderboard_podium',
-    act: 'Act 5: ATH Score Flex (Leaderboard #1)',
+    id: 'seg13_act6_leaderboard_podium',
+    act: 'Act 6: All-Time High & Global Podium (Leaderboard #1)',
     image: 'act5_leaderboard_podium.png',
-    frames: 180, // 3.00s
+    frames: 240, // 4.00s
     desc: 'Top 3 podium ranking vertical pan up to #1 ApexAdmin · 42,069 PTS',
-    zoompan: "zoompan=z=1.06:x='iw/2-(iw/zoom/2)':y='max(ih*0.56-(ih/zoom/2)-(on/180)*90,ih*0.46-(ih/zoom/2))':d=180:s=1920x1080:fps=60",
+    zoompan: "zoompan=z=1.06:x='iw/2-(iw/zoom/2)':y='max(ih*0.56-(ih/zoom/2)-(on/240)*110,ih*0.46-(ih/zoom/2))':d=240:s=1920x1080:fps=60",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=76:color=black@0.80:t=fill",
       "drawbox=x=0:y=100:w=1920:h=4:color=0xFFD000:t=fill",
       drawText(FONT_SEGOEUI_BOLD, 'GLOBAL LIVE LEADERBOARD // RANK #1: APEXADMIN', '0xFFD000', 34, '(w-text_w)/2', 34),
-      drawText(FONT_CONSOLA_BOLD, 'NEW ALL-TIME HIGH (ATH) // GLOBAL LEADERBOARD #1 RANK', '0x00FFA3', 20, '(w-text_w)/2', 76),
+      drawText(FONT_CONSOLA_BOLD, '10% DEV TREASURY POOL · MONTH 1 GRAND PRIZE REWARD', '0x00FFA3', 20, '(w-text_w)/2', 76),
       "drawbox=x=100:y=880:w=680:h=70:color=black@0.85:t=fill",
       "drawbox=x=100:y=880:w=680:h=70:color=0x00FFA3:t=3",
-      drawText(FONT_SEGOEUI_BOLD, 'PODIUM #1 UNLOCKED // 10% DEV WALLET POOL CONTENDER', '0x00FFA3', 26, 130, 898)
+      drawText(FONT_SEGOEUI_BOLD, 'CLIMB THE LEADERBOARD · WIN 10% DEV WALLET PRIZE', '0x00FFA3', 26, 130, 898)
     ]
   },
-
-  // --- ACT 6: Grand Prize Callout & Call to Action (0:34 - 0:40, 6.0s, 360 frames total) ---
   {
-    id: 'seg13_act6_grand_prize',
-    act: 'Act 6: Grand Prize Callout & Call to Action',
-    image: 'act6_grand_prize.png',
-    frames: 360, // 6.00s
-    desc: 'Season 1 Grand Championship competition rule + Token Mint CA + fade to black at 39.8s',
-    zoompan: "zoompan=z='max(1.10-0.10*(on/360),1.00)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=360:s=1920x1080:fps=60,fade=t=out:st=5.5:d=0.5",
+    id: 'seg14_act6_token_ca_card',
+    act: 'Act 6: Official Token Contract & Trade CTA',
+    image: 'act6_token_ca_card.png',
+    frames: 240, // 4.00s
+    desc: 'Grand closing card with official Ape mascot, Token CA, and Jupiter CTA',
+    zoompan: "zoompan=z='max(1.10-0.10*(on/240),1.00)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=240:s=1920x1080:fps=60,fade=t=out:st=3.5:d=0.5",
     overlays: [
       "drawbox=x=0:y=24:w=1920:h=56:color=black@0.85:t=fill",
       "drawbox=x=0:y=80:w=1920:h=3:color=0xFFD000:t=fill",
@@ -396,12 +414,12 @@ for (let i = 0; i < SCENE_DEFINITIONS.length; i++) {
 }
 
 const renderElapsed = ((Date.now() - startTimeAll) / 1000).toFixed(1);
-console.log(`\n[Assembly] All 13 video segments rendered successfully in ${renderElapsed}s.`);
+console.log(`\n[Assembly] All ${SCENE_DEFINITIONS.length} video segments rendered successfully in ${renderElapsed}s.`);
 
 // Step 2: Concatenate segments
-console.log('\n[Assembly] ========================================');
+console.log('\n========================================');
 console.log('[Assembly] Step 2: Concatenating Video Segments');
-console.log('[Assembly] ========================================');
+console.log('========================================');
 
 const concatListFile = path.resolve(tempBuildDir, 'concat_list.txt');
 const concatContent = segmentFiles.map(f => `file '${f}'`).join('\n');
@@ -429,9 +447,9 @@ if (concatRes.status !== 0) {
 console.log(`[Assembly] Concat completed -> ${rawMergedVideo}`);
 
 // Step 3: Mux with 40.00s Audio Track
-console.log('\n[Assembly] ========================================');
+console.log('\n========================================');
 console.log('[Assembly] Step 3: Audio Muxing & Final Mastering');
-console.log('[Assembly] ========================================');
+console.log('========================================');
 
 const audioNormalizedPath = audioTrackPath.replace(/\\/g, '/');
 const outputNormalizedPath = outputVideoPath.replace(/\\/g, '/');
@@ -459,7 +477,7 @@ if (muxRes.status !== 0) {
 console.log(`[Assembly] SUCCESS! Master trailer rendered to:\n  ${outputNormalizedPath}`);
 
 // Step 4: Copy to brain/user artifacts directory if available
-const brainDir = 'C:/Users/indra/.gemini/antigravity/brain/7842554f-024c-43c8-b841-99760e450442';
+const brainDir = 'C:/Users/indra/.gemini/antigravity/brain/094d5c96-2df4-4e23-9ed2-58dae2fa6bd8';
 if (fs.existsSync(brainDir)) {
   const artifactTarget = path.resolve(brainDir, 'tap_intro_trailer.mp4');
   try {

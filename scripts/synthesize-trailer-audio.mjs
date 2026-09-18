@@ -721,6 +721,158 @@ function renderAthCascade(startTime) {
 }
 
 /**
+ * Bear Guttural Roar (Act 5: 20.4s)
+ * Thick guttural throat growl with 28 Hz flutter and bandpass formant filter
+ */
+function renderBearRoar(startTime) {
+  const startSample = Math.round(startTime * sampleRate);
+  const totalLen = 0.55;
+  const lengthSamples = Math.round(totalLen * sampleRate);
+  const filter = new BiquadFilter('bandpass', 680, 2.2, sampleRate);
+  const netGain = SFX_GAIN * MASTER_GAIN * 0.95;
+
+  let osc1Phase = 0, osc2Phase = 0, lfoPhase = 0;
+
+  mixChunk(startSample, lengthSamples, (t) => {
+    if (t > 0.52) return 0;
+    lfoPhase += 28 / sampleRate;
+    const lfo = Math.sin(2 * Math.PI * lfoPhase) * 38;
+
+    let f1 = (t <= 0.15) ? (240 - (60 * (t / 0.15))) : (180 - (65 * ((t - 0.15) / 0.37)));
+    let f2 = (t <= 0.15) ? (252 - (64 * (t / 0.15))) : (188 - (70 * ((t - 0.15) / 0.37)));
+    f1 = Math.max(60, f1 + lfo);
+    f2 = Math.max(60, f2 + lfo);
+
+    osc1Phase += f1 / sampleRate;
+    osc2Phase += f2 / sampleRate;
+
+    const saw1 = 2 * (osc1Phase % 1.0) - 1.0;
+    const saw2 = 2 * (osc2Phase % 1.0) - 1.0;
+    const filtered = filter.process((saw1 + saw2) * 0.5);
+
+    let env = 0.01;
+    if (t <= 0.06) {
+      env = 0.01 + (0.65 - 0.01) * (t / 0.06);
+    } else if (t <= 0.28) {
+      env = 0.65 - (0.10 * ((t - 0.06) / 0.22));
+    } else {
+      env = 0.55 * Math.pow(0.01 / 0.55, (t - 0.28) / 0.24);
+    }
+
+    return filtered * env * netGain;
+  }, -0.15);
+}
+
+/**
+ * Bear Claw Slash / Attack (Act 5: 21.5s)
+ * Heavy paw whoosh + multi-talon razor friction tear + snarl
+ */
+function renderBearAttack(startTime) {
+  const startSample = Math.round(startTime * sampleRate);
+  const totalLen = 0.28;
+  const lengthSamples = Math.round(totalLen * sampleRate);
+  const bpFilter = new BiquadFilter('bandpass', 850, 1.6, sampleRate);
+  const hpFilter = new BiquadFilter('highpass', 2200, 2.0, sampleRate);
+  const netGain = SFX_GAIN * MASTER_GAIN * 0.9;
+
+  let snarlPhase = 0, lfoPhase = 0;
+
+  mixChunk(startSample, lengthSamples, (t, sIdx) => {
+    if (t > 0.25) return 0;
+    const rawNoise = noiseBuffer[sIdx % NOISE_BUFFER_SIZE];
+    const whoosh = bpFilter.process(rawNoise);
+    const tear = hpFilter.process(rawNoise);
+
+    lfoPhase += 30 / sampleRate;
+    const lfo = Math.sin(2 * Math.PI * lfoPhase) * 45;
+    const fSnarl = Math.max(50, 360 * Math.pow(120 / 360, t / 0.25) + lfo);
+    snarlPhase += fSnarl / sampleRate;
+    const snarlSaw = 2 * (snarlPhase % 1.0) - 1.0;
+
+    let envWhoosh = (t <= 0.06) ? (t / 0.06) : Math.pow(0.001, (t - 0.06) / 0.19);
+    let envTear = (t <= 0.07) ? (t / 0.07) : Math.pow(0.001, (t - 0.07) / 0.18);
+    let envSnarl = (t <= 0.04) ? (t / 0.04) : Math.pow(0.01, (t - 0.04) / 0.21);
+
+    const out = (whoosh * envWhoosh * 0.5) + (tear * envTear * 0.45) + (snarlSaw * envSnarl * 0.35);
+    return out * netGain;
+  }, 0.2);
+}
+
+/**
+ * Crate Break / Shatter (Act 4: 17.5s)
+ * Loud splintering wood fracture + snap pop
+ */
+function renderCrateBreak(startTime) {
+  const startSample = Math.round(startTime * sampleRate);
+  const totalLen = 0.22;
+  const lengthSamples = Math.round(totalLen * sampleRate);
+  const filter = new BiquadFilter('bandpass', 950, 1.8, sampleRate);
+  const netGain = SFX_GAIN * MASTER_GAIN * 0.85;
+
+  let popPhase = 0;
+
+  mixChunk(startSample, lengthSamples, (t, sIdx) => {
+    if (t > 0.20) return 0;
+    const rawNoise = noiseBuffer[sIdx % NOISE_BUFFER_SIZE];
+    const woodSplinter = filter.process(rawNoise);
+
+    const f = 220 * Math.pow(40 / 220, Math.min(1.0, t / 0.10));
+    popPhase += f / sampleRate;
+    const pop = (popPhase % 1.0 < 0.5) ? 1.0 : -1.0;
+
+    const envSplinter = 0.35 * Math.pow(0.001 / 0.35, Math.min(1.0, t / 0.18));
+    const envPop = 0.30 * Math.pow(0.01 / 0.30, Math.min(1.0, t / 0.10));
+
+    return (woodSplinter * envSplinter + pop * envPop) * netGain;
+  }, 0.1);
+}
+
+/**
+ * Shield Forcefield Activation Chime (Act 4: 17.9s)
+ */
+function renderShieldCollect(startTime) {
+  const startSample = Math.round(startTime * sampleRate);
+  const totalLen = 0.28;
+  const lengthSamples = Math.round(totalLen * sampleRate);
+  const netGain = SFX_GAIN * MASTER_GAIN * 0.7;
+  let phase = 0;
+
+  mixChunk(startSample, lengthSamples, (t) => {
+    if (t > 0.26) return 0;
+    const f = 320 * Math.pow(740 / 320, Math.min(1.0, t / 0.18));
+    phase += f / sampleRate;
+    const norm = phase % 1.0;
+    const wave = 4.0 * Math.abs(norm - 0.5) - 1.0;
+    const env = 0.28 * Math.pow(0.01 / 0.28, Math.min(1.0, t / 0.26));
+    return wave * env * netGain;
+  }, -0.2);
+}
+
+/**
+ * Heart Celestial Healing Chime (Act 4: 18.5s)
+ */
+function renderHeartCollect(startTime) {
+  const notes = [523.25, 659.25, 783.99, 1046.5];
+  const netGain = SFX_GAIN * MASTER_GAIN * 0.65;
+
+  notes.forEach((freq, idx) => {
+    const noteTime = startTime + idx * 0.05;
+    const startSample = Math.round(noteTime * sampleRate);
+    const totalLen = 0.22;
+    const lengthSamples = Math.round(totalLen * sampleRate);
+    let phase = 0;
+
+    mixChunk(startSample, lengthSamples, (t) => {
+      if (t > 0.20) return 0;
+      phase += freq / sampleRate;
+      const s = Math.sin(2 * Math.PI * phase);
+      const env = 0.24 * Math.pow(0.001 / 0.24, Math.min(1.0, t / 0.18));
+      return s * env * netGain;
+    }, (idx % 2 === 0 ? -0.2 : 0.2));
+  });
+}
+
+/**
  * Rank #1 Podium Unlock Chime (Act 5: 32.0s)
  */
 function renderRank1Unlock(startTime) {
@@ -853,16 +1005,13 @@ let currentStep = 0;
 
 // Schedule full timeline
 while (currentTime < durationSec) {
-  // Determine current scene & tempo parameters
+  // Determine current scene & tempo parameters:
   // Initial tempo: 132 BPM
-  // Hurry-Up acceleration: 18.0s to 22.0s (Bear climax) & 24.5s to 28.0s (Level 2 drive)
-  // Hit-stop silence: 22.0s to 22.15s
-  // Outro cadence: 36.8s to 40.0s (BGM steps stop, chord rings out)
+  // Hurry-Up acceleration: 20.0s to 28.0s (Bear encounter, counter-hit parry & defeat celebration)
+  // Outro cadence: 36.8s to 40.0s (Sequencer pauses, grand resolving A Major chord rings out)
 
-  const isHitStop = (currentTime >= 22.0 && currentTime < 22.15);
   const isOutro = (currentTime >= 36.8);
-  const isHurryUp = (currentTime >= 18.0 && currentTime < 22.0) || 
-                    (currentTime >= 24.5 && currentTime < 28.0);
+  const isHurryUp = (currentTime >= 20.0 && currentTime < 28.0);
 
   const bpm = isHurryUp ? 176 : 132;
   const stepDuration = 60.0 / bpm / 4;
@@ -872,15 +1021,8 @@ while (currentTime < durationSec) {
     break;
   }
 
-  if (isHitStop) {
-    // 150ms hit-stop silence: advance time without scheduling notes
-    currentTime += 0.15;
-    currentStep = 0;
-    continue;
-  }
-
-  // Act 1 Intro: Bar 0 and Bar 1 (0.00s to 3.636s) have bass + drums only, lead enters at step 32
-  const leadActive = (currentTime >= 3.636) && (currentTime < 22.0 || currentTime >= 24.5);
+  // Lead enters at 2.5s and plays until outro
+  const leadActive = (currentTime >= 2.5) && (currentTime < 36.8);
 
   // 1. Voice 1: Square Lead
   if (leadActive) {
@@ -890,7 +1032,7 @@ while (currentTime < durationSec) {
 
   // 2. Voice 2: Triangle Bass
   const bassFreq = BASS_PATTERN[currentStep];
-  if (bassFreq !== null && (currentTime < 22.0 || currentTime >= 24.5)) {
+  if (bassFreq !== null && currentTime < 36.8) {
     renderBass(currentTime, bassFreq, stepDuration * 2, 0.0);
   }
 
@@ -918,49 +1060,59 @@ while (currentTime < durationSec) {
 }
 
 // -------------------------------------------------------------
-// SYNCHRONIZED STORYBOARD SFX CUES (All 6 Acts)
+// SYNCHRONIZED STORYBOARD SFX CUES (All 14 Authentic Scenes)
 // -------------------------------------------------------------
 
 console.log('[AudioSynth] Scheduling synchronized SFX cues...');
 
-// Act 1: First Arrival (0.0s - 5.0s)
-renderPowerOnChirp(0.00);
-renderClick(1.50);          // Docked trollbox chat tick
-renderTerminalChime(3.50);  // Terminal UI focus chime
+// --- ACT 1: First Arrival (0.0s - 3.0s) ---
+renderPowerOnChirp(0.00);      // Arcade power-on sweep
+renderClick(1.50);             // Docked trollbox live chat tick
+renderTerminalChime(2.40);     // Terminal UI focus chime
 
-// Act 2: Instant Wallet Connect (5.0s - 9.0s)
-renderClick(5.50);          // Wallet modal popup click
-renderClick(7.00);          // Phantom/Solflare badge select click
-renderGaslessAuthChime(8.00); // Instant gasless auth crystal chime
+// --- ACT 2: Instant Wallet Connect (3.0s - 7.0s) ---
+renderClick(3.20);             // Wallet modal popup click
+renderClick(4.20);             // Phantom/Solflare badge select click
+renderGaslessAuthChime(5.20);  // Instant gasless auth crystal chime
+renderClick(6.60);             // Drop In Free Practice CTA click
 
-// Act 3: High-Octane Gameplay (9.0s - 22.0s)
-renderJump(9.20);           // Run start leap whoosh
-renderChop(10.40);          // Timber chop 1
-renderChop(11.50);          // Timber chop 2
-renderJump(12.50);          // Chasm leap whoosh
-renderRatStomp(13.40);      // Rat stomp mechanic (+10 STOMP!)
-renderChop(15.00);          // Bear axe strike 1
-renderCounterHitSpark(16.20); // Bear COUNTER HIT! ⚡ spark crack
-renderBearDefeat(17.40);    // BEAR REKT! 🐻💥 + 3 green pump candles
-renderHurryUpAlert(18.00);  // Hurry-Up tension alert beep & tempo ramp
+// --- ACT 3: Core Run Mechanics (7.0s - 14.0s) ---
+renderJump(7.10);              // Run start drop-in leap
+renderChop(7.60);              // Timber chop 1 (+10 CHOP!)
+renderChop(8.70);              // Timber chop 2
+renderGreen(9.70, 1, -0.2);    // Green candle 1
+renderGreen(10.15, 2, 0.2);    // Green candle 2
+renderGreen(10.60, 3, -0.15);  // Green candle 3
+renderGreen(11.05, 4, 0.15);   // Green candle 4
+renderGreen(11.50, 5, 0.0);    // 5x STREAK God Candle flourish! 🔥
+renderJump(12.30);             // Jump towards rat
+renderRatStomp(12.80);         // Rat stomp rebound squash (+10 STOMP!)
 
-// Act 4: Level 1 Cleared & Advance to Level 2 (22.0s - 28.0s)
-renderHeavyFellChop(22.00); // Final timber felled heavy thud
-// 22.00s - 22.15s: 150ms hit-stop silence (handled in sequencer)
-renderLevelUp(22.20);       // Victory fanfare arpeggio [440, 554, 659, 880]
-renderBullGreenShimmer(23.50); // Solana Bull Green flash shimmer
-renderJump(25.00);          // Level 2 entry leap
-renderChop(25.15);          // Level 2 speed chop
+// --- ACT 4: Platforming Hazards & Mystery Crates (14.0s - 20.0s) ---
+renderJump(14.30);             // Chasm athletic leap whoosh
+renderChop(15.60, 0.9);        // Heavy landing thock
+renderChop(17.25);             // Axe strikes mystery crate
+renderCrateBreak(17.50);       // Splintering wood crate shatter!
+renderShieldCollect(17.90);    // Shield forcefield activation chime!
+renderHeartCollect(18.60);     // Heart celestial healing chime (+1 Life!)
 
-// Act 5: ATH Score Flex & Leaderboard (28.0s - 34.0s)
-renderAthCascade(28.20);    // ATH score cascade (ascending pentatonic)
-renderClick(30.50);         // Leaderboard tab click
-renderRank1Unlock(32.00);   // #1 rank highlight unlock chime + sparkle arpeggio
+// --- ACT 5: Boss Combat & Acceleration (20.0s - 28.0s) ---
+renderHurryUpAlert(20.00);     // Hurry-Up tension alert beep (176 BPM begins!)
+renderBearRoar(20.40);         // Guttural bear throat roar
+renderBearAttack(21.50);       // Bear paw claw slash whoosh & friction tear
+renderCounterHitSpark(22.80);  // Axe parry COUNTER HIT! ⚡ spark bloom crack
+renderBearDefeat(25.20);       // BEAR REKT! 🐻💥 defeat crash
+renderGreen(25.60, 5, -0.25);  // Pump candle 1 drop
+renderGreen(26.00, 6, 0.25);   // Pump candle 2 drop
+renderGreen(26.40, 7, 0.0);    // Pump candle 3 drop
 
-// Act 6: Grand Prize Callout & CTA (34.0s - 40.0s)
-renderDevWalletPrize(34.50); // Dev wallet prize impact chime
-renderClick(36.50);          // Token contract copy click
-renderOutroCadence(36.80);   // Resolving A major chord cadence with reverb tail
+// --- ACT 6: Grand Finale — ATH Flex, Leaderboard & Official Token CA (28.0s - 40.0s) ---
+renderAthCascade(28.30);       // ATH 42,069 score ascending pentatonic cascade
+renderClick(31.80);            // Navigate to leaderboard
+renderRank1Unlock(32.40);      // #1 ApexAdmin podium unlock chime & sparkle arpeggio
+renderDevWalletPrize(36.20);   // 10% Dev Treasury Pool golden bell & sub-bass impact
+renderClick(36.60);            // Token contract address copy click
+renderOutroCadence(36.80);     // Resolving A Major chord cadence ringing out to 40.00s
 
 // -------------------------------------------------------------
 // POST-PROCESSING, LIMITING & WAV ENCODING
