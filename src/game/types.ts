@@ -53,7 +53,10 @@ export interface GameBridge {
 
 export const touchInput = { left: false, right: false, jump: false };
 
+export type PlayMode = "free" | "ranked";
+
 export interface GameOptions {
+  playMode?: PlayMode;
   runDurationSec: number;
   treeHp: number;
   chopIntervalMs: number;

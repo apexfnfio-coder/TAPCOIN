@@ -14,6 +14,10 @@ interface TreasuryPoolData {
   buybackBurnPoolSol: number;
   officialPlayersCount: number;
   season: string;
+  treasuryTapBalance: number;
+  rewardPoolTap: number;
+  walletBalanceSol: number;
+  treasuryTapWallet: string;
 }
 
 interface HomeStatsData {
@@ -37,15 +41,18 @@ export function HomeArcadeClient() {
   const [copiedCA, setCopiedCA] = useState(false);
 
   useEffect(() => {
-    // Fetch live treasury pool
-    fetch("/api/treasury/pool", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((j) => {
-        if (j?.ok && j.data) {
-          setTreasuryPool(j.data);
-        }
-      })
-      .catch(() => {});
+    const fetchTreasury = () => {
+      fetch("/api/treasury/pool", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((j) => {
+          if (j?.ok && j.data) {
+            setTreasuryPool(j.data);
+          }
+        })
+        .catch(() => {});
+    };
+    fetchTreasury();
+    const treasuryInterval = setInterval(fetchTreasury, 30_000);
 
     // Fetch live game stats & top players
     fetch("/api/stats/home", { cache: "no-store" })
@@ -56,6 +63,8 @@ export function HomeArcadeClient() {
         }
       })
       .catch(() => {});
+
+    return () => clearInterval(treasuryInterval);
   }, []);
 
   const handleCopyCA = () => {
@@ -139,6 +148,40 @@ export function HomeArcadeClient() {
                   </span>
                 )}
               </div>
+                {treasuryPool && treasuryPool.treasuryTapBalance > 0 && (
+                  <span
+                    className="pool-tap-chip"
+                    title="Real-time $TAP balance in treasury wallet"
+                    style={{
+                      background: "rgba(138, 43, 226, 0.15)",
+                      border: "1px solid rgba(138, 43, 226, 0.4)",
+                      color: "#b388ff",
+                      padding: "3px 10px",
+                      borderRadius: 12,
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    ?? TREASURY: {treasuryPool.treasuryTapBalance.toLocaleString("en-US")} $TAP
+                  </span>
+                )}
+                {treasuryPool && treasuryPool.rewardPoolTap > 0 && (
+                  <span
+                    className="pool-reward-tap-chip"
+                    title="10% of treasury $TAP balance allocated for leaderboard rewards"
+                    style={{
+                      background: "rgba(255, 215, 0, 0.15)",
+                      border: "1px solid rgba(255, 215, 0, 0.4)",
+                      color: "#ffd700",
+                      padding: "3px 10px",
+                      borderRadius: 12,
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    ?? 10% REWARD: {treasuryPool.rewardPoolTap.toLocaleString("en-US")} $TAP
+                  </span>
+                )}
 
               <h1 id="home-title" className="display display-xl home-hero-title">
                 CHOP TIMBER.<br />

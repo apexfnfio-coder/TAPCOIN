@@ -1,4 +1,5 @@
 import { getConfig, type PublicConfig } from "./config";
+import { RANKED_ENTRY_COST_TAP } from "@/modules/games/tap-chimp";
 
 export type EligibilityStatus = "eligible" | "ineligible" | "unverified" | "wallet_required";
 
@@ -13,6 +14,9 @@ export interface TokenEligibilityResult {
   status: EligibilityStatus;
   message: string;
   priceSource: string;
+  tapBalance: number | null;
+  rankedEligible: boolean;
+  rankedEntryCost: number;
 }
 
 function rpcUrlForCluster(cluster: string): string {
@@ -80,21 +84,14 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
   const config = cfg || (await getConfig());
   const tokenCa = config.token.contractAddress;
   const minUsd = Math.max(0, Number(config.token.minHoldingUsd || 0));
+  const rankedEntryCost = RANKED_ENTRY_COST_TAP;
 
   if (!wallet) {
     return {
       wallet: null, tokenCa, minUsd, priceUsd: 0, balance: null, valueUsd: null,
       eligible: false, status: "wallet_required", priceSource: "none",
       message: "Connect a Solana wallet to verify leaderboard eligibility.",
-    };
-  }
-
-  // If minimum hold is disabled or 0, or leaderboard is open, all players are eligible
-  if (minUsd <= 0 || !config.leaderboardEligibility?.enabled || config.leaderboardEligibility?.state === "open") {
-    return {
-      wallet, tokenCa, minUsd: 0, priceUsd: 0, balance: null, valueUsd: null,
-      eligible: true, status: "eligible", priceSource: "none",
-      message: "Open leaderboard — play and compete for top ranks!",
+      tapBalance: null, rankedEligible: false, rankedEntryCost,
     };
   }
 
@@ -103,6 +100,7 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
       wallet, tokenCa, minUsd, priceUsd: 0, balance: null, valueUsd: null,
       eligible: false, status: "unverified", priceSource: "none",
       message: "Leaderboard eligibility is temporarily unavailable because token configuration is incomplete.",
+      tapBalance: null, rankedEligible: false, rankedEntryCost,
     };
   }
 
@@ -112,11 +110,26 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
       fetchSplBalance(wallet, tokenCa, config.token.cluster),
     ]);
 
+    const tapBalance = balance;
+    const rankedEligible = tapBalance !== null && tapBalance >= rankedEntryCost;
+
+    if (minUsd <= 0 || !config.leaderboardEligibility?.enabled || config.leaderboardEligibility?.state === "open") {
+      return {
+        wallet, tokenCa, minUsd: 0, priceUsd: price?.priceUsd || 0, balance, valueUsd: null,
+        eligible: true, status: "eligible", priceSource: price?.source || "none",
+        message: rankedEligible ?
+          `Ranked ready (${Math.floor(tapBalance!)} $TAP). Free play always available.`
+          : `Free play active. Hold ${rankedEntryCost} $TAP for ranked leaderboard.`,
+        tapBalance, rankedEligible, rankedEntryCost,
+      };
+    }
+
     if (!price || balance === null) {
       return {
         wallet, tokenCa, minUsd, priceUsd: price?.priceUsd || 0, balance,
         valueUsd: null, eligible: false, status: "unverified", priceSource: price?.source || "unavailable",
-        message: "Casual play active. Connect with $10+ in $TAP to enter official leaderboards.",
+        message: "Casual play active. Connect with enough  to enter official leaderboards.",
+        tapBalance, rankedEligible, rankedEntryCost,
       };
     }
 
@@ -126,14 +139,16 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
       wallet, tokenCa, minUsd, priceUsd: price.priceUsd, balance, valueUsd, eligible,
       status: eligible ? "eligible" : "ineligible", priceSource: price.source,
       message: eligible
-        ? `Ranked tier active ($${valueUsd.toFixed(2)} verified $TAP holding).`
-        : `Casual mode ($${valueUsd.toFixed(2)} held; $${minUsd.toFixed(2)} unlocks ranked leaderboard).`,
+        `Ranked tier active (${valueUsd.toFixed(2)} verified $TAP holding).`
+        : `Casual mode (${valueUsd.toFixed(2)} held; ${minUsd.toFixed(2)} unlocks ranked leaderboard).`,
+      tapBalance, rankedEligible, rankedEntryCost,
     };
   } catch {
     return {
       wallet, tokenCa, minUsd, priceUsd: 0, balance: null, valueUsd: null,
       eligible: false, status: "unverified", priceSource: "unavailable",
       message: "Casual play active. Gameplay and progress tracking fully enabled.",
+      tapBalance: null, rankedEligible: false, rankedEntryCost,
     };
   }
 }

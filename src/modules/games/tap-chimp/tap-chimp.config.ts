@@ -13,3 +13,6 @@ export const TAP_CHIMP_MODULE_CONFIG: GameModuleConfig = {
 
 export const TAP_CHIMP_SAFE_PRICE_USD = 0.0042;
 export const TAP_CHIMP_MIN_HOLDING_USD = 0;
+export const TREASURY_TAP_WALLET = "HE9CvYssJWjNC3rFvNRnFgE7yGDWKvWf6FbUNRty9XFA";
+export const RANKED_ENTRY_COST_TAP = 200;
+export const LEADERBOARD_REWARD_PERCENT = 10;

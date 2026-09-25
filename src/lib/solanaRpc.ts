@@ -1,4 +1,4 @@
-﻿import { TREASURY_WALLET, SEASON_FEE_LAMPORTS } from "./season";
+import { TREASURY_WALLET, SEASON_FEE_LAMPORTS } from "./season";
 
 const RPC_ENDPOINTS = [
   process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com",
@@ -134,5 +134,69 @@ export async function verifySolanaPaymentTx(
     };
   } catch (err: any) {
     return { valid: false, error: err?.message || "Failed to verify transaction on Solana RPC" };
+  }
+}
+
+
+let cachedTapBalance: { tapBalance: number; timestamp: number } | null = null;
+const TAP_CACHE_TTL_MS = 15_000;
+
+/**
+ * Fetches the \ token balance of the treasury wallet in real-time via Solana RPC.
+ * Uses getTokenAccountsByOwner filtered by the \ mint address.
+ */
+export async function getTreasuryTapBalance(tapMint: string, treasuryWallet: string): Promise<number> {
+  const now = Date.now();
+  if (cachedTapBalance && now - cachedTapBalance.timestamp < TAP_CACHE_TTL_MS) {
+    return cachedTapBalance.tapBalance;
+  }
+
+  try {
+    const result = await callRpc("getTokenAccountsByOwner", [
+      treasuryWallet,
+      { mint: tapMint },
+      { encoding: "jsonParsed", commitment: "confirmed" },
+    ]);
+
+    const accounts = Array.isArray(result?.value) ? result.value : [];
+    let totalTap = 0;
+    for (const account of accounts) {
+      const amount = account?.account?.data?.parsed?.info?.tokenAmount;
+      const uiAmount = Number(amount?.uiAmountString ?? amount?.uiAmount ?? 0);
+      if (Number.isFinite(uiAmount)) {
+        totalTap += uiAmount;
+      }
+    }
+
+    cachedTapBalance = { tapBalance: totalTap, timestamp: now };
+    return totalTap;
+  } catch {
+    return cachedTapBalance?.tapBalance ?? 0;
+  }
+}
+
+/**
+ * Fetches the \ token balance for any given wallet address.
+ */
+export async function getWalletTapBalance(wallet: string, tapMint: string): Promise<number | null> {
+  try {
+    const result = await callRpc("getTokenAccountsByOwner", [
+      wallet,
+      { mint: tapMint },
+      { encoding: "jsonParsed", commitment: "confirmed" },
+    ]);
+
+    const accounts = Array.isArray(result?.value) ? result.value : [];
+    let totalTap = 0;
+    for (const account of accounts) {
+      const amount = account?.account?.data?.parsed?.info?.tokenAmount;
+      const uiAmount = Number(amount?.uiAmountString ?? amount?.uiAmount ?? 0);
+      if (Number.isFinite(uiAmount)) {
+        totalTap += uiAmount;
+      }
+    }
+    return totalTap;
+  } catch {
+    return null;
   }
 }

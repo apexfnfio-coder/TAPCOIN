@@ -54,6 +54,7 @@ export default function PlayPage() {
   const [submitResult, setSubmitResult] = useState<RunSubmitResponse | null>(null);
   const [runKey, setRunKey] = useState(0);
   const [demoMode, setDemoMode] = useState(false);
+  const [playMode, setPlayMode] = useState<"free" | "ranked">("free");
   const [showTutorial, setShowTutorial] = useState(false);
   const [colorblindMode, setColorblindMode] = useState(false);
   const [showRewardsModal, setShowRewardsModal] = useState(false);
@@ -143,18 +144,10 @@ export default function PlayPage() {
     if (starting) return;
     setStarting(true);
 
-    // Admins bypass season payment check
+    // Ranked mode: verify wallet has >= 200 $TAP
+    setPlayMode("ranked");
     if (me.role !== "admin") {
-      try {
-        const accessRes = await fetch("/api/access/status", { cache: "no-store" }).then((r) => r.json());
-        if (!accessRes?.data?.hasAccess) {
-          setShowSeasonModal(true);
-          setStarting(false);
-          return;
-        }
-      } catch {
-        // Defensive fallback: require access check to succeed
-        setShowSeasonModal(true);
+      if (!eligibility?.rankedEligible) {
         setStarting(false);
         return;
       }
@@ -169,6 +162,7 @@ export default function PlayPage() {
   }, [me?.walletAddress, me?.role, openWalletModal, starting]);
 
   const startDemoRun = useCallback(() => {
+    setPlayMode("free");
     sound.playClick();
     setDemoMode(true);
     setStarting(false);
@@ -192,6 +186,10 @@ export default function PlayPage() {
     setLocalRun(result);
     setPhase("results");
 
+    if (demoMode || playMode === "free") {
+      setSubmittingRun(false);
+      return;
+    }
     if (submittingRun) return;
     setSubmittingRun(true);
 
@@ -239,7 +237,7 @@ export default function PlayPage() {
     } finally {
       setSubmittingRun(false);
     }
-  }, [demoMode, refreshMe, submittingRun]);
+  }, [demoMode, playMode, refreshMe, submittingRun]);
 
   const walletConnected = !!me?.walletAddress;
 
@@ -415,7 +413,7 @@ export default function PlayPage() {
                   {starting
                     ? strings.starting
                     : walletConnected
-                    ? "PLAY OFFICIAL RUN (0.01 SOL)"
+                    ? "PLAY RANKED (200 $TAP)"
                     : strings.connectWallet}
                 </span>
                 <span aria-hidden="true">→</span>
@@ -430,10 +428,21 @@ export default function PlayPage() {
               </div>
             )}
 
-            {walletConnected && eligibility && config?.leaderboardEligibility.enabled && (
-              <div className={`eligibility-card ${eligibility.eligible ? "ok" : "warn"}`}>
-                <b>Leaderboard Access:</b>
-                <span>{eligibility.message}</span>
+            {walletConnected && eligibility && (
+              <div className={`eligibility-card ${eligibility.rankedEligible ? "ok" : "warn"}`}>
+                <b>Ranked Play:</b>
+                <span>
+                  {eligibility.rankedEligible
+                    ? `Ready! Balance: ${(eligibility.tapBalance || 0).toFixed(0)} $TAP (Cost: 200 $TAP/run)`
+                    : `Need 200 $TAP to play ranked. Balance: ${(eligibility.tapBalance || 0).toFixed(0)} $TAP`}
+                </span>
+              </div>
+            )}
+
+            {treasuryPool && (
+              <div className="eligibility-card ok" style={{ marginTop: 8 }}>
+                <b>Reward Pool:</b>
+                <span>{treasuryPool.rewardPoolTap?.toLocaleString() || "0"} $TAP (10% of treasury)</span>
               </div>
             )}
 
