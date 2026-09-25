@@ -139,7 +139,7 @@ export async function evaluateTokenEligibility(wallet: string | null | undefined
       wallet, tokenCa, minUsd, priceUsd: price.priceUsd, balance, valueUsd, eligible,
       status: eligible ? "eligible" : "ineligible", priceSource: price.source,
       message: eligible
-        `Ranked tier active (${valueUsd.toFixed(2)} verified $TAP holding).`
+        ? `Ranked tier active (${valueUsd.toFixed(2)} verified $TAP holding).`
         : `Casual mode (${valueUsd.toFixed(2)} held; ${minUsd.toFixed(2)} unlocks ranked leaderboard).`,
       tapBalance, rankedEligible, rankedEntryCost,
     };
