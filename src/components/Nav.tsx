@@ -37,8 +37,8 @@ export function Nav() {
     fetch("/api/treasury/pool", { cache: "no-store" })
       .then((r) => r.json())
       .then((j) => {
-        if (j?.ok && typeof j.data?.prizePoolSol === "number") {
-          setPrizePool(j.data.prizePoolSol);
+        if (j?.ok && typeof j.data?.rewardPoolTap === "number") {
+          setPrizePool(j.data.rewardPoolTap);
         }
       })
       .catch(() => {});
@@ -119,7 +119,7 @@ export function Nav() {
                 title="10% of game fees funds leaderboard rewards"
               >
                 <span className="prize-pool-nav-label">🏆 10% REWARDS:</span>
-                <span className="prize-pool-nav-val">{prizePool.toFixed(4)} SOL</span>
+                <span className="prize-pool-nav-val">{prizePool.toLocaleString("en-US")} $TAP</span>
               </div>
             )}
 
@@ -180,7 +180,7 @@ export function Nav() {
           {prizePool !== null && (
             <div className="mobile-drawer-pool">
               <span className="mobile-drawer-pool-lbl">🏆 10% PRIZE POOL</span>
-              <span className="mobile-drawer-pool-val">{prizePool.toFixed(4)} SOL</span>
+              <span className="mobile-drawer-pool-val">{prizePool.toLocaleString("en-US")} $TAP</span>
             </div>
           )}
           <Link href="/how-to-play" onClick={() => setOpen(false)}>

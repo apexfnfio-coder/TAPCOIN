@@ -127,7 +127,7 @@ export function HomeArcadeClient() {
                       fontWeight: 700,
                     }}
                   >
-                    🏆 10% POOL: {treasuryPool.prizePoolSol} SOL
+                    🏆 10% POOL: {treasuryPool.rewardPoolTap?.toLocaleString("en-US") ?? "0"} $TAP
                   </span>
                 )}
                 {treasuryPool && (
@@ -229,7 +229,7 @@ export function HomeArcadeClient() {
               <div className="home-stat-grid" aria-label="Live platform stats">
                 <div className="home-stat-card">
                   <div className="v green">
-                    {treasuryPool ? `${treasuryPool.prizePoolSol.toFixed(4)} SOL` : "0.0100 SOL"}
+                    {treasuryPool ? `${treasuryPool.rewardPoolTap?.toLocaleString("en-US") ?? "0"} $TAP` : "0 $TAP"}
                   </div>
                   <div className="k">10% Leaderboard Pool</div>
                 </div>

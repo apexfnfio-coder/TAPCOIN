@@ -32,6 +32,7 @@ interface Candle {
   taken: boolean;
   /** Colorblind-safe glyph text object (▲/✓ or 🔷 for green, ▼/✗ or 🟠 for red) */
   glyph: Phaser.GameObjects.Text | null;
+  exploded?: boolean;
 }
 
 interface Obstacle {
@@ -1253,6 +1254,58 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  private isOverChasm(x: number): boolean {
+    for (const chasm of this.chasms) {
+      if (x > chasm.x1 + 5 && x < chasm.x2 - 5) return true;
+    }
+    return false;
+  }
+
+  private explodeRedCandleOnGround(candle: Candle) {
+    candle.exploded = true;
+    candle.vy = 0;
+    candle.y = GROUND_Y - 15;
+    candle.sprite.setPosition(candle.x, candle.y);
+    if (candle.glyph) candle.glyph.setPosition(candle.x, candle.y + 2);
+
+    const explosionRadius = 100;
+    const dx = Math.abs(candle.x - this.player.x);
+    const dy = Math.abs(this.player.y - GROUND_Y);
+    const playerInBlastZone = dx < explosionRadius && dy < PLAYER_HEIGHT;
+
+    if (playerInBlastZone && this.time.now >= this.invulnerableUntil) {
+      this.collectCandle(candle);
+    } else {
+      candle.taken = true;
+    }
+
+    if (this.showParticles) {
+      this.burst(candle.x, GROUND_Y - 10, "p-spark", 14, 200);
+    }
+
+    const flash = this.add.circle(candle.x, GROUND_Y - 10, explosionRadius, 0xff3300, 0.45).setDepth(10);
+    this.tweens.add({
+      targets: flash,
+      alpha: 0,
+      radius: explosionRadius * 1.6,
+      duration: 350,
+      onComplete: () => flash.destroy(),
+    });
+
+    if (!this.prefersReducedMotion) {
+      this.cameras.main.shake(120, 0.005);
+    }
+
+    sound.playRed();
+
+    this.time.delayedCall(400, () => {
+      candle.glyph?.destroy();
+      candle.sprite.destroy();
+      const idx = this.candles.indexOf(candle);
+      if (idx >= 0) this.candles.splice(idx, 1);
+    });
+  }
+
   private collectCandle(candle: Candle) {
     // Destroy existing glyph
     candle.glyph?.destroy();
@@ -1550,10 +1603,10 @@ export class GameScene extends Phaser.Scene {
       this.spawnObstacle(this.player.x + this.rng.int(580, 960));
     }
 
-    // Falling candles: fall downward through the sky, through the ground layer ("bablas"), and despawn offscreen
+    // Falling candles: fall downward, red candles explode on ground contact
     for (let i = this.candles.length - 1; i >= 0; i--) {
       const candle = this.candles[i];
-      if (candle.taken) continue;
+      if (candle.taken || candle.exploded) continue;
 
       if (candle.vy > 0) {
         candle.y += candle.vy * (delta / 1000);
@@ -1561,7 +1614,21 @@ export class GameScene extends Phaser.Scene {
         if (candle.glyph) candle.glyph.setPosition(candle.x, candle.y + 2);
       }
 
-      // "tidak berhenti ditanah ya tapi bablas": continues through ground and despawns below screen
+      // Red candles: explode on ground contact instead of passing through
+      if (candle.kind === "red" && candle.vy > 0 && candle.y >= GROUND_Y - 15) {
+        if (this.isOverChasm(candle.x)) {
+          if (candle.y > VIEW_H + 60) {
+            candle.glyph?.destroy();
+            candle.sprite.destroy();
+            this.candles.splice(i, 1);
+          }
+          continue;
+        }
+        this.explodeRedCandleOnGround(candle);
+        continue;
+      }
+
+      // Green candles or other: despawn offscreen
       if (candle.y > VIEW_H + 60) {
         candle.glyph?.destroy();
         candle.sprite.destroy();
